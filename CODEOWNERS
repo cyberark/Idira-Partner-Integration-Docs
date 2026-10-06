@@ -1,0 +1,11 @@
+# Idira Technical Alliances owns all content in this repository.
+#
+# ACTION REQUIRED BEFORE PUBLIC LAUNCH: replace the line below with the GitHub
+# team handle for the owning org (`@<org>/<team>`). CODEOWNERS accepts an email
+# address, but GitHub only auto-requests review if that address is verified on
+# exactly one GitHub user account — a shared distribution alias resolves for
+# nobody, and it fails SILENTLY. Left as-is on a public repo, outside pull
+# requests get no reviewer assigned at all.
+#
+# The handle cannot be filled in until the owning org is decided.
+* cybr-bizdevtech@paloaltonetworks.com

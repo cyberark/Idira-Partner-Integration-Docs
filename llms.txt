@@ -1,0 +1,72 @@
+# Idira Partner Integration Development Kits
+
+> Development kits for building and certifying a technology integration with the Palo Alto Networks
+> Idira Identity Security Platform. Sixteen kits across eight workflows, each with a development
+> guide and the certification checklist the integration will be graded against. Published so a
+> partner — or a partner's AI agent — can drive the build without a review cycle per question.
+
+Read `journey.md` before anything else: it is the only file that states the five stages and the gates.
+`decision-guide.md` then routes what you are building to the correct integration-request-form option
+and the correct kit. Each kit's certification checklist is published deliberately, so it can be read
+during the build rather than discovered at submission.
+
+These guides describe APIs in prose and worked examples. No kit ships an OpenAPI document, GraphQL
+SDL, or XSD, so the examples do not fully determine every schema. Where a field's type or permitted
+values are not stated, ask rather than infer — `AGENTS.md` has the specific cases.
+
+Content is licensed CC BY 4.0. Feeding it into partner tooling, retrieval indexes, and coding agents
+is explicitly permitted.
+
+## Start here
+
+- [AGENTS.md](AGENTS.md): Machine entry point — read order, stop rules, permitted use
+- [The Partner Integration Journey](docs/journey.md): The five stages, the gates, and what is graded
+- [Which Integration Do I Select?](docs/decision-guide.md): Routes what you build to a form option and a kit
+- [Development Kits Index](docs/index.md): Catalog of every workflow and kit, with status
+
+## Cross-cutting requirements
+
+- [Telemetry reference](docs/telemetry-reference.md): The mandatory `x-cybr-telemetry` header — transform, per-kit `IntegrationType` registry, reference code in five languages, test vectors
+- [Idira product name crosswalk](docs/naming-crosswalk.md): Current Idira names against CyberArk-era and legacy names, and which names deliberately did not change
+- [Marketplace listing standards](docs/marketplace-standards.md): What listing content must look like
+- [Joint Solution Brief standards](docs/jsb-standards.md): Standards for a joint solution brief
+
+## Discovery
+
+- [Discovery decision guide](docs/discovery/decision-guide.md): Choose between the four Discovery kits
+- [Privileged Accounts](docs/discovery/privileged-accounts/development-guide.md): Push discovered privileged accounts into Idira ([checklist](docs/discovery/privileged-accounts/certification-checklist.md))
+- [AI Agents](docs/discovery/ai-agents/development-guide.md): Push discovered AI agents into Idira ([checklist](docs/discovery/ai-agents/certification-checklist.md))
+- [Machine Identities](docs/discovery/machine-identities/development-guide.md): Push discovered workloads into Idira ([checklist](docs/discovery/machine-identities/certification-checklist.md))
+- [Secrets](docs/discovery/secrets/development-guide.md): Push discovered secrets into Idira ([checklist](docs/discovery/secrets/certification-checklist.md))
+
+## EPM
+
+- [EPM decision guide](docs/epm/decision-guide.md): Choose between the three EPM kits
+- [Audit Events](docs/epm/audit-events/development-guide.md): Stream EPM audit events into a partner platform ([checklist](docs/epm/audit-events/certification-checklist.md))
+- [Ticketing — JIT Admin Elevation](docs/epm/ticketing-jit/development-guide.md): Gate JIT elevation through a partner ticketing approval workflow ([checklist](docs/epm/ticketing-jit/certification-checklist.md))
+- [SOC Response](docs/epm/soc-response/development-guide.md): Trigger endpoint privilege containment from an XDR detection or SOAR playbook ([checklist](docs/epm/soc-response/certification-checklist.md))
+
+## Secrets Management
+
+- [Secrets Management decision guide](docs/secrets-management/decision-guide.md): Choose between the four secrets-retrieval paths
+- [Secrets Manager SaaS](docs/secrets-management/secrets-manager-saas/development-guide.md): Retrieve secrets from Secrets Manager SaaS ([checklist](docs/secrets-management/secrets-manager-saas/certification-checklist.md))
+- [Credential Provider](docs/secrets-management/credential-provider/development-guide.md): Agent-based local secret retrieval ([checklist](docs/secrets-management/credential-provider/certification-checklist.md))
+- [Central Credential Provider](docs/secrets-management/central-credential-provider/development-guide.md): Agentless REST secret retrieval ([checklist](docs/secrets-management/central-credential-provider/certification-checklist.md))
+- [Secrets Manager Self-Hosted](docs/secrets-management/secrets-manager-self-hosted/development-guide.md): Retrieve secrets from a self-hosted deployment ([checklist](docs/secrets-management/secrets-manager-self-hosted/certification-checklist.md))
+
+## Workload Identity
+
+- [Workload Identity decision guide](docs/workload-identity/decision-guide.md): One kit, so this guide tests whether the integration belongs in this workflow rather than in Secrets Management or Discovery — establishing an identity and using one to fetch a secret are different integrations. Also resolves the `SWA` acronym collision with the unrelated Secure Web Application Connectors Framework
+- [SWA Federation](docs/workload-identity/swa-federation/development-guide.md): Establish SPIFFE identity for workloads your platform runs, routes, or hosts, so they authenticate to Idira with a short-lived attested SVID instead of a distributed secret. **Preview** — not a certifiable path yet, and the step-level federation exchange is deliberately not published: confirm it rather than reconstructing it from SPIFFE or SPIRE material ([checklist](docs/workload-identity/swa-federation/certification-checklist.md))
+
+## Other workflows
+
+- [Audit Service — SIEM Integration](docs/audit-service/siem-integration/development-guide.md): Stream Idira identity and privileged-access audit events into a partner platform ([checklist](docs/audit-service/siem-integration/certification-checklist.md))
+- [Credential Rotation — CPM REST API Plugin](docs/credential-rotation/cpm-rest-api/development-guide.md): A CPM plugin that rotates credentials for a target application ([checklist](docs/credential-rotation/cpm-rest-api/certification-checklist.md))
+- [Identity Response Actions](docs/identity-response/response-actions/development-guide.md): Trigger identity, session, credential, and access-policy response actions from an XDR/SIEM/SOAR platform ([checklist](docs/identity-response/response-actions/certification-checklist.md))
+- [PSM Web Connection Component](docs/psm-connectors/web-connection-component/development-guide.md): Package a connection component so PSM can broker and record a session to a partner web application. Browser automation, not REST — the telemetry requirement does not apply ([checklist](docs/psm-connectors/web-connection-component/certification-checklist.md))
+
+## Optional
+
+- [Contributing](CONTRIBUTING.md): How to report a defect — issues, not pull requests
+- [Licence](LICENSE): CC BY 4.0

@@ -1,0 +1,175 @@
+name: publish-guard
+
+# This repository is public and is the source of truth for the dev-kit corpus — there
+# is no upstream copy and no sync step, so this job is the only automated gate between
+# an edit and a partner reading it. It runs on every push and pull request.
+#
+# Two checks: content that must not be published, and links that do not resolve.
+# See CONTRIBUTING.md § "What must never appear in docs/" for the rules these encode.
+#
+# Note on patterns: this file is public, so the rules below deliberately match the
+# *shape* of internal content rather than listing employee names or internal systems
+# one by one. A roster in a public file is itself a disclosure, and it goes stale.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish guard — internal content
+        run: |
+          set -o pipefail
+          fail=0
+
+          # scan_i — case-insensitive. scan_s — case-sensitive, for any pattern that
+          # relies on capitalisation (a person's name, an internal CamelCase name).
+          # Do not merge them: -i makes [A-Z] match lowercase, which silently turns a
+          # name-shaped pattern into a match on ordinary prose.
+          scan_i () { _scan "-rinE" "$1" "$2"; }
+          scan_s () { _scan "-rnE"  "$1" "$2"; }
+          _scan () {
+            local flags="$1" label="$2" pattern="$3"
+            if out=$(grep $flags "$pattern" docs/ 2>/dev/null); then
+              echo ""
+              echo "::error::$label"
+              echo "$out"
+              fail=1
+            fi
+          }
+
+          # A requirement is sourced to the certification programme or an Idira
+          # document, never to a named individual. Case-sensitive: the signal is a
+          # capitalised Firstname Lastname, not the verb.
+          scan_s "Decision attributed to a named individual" \
+            '(decided|approved|permitted|requested|signed off|agreed)[[:space:]]+by[[:space:]]+[A-Z][a-z]+[[:space:]]+[A-Z]|House rule[[:space:]]*(—|-{1,2})[[:space:]]*[A-Z][a-z]+[[:space:]]+[A-Z][a-z]+'
+
+          # Internal repository paths and vault structure. Case-sensitive on the org
+          # and repo names, which otherwise match the public contact alias.
+          scan_s "Internal repository or vault path" \
+            'Tech-Alliances/|/0[0-9]_[a-z_]+/'
+
+          # The internal team name. Partner-facing docs say "Idira Technical Alliances";
+          # this catches the internal form. Case-sensitive and word-bounded so it does
+          # not match the public alias (lowercase) or the BizDevTch-*.zip artifact name
+          # partners actually download.
+          scan_s "Internal team name" '\bBizDev(Tech)?\b'
+          scan_i "Internal vault reference" \
+            'internal vault|Lightning vault|the vault'"'"'s own'
+
+          # Link hosts are allowlisted rather than denylisted. A denylist would have to
+          # name the internal hosts to block them, which publishes them; an allowlist
+          # names only hosts a partner is meant to reach, and catches every other host —
+          # including ones nobody thought to block. Add a host here when a doc needs it.
+          allowed='^(docs|api-docs)\.cyberark\.com$|^c3\.cyberark\.cloud$|^[A-Za-z0-9-]+\.(id\.cyberark\.cloud|epm\.cyberark\.com)$|^marketplace\.idira\.com$|^(www\.)?jsonpath\.com$|^creativecommons\.org$|^(YOUR_API_BASE_URL_GOES_HERE|IISSERVER|localhost)$'
+          if bad=$(grep -rohE 'https?://[A-Za-z0-9._%-]+' docs/ | sed -E 's|https?://||' | sort -u | grep -vE "$allowed"); then
+            echo ""
+            echo "::error::Link host not on the partner-facing allowlist"
+            echo "$bad"
+            echo "(If the host is legitimate, add it to \$allowed in this workflow.)"
+            fail=1
+          fi
+
+          # Internal tooling, review pipeline, and process references. Matched by shape,
+          # for the reason in the header: the authoring and review tools are internal, and
+          # naming them here to detect them would publish the very list we are detecting.
+          # The shapes are how a tool citation actually looks in prose — a numbered rule
+          # ID, a backticked snake_case tool followed by a reporting verb, or a link to a
+          # snake_case .md file (internal docs are snake_case; this corpus is kebab-case).
+          scan_i "Internal tooling or process reference" \
+            'rule[[:space:]]+R[0-9]+|[Rr][0-9]+[[:space:]]+of[[:space:]]+`|\b[a-z]+_[a-z][a-z_]*\.md\b|`[a-z][a-z_]*_[a-z][a-z_]*`[[:space:]]+(rule|check|grades|flags|reports)|leak guard|GitHub Enterprise|\basana\b|\bimpartner\b'
+
+          # Internal planning and estimation vocabulary.
+          scan_i "Internal planning or estimation content" \
+            '\bLOE\b|level of effort|priority score|\bper SOP\b|internal awareness|competitor context'
+          scan_s "Internal task key" '\bBDT-[0-9]+'
+
+          # Unreleased-roadmap disclosure, including the self-defeating form where a
+          # change log narrates what was redacted. See CONTRIBUTING.md.
+          scan_i "Unreleased roadmap or narrated redaction" \
+            'unreleased|not yet released|no longer (describes|names|mentions)|disclosed unreleased|rolling out as a native|roadmap'
+          scan_s "Internal rollout phase" 'internal \*\*Phase [0-9]'
+
+          # Author-to-author notes left in an HTML comment. These are the one class of
+          # internal content that is invisible to a human reviewing the rendered page and
+          # fully visible to the audience this corpus is built for — a partner's agent
+          # reads the raw markdown, comment and all. Six of these shipped as open
+          # questions addressed to Idira product teams before this pattern existed.
+          #
+          # An unanswered question belongs in visible prose as a stop-and-ask (see
+          # AGENTS.md § 5) or in internal tracking — never in a comment, where nothing
+          # owns it and nothing reviews it.
+          scan_i "Author note in an HTML comment" \
+            '<!--[[:space:]]*(TODO|FIXME|XXX|HACK|NOTE|DRAFT|INTERNAL|REVIEW|TBD)'
+
+          if [ "$fail" -ne 0 ]; then
+            echo ""
+            echo "FAILED — content above must not be published. Fix it here in docs/ and"
+            echo "re-push; this repository is the source of truth. See CONTRIBUTING.md."
+            exit 1
+          fi
+          echo "PASSED — no internal content detected."
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Link rules only (R8 broken path, R9 broken anchor). The checker's other rules
+      # carry untriaged findings, so gating on them would land red on arrival and get
+      # muted — which is worse than not gating at all.
+      - name: Link integrity (R8/R9)
+        run: |
+          echo "Checking every markdown link and #anchor under docs/..."
+          python3 .github/scripts/link-check.py --rules R8,R9 .
+
+      # External vendor-doc reachability. The two checks above cannot catch this: the
+      # allowlist validates the *host*, and R8/R9 validate relative paths and anchors
+      # inside this repo. A vendor doc page that is retired or moved still has an
+      # allowlisted host and no relative path, so it passes both and 404s for the
+      # partner. Six links were dead this way before this step existed.
+      #
+      # Scope is docs.cyberark.com only. api-docs.cyberark.com is a client-rendered app
+      # that returns 200 for unknown deep paths, so checking it would be theatre.
+      # Placeholder URLs (https://<tenant>.id.cyberark.cloud) are excluded for free:
+      # '<' is not in the character class below.
+      #
+      # Gating rule: fail on 404/410 only. A runner can be bot-blocked (403), rate
+      # limited (429) or time out, and a gate that goes red for those gets muted —
+      # which is worse than no gate. Those are reported as warnings and do not fail.
+      - name: External doc links resolve
+        run: |
+          set -o pipefail
+          grep -rohE 'https://docs\.cyberark\.com/[A-Za-z0-9._%/#-]+' docs/ \
+            | sed -E 's/[.,;:]+$//' | sed -E 's/#.*$//' | sort -u > /tmp/extlinks.txt
+          total=$(wc -l < /tmp/extlinks.txt)
+          echo "Checking $total unique docs.cyberark.com URLs..."
+          dead=0; warned=0
+          while read -r u; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" -L --max-time 25 \
+                     --retry 2 --retry-delay 3 -A "Mozilla/5.0" "$u" || echo "000")
+            case "$code" in
+              200|301|302) ;;
+              404|410)
+                echo "::error::Dead vendor doc link ($code): $u"
+                dead=1 ;;
+              *)
+                echo "::warning::Unverified ($code), not failing the build: $u"
+                warned=$((warned+1)) ;;
+            esac
+          done < /tmp/extlinks.txt
+          if [ "$dead" -ne 0 ]; then
+            echo ""
+            echo "FAILED — the links above return 404/410. Find the current page in the"
+            echo "product sitemap and repoint:"
+            echo "  curl -s https://docs.cyberark.com/{product}/latest/en/sitemap.xml \\"
+            echo "    | grep -oE '<loc>[^<]*</loc>' | sed -E 's|</?loc>||g' | grep -i {keyword}"
+            exit 1
+          fi
+          echo "PASSED — $total checked, 0 dead, $warned unverified."
