@@ -4,9 +4,9 @@
 **Use Case:** SOC Response — XDR/SOAR Endpoint Containment
 **Idira Product:** Endpoint Privilege Manager (EPM)
 **Type:** Development Guide
-**Version:** 1.5
+**Version:** 1.6
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -309,7 +309,7 @@ Filter by IP address instead: `"filter": "ip EQ \"<ip-address>\""`
 
 ### 7.2 Search Endpoint Groups by Filter V2 (Resolve GroupId)
 
-Retrieves the `id` of a named static group. Call once per group name at startup and cache the result — group IDs are stable unless the group is deleted and recreated. Full reference: [Search endpoint groups by filter (V2)](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/search-groups-by-filter-v2.htm).
+Retrieves the `id` of a named static group. Call once per group name at startup and cache the result — group IDs are stable unless the group is deleted and recreated, and the endpoint group APIs allow only **10 calls per 2 minutes**. Full reference: [Search endpoint groups by filter (V2)](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/search-groups-by-filter-v2.htm).
 
 ```bash
 curl -X POST \
@@ -422,7 +422,7 @@ Log the `ComputerId`, `GroupId`, alert ID, and timestamp at each step. This crea
 | `403` | Insufficient permissions | Verify the service account has EPM endpoint management permissions |
 | `404` | Endpoint or group not found | Endpoint: agent not registered in EPM or below version 26.4. Group: verify static group exists in EPM tenant. |
 | `409` | Conflict — endpoint already a member | Endpoint is already in the group; idempotent — log and continue |
-| `429` | Rate limited | Exponential backoff — do not retry in a tight loop |
+| `429` | Rate limited | Exponential backoff — do not retry in a tight loop. Limits: endpoint group APIs 10 calls per 2 minutes; add/remove members 5 per second and 500 per 5 minutes; Get endpoints 1,000 per 5 minutes and 5 per second. Put several endpoints in one `membersIds` call during an incident rather than one call per host. See [API limitations](https://docs.cyberark.com/epm/latest/en/content/webservices/webservicesintro.htm) |
 | `500` | Server error | Log full response; retry after backoff; alert SOC if persistent |
 
 ---
@@ -489,5 +489,6 @@ Log the `ComputerId`, `GroupId`, alert ID, and timestamp at each step. This crea
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.6 | 2026-10-08 | **[Added]** The rate limits that shape a containment design: endpoint group APIs 10 calls per 2 minutes (the reason to cache group IDs), add/remove members 5 per second and 500 per 5 minutes, Get endpoints 1,000 per 5 minutes and 5 per second; and batching endpoints into one `membersIds` call during an incident | Idira Technical Alliances |
 | 1.5 | 2026-10-05 | **[Removed]** Two author-to-author editorial comments that were addressed to Idira teams rather than to a partner. They were invisible on the rendered page and fully visible to a partner's AI agent, which reads the raw markdown — so the audience this corpus is built for was reading notes written for us. Both restated a caveat the visible guidance already carries, and nothing a partner acts on changed: `SetId` is still resolved at runtime behind one replaceable function, and an ambiguous endpoint match must still fail the playbook step rather than contain an arbitrary host. The two open product questions they tracked are now tracked where they have an owner and a review trigger. A publish-guard check now fails the build on this class of comment | Idira Technical Alliances |
 | 1.4 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. Also added this change log — the file previously carried none, so no revision before this one is recorded. — Idira Technical Alliances |

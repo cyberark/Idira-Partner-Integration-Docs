@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Status:** Preview — not a certifiable path yet  
 **Author:** Idira Technical Alliances  
-**Version:** 1.0  
-**Last Updated:** 2026-10-05
+**Version:** 1.1  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -23,14 +23,12 @@ USE CASE: SWA Federation — a partner platform that runs, routes, or hosts work
 TELEMETRY: Required on every request — x-cybr-telemetry header, Base64url-encoded. it=WorkloadIdentity
 CONTACT: cybr-bizdevtech@paloaltonetworks.com
 
-THIS KIT IS PREVIEW AND ONE SECTION IS DELIBERATELY INCOMPLETE. Section 6 does not state the
-step-level federation exchange — the SVID presentation sequence and which SVID types are accepted.
-That detail lives in the authenticated Secrets Manager SaaS documentation and is not published here.
-DO NOT SYNTHESISE IT. Do not infer the sequence from the SPIFFE specification, from a SPIRE
-tutorial, or from the attestation methods in Section 5 — SPIRE-oriented public material does not
-match Idira's setup step for step. If asked how the exchange works, say it must be confirmed with an
-Idira Technical Alliances contact and stop. A fabricated exchange sequence is the single most likely
-failure mode for an agent reading this file.
+THIS KIT IS PREVIEW. The federation exchange (Section 6) and the SWA management APIs (Section 6.3)
+are documented in the public Secrets Manager SaaS documentation and summarised here. Build from
+those pages — not from the SPIFFE specification or a SPIRE tutorial, which do not match Idira's setup
+step for step. One point remains unconfirmed and must be checked with an Idira Technical Alliances
+contact before you rely on it: whether X.509-SVIDs (rather than JWT-SVIDs) are accepted for
+authenticating to Secrets Manager.
 
 SWA IS NOT A STANDALONE PRODUCT AND NOT A SEPARATE DOC SPACE. It is delivered as part of Secrets
 Manager SaaS and documented inside that space. Write "Secure Workload Access" in full, "SWA" on
@@ -60,23 +58,34 @@ NOT THIS KIT, EASILY CONFUSED:
   Secure Web Application Connectors Framework, a PSM browser-automation component. UNRELATED to
   Secure Workload Access. If a partner says "SWA" and means a web connector, route there instead.
 
-ATTESTATION IS THE REAL DECISION IN THIS KIT (Section 5), AND IT IS PLATFORM-DRIVEN, NOT PREFERENCE
-DRIVEN. Three methods are confirmed, each removing a provisioning step rather than adding one:
-  AWS EC2        Instance Identity Document (IID) — no X.509 cert pre-provisioned on the instance
-  Google Cloud   SPIFFE identity for GCP workloads and for agents on the Gemini Enterprise
-                 Agent Platform
-  Kubernetes     k8s_jwt, a projected service account token verified cryptographically
-Check the platform BEFORE concluding a workload has no SWA path. A workload carrying no SVID today
-may still attest on one of the three.
+ATTESTATION IS THE REAL DECISION IN THIS KIT (Section 5), AND IT IS PLATFORM-DRIVEN. The SWA Agent
+attests its node with one of:
+  aws_iid      AWS EC2 Instance Identity Document — no certificate pre-provisioned
+  k8s_jwt      Kubernetes projected service-account token, verified cryptographically — SWA Server
+               needs no route to the cluster API server, so hub-and-spoke is supported
+  k8s_psat     Kubernetes projected service-account token validated against the cluster API server
+               (SWA Server in the same cluster)
+  x509pop      X.509 proof-of-possession: a machine certificate signed by a CA configured on the
+               server group; the certificate's Subject CN names the node group (Unix/Linux)
+Gemini Enterprise agents on Google Cloud get SPIFFE identities through Google Cloud service-account
+attestation. Check the platform BEFORE concluding a workload has no SWA path.
 
-KUBERNETES CHANGED THE TOPOLOGY CONSTRAINT. With k8s_jwt, SWA Server does not require network access
-to the cluster's API server, so SWA Server outside the cluster with agents inside (hub-and-spoke) is
-supported. If a customer previously ruled SWA out because SWA Server could not reach their cluster
-API endpoint, that objection no longer applies — re-test rather than carrying the old answer forward.
+FEDERATION — WHAT AN SWA IDENTITY IS EXCHANGED FOR (Section 6). A workload fetches a JWT-SVID from SWA
+and exchanges it: with Secrets Manager through the JWT authenticator, or for temporary AWS, Azure,
+Google Cloud, Claude or OpenAI credentials. SPIFFE changes how workloads reach downstream services;
+it does not replace how a workload authenticates to Secrets Manager at bootstrap.
 
-FALLBACK ORDER WHEN NO ATTESTATION PATH EXISTS: client certificate, then JWT, then API key as a last
-resort — all documented in ../../secrets-management/secrets-manager-saas/ Section 4. An embedded
-static key in workload or agent code is an anti-pattern this corpus grades against, not a shortcut.
+THE SECRETS MANAGER EXCHANGE, EXACTLY (Section 6.1): JWT authenticator with `jwks-uri`, `issuer`,
+`audience`, `token-app-property` = `sub` and `identity-path`; the trust domain must sign JWT-SVIDs
+with RSA — not elliptic-curve — for this path; SWA creates each workload host under
+`data/swa/trust-domains/<trust-domain>/workloads/` with NO secret access by default, so the admin
+must create the workloads group, annotate the host with its SPIFFE ID, add it to the group and grant
+secret permissions.
+
+FALLBACK ORDER WHEN NO ATTESTATION PATH EXISTS: a cloud IAM authenticator or JWT, then API key as a
+last resort — documented in ../../secrets-management/secrets-manager-saas/ Section 4. Client
+certificate authentication works only through Secrets Manager Edge. An embedded static key in
+workload or agent code is an anti-pattern this corpus grades against, not a shortcut.
 
 FILES IN THIS DIRECTORY:
 - development-guide.md — this file — how to build the integration
@@ -213,25 +222,24 @@ This is the real decision in the kit, and it is driven by where the workload run
 preference. Three methods are confirmed. Each **removes** a provisioning step rather than adding one,
 which is the point: there is no bootstrap credential to distribute, so there is nothing to leak.
 
-| Platform | Method | What the platform supplies | What you do *not* need |
+| Method | Where it applies | What it proves | What you do *not* need |
 |:---|:---|:---|:---|
-| **AWS EC2** | Instance Identity Document (IID) | EC2 supplies the IID to the instance automatically | No X.509 certificate pre-provisioned on the instance before attestation |
-| **Google Cloud** | SPIFFE identity for GCP workloads, and for AI agents on the Gemini Enterprise Agent Platform | Platform-issued verifiable identity in place of static credentials | No static credential issued to the workload or agent |
-| **Kubernetes** | `k8s_jwt` | A projected service account token, verified cryptographically | No pre-provisioned certificate, no bootstrap secret, and no SWA Server route to the cluster API server |
+| **`aws_iid`** | AWS EC2 | The EC2 Instance Identity Document, supplied to the instance automatically | No X.509 certificate pre-provisioned on the instance |
+| **`k8s_jwt`** | Kubernetes, SWA Server inside or outside the cluster | A projected service-account token, verified cryptographically | No bootstrap secret, and no SWA Server route to the cluster API server — hub-and-spoke is supported |
+| **`k8s_psat`** | Kubernetes, SWA Server in the same cluster | A projected service-account token validated against the cluster API server | No bootstrap secret |
+| **`x509pop`** | Unix/Linux machines | A machine certificate signed by a CA configured on the server group; its Subject CN names the node group | No shared secret — the private key never leaves the machine |
+| **Google Cloud service-account attestation** | Gemini Enterprise AI agents | The agent's Google Cloud service account | No static credential issued to the agent |
 
-**Dates these became available:** AWS EC2 — 2026-09-02. Google Cloud and Gemini Enterprise Agent
-Platform — 2026-08-10. Kubernetes `k8s_jwt` — 2026-09-10. They are listed because an assessment made
-before the relevant date reached a different conclusion on the same architecture, and that is the
-most common reason a partner believes there is no path.
+The node group decides which workloads on an attested node receive an identity: its `workload_type` (`kubernetes` or `unix`), the SPIFFE ID template (it must begin `spiffe://{{ .trustdomain }}/{{ .nodegroup }}/`), and optional CEL registration policies. **If you omit the registration policies, SWA issues an SVID to every workload on an attested node** — set them to issue identities only to the workloads that need one. See [Configure node attestation](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-node-attestation-x509pop.htm), [Design node groups](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-node-groups-design.htm) and [Configure SPIFFE templates, attestors, and policies](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-node-groups-templates-policies.htm).
 
 ### 5.1 Check the platform before concluding there is no path
 
-A workload that holds no SPIFFE SVID *today* may still have a usable SWA path on one of the three
-platforms above. The sequence:
+A workload that holds no SPIFFE SVID *today* may still have a usable SWA path through one of the
+methods above. The sequence:
 
-1. Identify where the workload actually runs — EC2, Google Cloud, Kubernetes, or something else.
-2. If it is one of the three, the attestation method is determined. Use it.
-3. Only if it is none of the three, fall back to Section 5.2.
+1. Identify where the workload actually runs — EC2, Kubernetes, a Unix/Linux machine with a CA-issued certificate, Gemini Enterprise, or something else.
+2. If one of the methods above applies, use it.
+3. Only if none applies, fall back to Section 5.2.
 
 Skipping step 1 and going straight to a fallback is the failure this section exists to prevent.
 
@@ -239,7 +247,7 @@ Skipping step 1 and going straight to a fallback is the failure this section exi
 
 Fall back to the Workload API authentication methods in
 [`secrets-management/secrets-manager-saas/development-guide.md`](../../secrets-management/secrets-manager-saas/development-guide.md)
-Section 4, in this order: **client certificate, then JWT, then API key as a last resort.**
+Section 4, in this order: **a cloud IAM authenticator or JWT, then API key as a last resort.** Client certificate authentication works only through Secrets Manager Edge, a customer-hosted component.
 
 > **An embedded static key is not a fallback.** Never ship a workload or an agent with a key in its
 > code or configuration. Agents are cloned and redeployed constantly, so an embedded key leaks with
@@ -250,34 +258,55 @@ Section 4, in this order: **client certificate, then JWT, then API key as a last
 
 ## 6. The Federation Exchange
 
-> ### Not stated here — confirm before you build against it
->
-> **The step-level federation exchange is not published in this kit.** Specifically: the sequence in
-> which an SVID is presented and validated, and which SVID types are accepted.
->
-> That detail is documented in the **"Authenticate workloads using SPIFFE"** section of the Secrets
-> Manager SaaS documentation, which requires authenticated access. It is not reproduced here because
-> this kit's authors could not verify it against that source, and publishing an unverified exchange
-> sequence would be worse than publishing none.
->
-> **Do not reconstruct it.** In particular, do not derive it from the SPIFFE specification or from a
-> SPIRE tutorial: Idira's setup differs from the SPIRE-oriented public guidance, and the differences
-> are in exactly these steps. Do not derive it from Section 5 either — attestation and the federation
-> exchange are separate concerns.
->
-> **What to do instead:** confirm the current mechanism with your Idira Technical Alliances contact
-> before coding against it, and treat any sequence you have inferred as unconfirmed until they
-> validate it.
+A workload fetches a **JWT-SVID** from SWA and exchanges it for access. SPIFFE changes how a workload reaches downstream services; it does not replace how a workload authenticates to Secrets Manager at bootstrap. See [Understand SPIFFE workload identities](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-overview.htm).
 
-What you *can* design around in the meantime, because it is settled:
+### 6.1 Exchanging a JWT-SVID with Secrets Manager
 
-- The workload presents an attested identity rather than a bearer secret. Your platform's job is to
-  make sure a real identity is available at the point of the call.
-- SVIDs are **short-lived**. Build renewal in from the start and do not cache an SVID past its
-  validity, or treat one as a long-term credential.
-- The identity is bound to the platform context the workload runs in, so it will not survive being
-  moved out of that context. That is the security property, not a defect — do not design around it by
-  extracting and forwarding an SVID.
+Secrets Manager accepts SWA identities through its **JWT authenticator**. Full procedure: [Integrate Secure Workload Access with Secrets Manager JWT authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/services/cjr-authn-jwt-swa.htm).
+
+1. **Signing.** The trust domain must sign JWT-SVIDs with **RSA** (`RS*` with an `RSA_*` key). SWA can also sign with elliptic-curve keys, but the JWT authenticator path needs RSA. Confirm the OIDC issuer and audience values for your trust domain.
+2. **Authenticator.** Load a JWT authenticator policy in the `conjur/authn-jwt` branch and set its variables: `jwks-uri` (SWA's JWKS endpoint), `issuer`, `audience`, `token-app-property` = `sub`, and `identity-path`.
+3. **Workload hosts.** When SWA attests a workload it creates a host under `data/swa/trust-domains/<trust-domain>/workloads/`. **New workload identities have no secret access by default.** The customer's administrator must:
+   - create the workloads group (SWA does not create it),
+   - annotate each workload host with its SPIFFE ID so the authenticator can map the `sub` claim,
+   - add the host to the group, and
+   - grant the group permissions on the secrets it needs.
+4. **At runtime** the workload fetches a JWT-SVID from the SWA agent (`/opt/swa/bin/swa-agent` on a machine), presents it to the JWT authenticator, receives a Secrets Manager access token, and retrieves its authorized secrets.
+
+> **Still to confirm.** The documented path uses JWT-SVIDs. Whether X.509-SVIDs are accepted for authenticating to Secrets Manager is not stated in the public documentation — confirm with your Idira Technical Alliances contact before you depend on it.
+
+### 6.2 Exchanging a JWT-SVID with external platforms
+
+SWA-issued JWTs can be exchanged for temporary credentials on other platforms, so the workload holds no long-term credential there either:
+
+| Target | Reference |
+|:---|:---|
+| AWS | [Authenticate SWA workloads with AWS](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-aws.htm) |
+| Microsoft Azure | [Authenticate SWA workloads with Azure](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-azure.htm) |
+| Google Cloud | [Authenticate SWA workloads with Google Cloud](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-gcp.htm) |
+| Gemini Enterprise agents | [Authenticate Gemini Enterprise agents with SWA](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-gemini-enterprise.htm) |
+| Claude | [Authenticate SWA workloads with Claude](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-claude.htm) |
+| OpenAI | [Authenticate SWA workloads with OpenAI](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-openai.htm) |
+
+### 6.3 SWA management APIs
+
+A partner product that issues, carries or brokers workload identity manages SWA through its REST API, under `https://<subdomain>.secretsmgr.cyberark.cloud/api/swa/`, with `Authorization: Token token="<token>"` (a Secrets Manager admin token) and the v2 media type `application/x.secretsmgr.v2+json`:
+
+| Resource | Operations |
+|:---|:---|
+| Trust domains — `/api/swa/trust-domains` | register, list, get, update, delete; JWT signing key type |
+| Server groups — `/api/swa/trust-domains/{name}/server-groups` | create, list, get, update, delete; node attestation configuration |
+| Node groups — `…/server-groups/{name}/node-groups` | create, list, get, update, delete; `workload_type`, SPIFFE ID template, registration policies |
+| Servers | register, list, get, update, delete |
+| Discovery | OpenID configuration, JWKS, CA bundles |
+
+Reference: [Secure Workload Access APIs overview](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/apis/ccl-api-swa-lp.htm). A Terraform provider is also available: [Install the Secrets Manager provider for SWA](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-terraform-provider.htm).
+
+### 6.4 Design rules that do not change
+
+- The workload presents an attested identity rather than a bearer secret. Your platform's job is to make sure a real identity is available at the point of the call.
+- SVIDs are **short-lived**. Build renewal in from the start and do not cache an SVID past its validity, or treat one as a long-term credential.
+- The identity is bound to the platform context the workload runs in, so it will not survive being moved out of that context. That is the security property, not a defect — do not design around it by extracting and forwarding an SVID.
 
 ---
 
@@ -306,9 +335,8 @@ contact before certification rather than chosen at build time.
 
 ## 8. Failure Modes to Handle
 
-Specific HTTP status codes for the federation exchange are not published here, for the reason given
-in Section 6 — so this section covers the architectural failures instead, which are the ones that
-actually bite in deployment. Handle all four.
+For HTTP status codes, see the reference pages linked in Section 6. This section covers the
+architectural failures, which are the ones that actually bite in deployment. Handle all four.
 
 | Failure | Why it happens | What your integration should do |
 |:---|:---|:---|
@@ -348,4 +376,5 @@ attestation failure and an authorization failure look identical in the logs.
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.1 | 2026-10-08 | **[Added]** The documented federation exchange with Secrets Manager — JWT-SVIDs through the JWT authenticator, RSA signing, the authenticator variables, and the host, group and permission steps without which an attested workload has no secret access; exchange with AWS, Azure, Google Cloud, Gemini Enterprise, Claude and OpenAI; the SWA management APIs and Terraform provider; the `k8s_psat` and `x509pop` node attestation methods; node-group design, SPIFFE ID templates and registration policies. **[Updated]** Google Cloud is listed as service-account attestation for Gemini Enterprise agents and as a federation target. The fallback order no longer starts with client certificate, which works only through Secrets Manager Edge. One point remains to confirm: whether X.509-SVIDs are accepted by Secrets Manager | Idira Technical Alliances |
 | 1.0 | 2026-10-05 | **[Added]** First publication, as the single kit in the new `workload-identity/` workflow. It exists because workload identity federation had no kit of its own: SWA appeared only as the fourth authentication option inside the Secrets Manager SaaS guide (Section 4a), which serves a retrieval client that happens to hold an SVID and does not serve a partner whose platform *is* the identity surface — gateways, agent runtimes, and platforms that already issue SPIFFE identities had nothing to build against and nothing to be graded on. Published as **Preview**: Section 5's three attestation methods, the Section 4 component model, and the 4.1 topology change are confirmed, but Section 6's step-level federation exchange is documented only in the authenticated Secrets Manager SaaS space and is therefore stated as a gap with an explicit instruction not to reconstruct it from SPIFFE or SPIRE material. Carries the direction rule that separates this kit from Secrets Management (establishing identity versus retrieving a secret value, and an integration doing both is certified twice), the boundary against both Discovery kits (inventorying an identity is not issuing one), and the `SWA` acronym collision with the Secure Web Application Connectors Framework, which routes to a different kit entirely. Telemetry `it` value `WorkloadIdentity` assigned in the same change — `SWA` was deliberately not used, because the acronym collision makes it ambiguous in exactly the registry where a wrong value misattributes traffic. — Idira Technical Alliances |

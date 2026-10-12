@@ -4,9 +4,9 @@
 **Dev Kit:** SWA Federation  
 **Type:** Certification Checklist  
 **Status:** Preview — not a settled gate yet  
-**Version:** 1.0  
+**Version:** 1.1  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-05  
+**Last Updated:** 2026-10-08  
 
 ---
 
@@ -37,7 +37,7 @@ HOW TO READ THIS FILE:
     Required        — gate. A single failure blocks certification.
     Recommended     — reviewers note it; it does not block.
     One of X / Y    — either item satisfies the requirement; both are not needed.
-    Confirm first   — cannot be graded until the Section 6 exchange is confirmed for this build.
+    Confirm first   — cannot be graded until the point it names is confirmed for this build.
 - Recommended is optional to pass, not optional to read.
 - `Confirm first` is specific to this Preview kit and appears in §4 only.
 
@@ -80,10 +80,10 @@ until the federation exchange is confirmed for your build.
 
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
-| 2.1 | Workload identity is **attested from platform-supplied evidence** — not asserted with a pre-shared secret, shared account, or static API key | Required | Idira docs — Secrets Manager SaaS: authenticate workloads using SPIFFE (URL pending); OWASP ASVS 5.0.0 V13.2.1 |
-| 2.2 | The attestation method matches the platform the workload actually runs on (EC2 Instance Identity Document, Google Cloud, or Kubernetes `k8s_jwt`) rather than being selected by preference | Required | Idira docs — Secrets Manager SaaS: authenticate workloads using SPIFFE (URL pending) |
+| 2.1 | Workload identity is **attested from platform-supplied evidence** — not asserted with a pre-shared secret, shared account, or static API key | Required | [docs: Integrate SWA with Secrets Manager JWT authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/services/cjr-authn-jwt-swa.htm); OWASP ASVS 5.0.0 V13.2.1 |
+| 2.2 | The attestation method matches the platform the workload actually runs on (`aws_iid` on EC2, `k8s_jwt` or `k8s_psat` on Kubernetes, `x509pop` on Unix/Linux machines, Google Cloud service-account attestation for Gemini Enterprise agents) rather than being selected by preference | Required | [docs: Configure node attestation](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/ccl-swa-node-attestation-x509pop.htm) |
 | 2.3 | Platform was checked for an attestation path **before** any fallback method was adopted — a workload holding no SVID today is not evidence that no path exists | Required | House rule — certification programme |
-| 2.4 | Where no attestation path exists, the fallback follows the documented order: client certificate, then JWT, then API key as a last resort | Required | Idira docs — Secrets Manager SaaS: Workload API authentication (URL pending); OWASP ASVS 5.0.0 V13.2.1 |
+| 2.4 | Where no attestation path exists, the fallback follows the documented order: a cloud IAM authenticator or JWT, then API key as a last resort (client certificate only through Secrets Manager Edge) | Required | [docs: Authenticators](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/authn/authn-lp.htm); OWASP ASVS 5.0.0 V13.2.1 |
 | 2.5 | Integration holds only the privilege its access pattern requires — no broader scope requested for convenience | Required | OWASP ASVS 5.0.0 V13.3.2 |
 | 2.6 | Attestation failure **fails closed** — the integration does not fall back to a static credential automatically when attestation is rejected | Required | House rule — certification programme |
 | 2.7 | Node time synchronisation is required and documented for any node running SWA Agent | Recommended | House rule — certification programme |
@@ -114,21 +114,21 @@ until the federation exchange is confirmed for your build.
 | 4.2 | An SVID that expires mid-operation triggers renewal and a single retry — not an extended cache lifetime | Required | OWASP ASVS 5.0.0 V14.2.2 |
 | 4.3 | No SVID is treated as a long-term credential or persisted across restarts | Required | OWASP ASVS 5.0.0 V13.2.1 |
 | 4.4 | A validity-window failure is handled as a possible clock-skew signal and distinguished from a permission failure | Recommended | House rule — certification programme |
-| 4.5 | The SVID presentation sequence matches the mechanism confirmed for this build, and was not inferred from the SPIFFE specification or SPIRE material | Confirm first | Idira docs — Secrets Manager SaaS: authenticate workloads using SPIFFE (URL pending) |
-| 4.6 | The SVID types the integration presents are accepted types for this mechanism | Confirm first | Idira docs — Secrets Manager SaaS: authenticate workloads using SPIFFE (URL pending) |
+| 4.5 | The SVID presentation follows the documented exchange — a JWT-SVID presented to the Secrets Manager JWT authenticator configured with RSA signing — and was not inferred from the SPIFFE specification or SPIRE material | Required | [docs: Integrate SWA with Secrets Manager JWT authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/services/cjr-authn-jwt-swa.htm) |
+| 4.6 | Any SVID type other than a JWT-SVID (for example an X.509-SVID) is used only after the Idira Technical Alliances contact confirms it is accepted | Confirm first | [docs: Integrate SWA with Secrets Manager JWT authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/services/cjr-authn-jwt-swa.htm) |
 
 ---
 
 ## 5. Telemetry Header
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | `x-cybr-telemetry` header present on every API request | Required |
-| 5.2 | Header value is Base64 URL-encoded | Required |
-| 5.3 | `in` (IntegrationName) field populated | Required |
-| 5.4 | `it` (IntegrationType) field set to `WorkloadIdentity` | Required |
-| 5.5 | `iv` (IntegrationVersion) field populated and matches released version | Required |
-| 5.6 | `vn` (VendorName) field populated with partner's legal entity name | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | `x-cybr-telemetry` header present on every API request | Required | House rule — telemetry |
+| 5.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 5.3 | `in` (IntegrationName) field populated | Required | House rule — telemetry |
+| 5.4 | `it` (IntegrationType) field set to `WorkloadIdentity` | Required | House rule — telemetry |
+| 5.5 | `iv` (IntegrationVersion) field populated and matches released version | Required | House rule — telemetry |
+| 5.6 | `vn` (VendorName) field populated with partner's legal entity name | Required | House rule — telemetry |
 
 ---
 
@@ -154,36 +154,36 @@ until the federation exchange is confirmed for your build.
 
 ## 8. Documentation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 8.1 | Partner documents which platforms the integration supports and the attestation method used on each | Required |
-| 8.2 | Partner documents the SVID renewal strategy, including behaviour on expiry mid-operation | Required |
-| 8.3 | Partner documents the fallback path and the conditions that trigger it, or states that no fallback exists | Required |
-| 8.4 | Partner states which component in their architecture holds the workload identity and where in the request path it is presented | Required |
-| 8.5 | Partner confirms in writing that the terminology refers to **Secure Workload Access**, not the Secure Web Application Connectors Framework | Recommended |
-| 8.6 | Partner provides a sample log line for an issued identity and for a rejected attestation, with values anonymized | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 8.1 | Partner documents which platforms the integration supports and the attestation method used on each | Required | House rule — certification programme |
+| 8.2 | Partner documents the SVID renewal strategy, including behaviour on expiry mid-operation | Required | House rule — certification programme |
+| 8.3 | Partner documents the fallback path and the conditions that trigger it, or states that no fallback exists | Required | House rule — certification programme |
+| 8.4 | Partner states which component in their architecture holds the workload identity and where in the request path it is presented | Required | House rule — certification programme |
+| 8.5 | Partner confirms in writing that the terminology refers to **Secure Workload Access**, not the Secure Web Application Connectors Framework | Recommended | House rule — certification programme |
+| 8.6 | Partner provides a sample log line for an issued identity and for a rejected attestation, with values anonymized | Recommended | House rule — certification programme |
 
 ---
 
 ## 9. Functional Validation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 9.1 | A workload on a supported platform attests successfully and receives an SVID, with no credential pre-provisioned to it | Required |
-| 9.2 | The same workload authenticates to Idira using that identity | Required |
-| 9.3 | Renewal is observed across at least one SVID validity boundary without an operational failure | Required |
-| 9.4 | Attestation is rejected when evidence does not match the configured method, and the integration fails closed per 2.6 | Required |
-| 9.5 | A cloned or redeployed workload does not inherit a usable identity from its source | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 9.1 | A workload on a supported platform attests successfully and receives an SVID, with no credential pre-provisioned to it | Required | House rule — certification programme |
+| 9.2 | The same workload authenticates to Idira using that identity | Required | House rule — certification programme |
+| 9.3 | Renewal is observed across at least one SVID validity boundary without an operational failure | Required | House rule — certification programme |
+| 9.4 | Attestation is rejected when evidence does not match the configured method, and the integration fails closed per 2.6 | Required | House rule — certification programme |
+| 9.5 | A cloned or redeployed workload does not inherit a usable identity from its source | Recommended | House rule — certification programme |
 
 ---
 
 ## 10. Demonstration
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 10.1 | **Demonstration provided — 10.2 or 10.3 satisfies this** | Required |
-| 10.2 | Demo video recorded (2–5 minutes) showing a workload attesting and then authenticating to Idira with the issued identity | One of 10.2 / 10.3 |
-| 10.3 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end attestation-to-authentication flow | One of 10.2 / 10.3 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 10.1 | **Demonstration provided — 10.2 or 10.3 satisfies this** | Required | House rule — demonstration |
+| 10.2 | Demo video recorded (2–5 minutes) showing a workload attesting and then authenticating to Idira with the issued identity | One of 10.2 / 10.3 | House rule — demonstration |
+| 10.3 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end attestation-to-authentication flow | One of 10.2 / 10.3 | House rule — demonstration |
 
 ---
 
@@ -204,7 +204,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 > **This kit is Preview.** It is not a certifiable path yet, so this checklist is not a settled gate
 > and submitting it does not open a certification review. Complete it as a build target and confirm
 > the current position with your Idira Technical Alliances contact before you submit anything —
-> including checks 4.5 and 4.6, which carry a `Confirm first` level for that reason.
+> including check 4.6, which carries a `Confirm first` level for that reason.
 
 | Step | What to do |
 |:---|:---|
@@ -221,4 +221,5 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-08 | **[Updated]** v1.1 — Check 4.5 is now graded against the documented exchange (JWT-SVID to the Secrets Manager JWT authenticator, RSA signing) and is Required; check 4.6 stays Confirm first for SVID types other than JWT-SVIDs. Check 2.2 lists the documented node attestation methods; check 2.4 no longer puts client certificate first, since it works only through Secrets Manager Edge. **[Added]** A `Source` on every check | Idira Technical Alliances |
 | 2026-10-05 | **[Added]** v1.0 — First publication, pairing with the SWA Federation development guide as the single kit in the new `workload-identity/` workflow. Published as **Preview**, so it is explicitly not a settled gate and must not be presented as one. The gradeable substance is §2 attestation, §3 credential hygiene, §4.1–4.4 SVID lifecycle, §5 telemetry, §6 transport, §7 logging, §8 documentation and §9 functional validation; 2.1 is the central check, since an integration that distributes a static credential and calls it workload identity fails on the kit's whole premise. Two checks — 4.5 and 4.6, the SVID presentation sequence and the accepted SVID types — carry a `Confirm first` level that exists only in this kit, because the step-level federation exchange is documented in the authenticated Secrets Manager SaaS space and the development guide deliberately does not reproduce it; grading them against an inferred sequence would certify a guess. Security checks carry a `Source` naming the OWASP ASVS 5.0.0 control or the Idira document behind them, with `House rule` where the requirement is programme policy; cells reading `(URL pending)` carry no link because guessing a documentation URL is prohibited. | Idira Technical Alliances |

@@ -4,8 +4,8 @@
 **Integration:** Secrets Manager SaaS (Conjur Cloud)  
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-02
+**Version:** 1.3  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -19,41 +19,44 @@ WORKFLOW: Secrets Management
 USE CASE: Secrets Manager SaaS — a SaaS, cloud-native or containerised workload authenticates its own
   identity and retrieves a secret at runtime, with no on-premises component.
 INTEGRATION PATTERN: REST. Authenticate a workload, then GET secrets with the returned token.
-AUTH METHOD: Workload authentication — Client Certificate (strongest), JWT, or API Key (last resort),
-  plus SWA federation (SPIFFE) as a separate fourth path. See Section 4.
+AUTH METHOD: Workload authentication — cloud IAM (AWS, Azure, GCP), JWT (including Kubernetes), SWA
+  federation (SPIFFE), client certificate (Secrets Manager Edge only), or API Key (last resort). See
+  Section 4.
 AUTH HEADER FORMAT: Authorization: Token token="<ACCESS_TOKEN>"   — NOT `Bearer`.
 BASE URL: https://<tenant>.secretsmgr.cyberark.cloud/api/
-TOKEN ENDPOINT: POST https://<tenant>.secretsmgr.cyberark.cloud/api/authn/<account>/<url-encoded-workload-id>/authenticate
+TOKEN ENDPOINT: POST https://<tenant>.secretsmgr.cyberark.cloud/api/authn/conjur/<url-encoded host/<workload-id>>/authenticate  (API key)
 TELEMETRY: Required on every request — x-cybr-telemetry header, Base64url-encoded key=value pairs.
   it=SecretsManager — see ../../telemetry-reference.md
 CONTACT: cybr-bizdevtech@paloaltonetworks.com
 
 THE FOUR THINGS GENERATED CODE GETS WRONG HERE, ALL IN THE AUTH CALL (Section 4c):
-1. THE API KEY GOES IN THE REQUEST BODY, NOT A HEADER. `Content-Type: text/plain`, the key as the
-   raw body. There is no `Authorization` header on the authenticate call and no JSON wrapper.
-2. THE WORKLOAD ID MUST BE URL-ENCODED. Workload IDs are colon-delimited and contain slashes —
-   encode `/` as `%2F` and `:` as `%3A`. An unencoded ID returns 404, which reads as a missing
-   workload rather than an encoding fault, so it is the single most misdiagnosed failure in this kit.
-3. THE RETRIEVAL HEADER IS `Authorization: Token token="<ACCESS_TOKEN>"`. Not `Bearer`. And the
-   token may need Base64-encoding first with line wrapping stripped (`| base64 | tr -d '\n'`) —
-   Conjur-derived APIs return it as JSON and the header expects that JSON encoded. If retrieval 401s
-   immediately after a successful authenticate, that is the cause, not an expired token.
+1. THE API KEY GOES IN THE REQUEST BODY, NOT A HEADER. The key is the raw body. There is no
+   `Authorization` header on the authenticate call and no JSON wrapper.
+2. THE LOGIN IS `host/<workload-id>`, URL-ENCODED. Prefix the Workload ID with `host/`, then encode
+   `/` as `%2F` (and `:` as `%3A`): workload `data/myapp` logs in as `host%2Fdata%2Fmyapp`. A missing
+   prefix or an unencoded ID fails the call, which reads as a missing workload rather than a
+   formatting fault — the single most misdiagnosed failure in this kit.
+3. THE RETRIEVAL HEADER IS `Authorization: Token token="<ACCESS_TOKEN>"`. Not `Bearer`. The value
+   must be the Base64-encoded token: send `Accept-Encoding: base64` on the authenticate call and the
+   response is already encoded; otherwise Base64-encode the raw JSON token and strip newlines
+   (`| base64 | tr -d '\r\n'`).
 4. `<account>` IS `conjur` ON A SECRETS MANAGER SAAS TENANT — the same value in the authenticate path
    and the secrets path. It is not the tenant name and not the partner name.
 
-TOKEN LIFETIME IS NOT PUBLISHED (Section 4c, closing note). Do NOT generate a fixed-duration refresh
-timer or a hardcoded TTL. The graded behaviour is: reuse the token until something fails, and on a
-401 mid-run re-authenticate ONCE and retry. Never loop. Requesting a token per retrieval fails check
-4.11; authenticating twice inside one token lifetime is exactly what that check detects.
+TOKENS EXPIRE AFTER 8 MINUTES (Section 4c). Reuse the token until it expires — refresh shortly before
+8 minutes, or on a 401 mid-run re-authenticate ONCE and retry. Never loop. Requesting a token per
+retrieval fails check 4.11.
 
 THE `/api` SUFFIX IS MANDATORY ON EVERY URL (check 4.6, Section 7). Every Conjur Cloud path in this
 kit is `https://<tenant>.secretsmgr.cyberark.cloud/api/...`. Dropping it is a silent 404.
 
-API KEY IS A LAST RESORT AND IS GRADED AS ONE (check 2.4, Section 4c). Use it only when client
-certificate, JWT and SWA federation are all unavailable. If the workload runs in Kubernetes, Jenkins
-or GitLab, JWT is available and API Key is the wrong answer. The C3 sandbox ships with API Key
-configured on all three workloads purely so the flow can be tested — that is a convenience, not a
-recommendation.
+API KEY IS A LAST RESORT AND IS GRADED AS ONE (check 2.4, Section 4). Use it only when no workload
+identity authenticator is available. On AWS, Azure or Google Cloud use that platform's IAM
+authenticator; in Kubernetes, Jenkins or GitLab use JWT; where workloads carry SPIFFE identities use
+SWA. CLIENT CERTIFICATE AUTHENTICATION WORKS ONLY THROUGH SECRETS MANAGER EDGE — a customer-hosted
+component — so it is not an option for a workload talking to the SaaS tenant directly. The C3
+sandbox ships with API Key configured on all three workloads purely so the flow can be tested — that
+is a convenience, not a recommendation.
 
 SWA FEDERATION (SPIFFE) IS A SEPARATE PATH, NOT A RE-LABELLED CERTIFICATE (Section 4a, check 4.5).
 Where the customer's workloads carry SPIFFE identities, authentication must use SWA federation rather
@@ -70,11 +73,12 @@ static key in agent code or config — agents are cloned and redeployed constant
 leaks with the first snapshot. Retrieve live against a workload identity on each run. Cataloguing
 agents as identities is a different kit: ../../discovery/ai-agents/.
 
-BATCH RETRIEVAL, NOT A LOOP (check 4.12, Section 5). Up to 50 secrets per request via
-`?variable_ids=<id1>,<id2>`. A per-secret request loop fails this check. Other graded limits from
-Section 7: query size capped at 1000 objects (paginate beyond that, check 4.8), 500 requests/second
-maximum, user data written to the `data` policy (check 4.7), and one workload identity per client —
-never a shared workload ID (check 4.3).
+BATCH RETRIEVAL, NOT A LOOP (check 4.12, Section 5). `GET /api/secrets?variable_ids=<id1>,<id2>` where
+each id is the fully-qualified, URL-encoded resource ID `conjur:variable:<path>`. A per-secret
+request loop fails this check. Batch retrieval does not support dynamic secrets. Other graded limits
+from Section 7: query size capped at 1000 objects (paginate beyond that, check 4.8), 500
+requests/second maximum, user data written to the `data` policy (check 4.7), and one workload
+identity per client — never a shared workload ID (check 4.3).
 
 ROTATION IS EXPECTED, NOT AN ERROR (checks 2.3 and 4.11, Section 6). Wait 5 seconds, re-retrieve,
 retry once, then surface a clear error. Do not cache a secret beyond the rotation window.
@@ -86,7 +90,7 @@ partner asks how dual accounts work here, say it is not documented in this kit a
 
 SIBLING KITS — four Secrets Management kits, easily confused:
 - ../secrets-manager-self-hosted/: the self-hosted counterpart. it=SecretsManagerSH. Its auth section
-  is the one place the Base64 token-encoding requirement is documented outright.
+  uses the same token encoding and the same `host/` login prefix.
 - ../central-credential-provider/: agentless REST against the Idira Vault, customer-hosted IIS. it=CCP
 - ../credential-provider/: agent-based SDK against the Idira Vault, no REST at all. it=CP
 - Start at ../decision-guide.md if the choice is not already settled; check 2.1 grades that it was.
@@ -162,21 +166,23 @@ The C3 environment includes by default:
 
 ## 4. Authentication
 
-Workload authentication supports three methods. Use the strongest method your tool supports:
+Use a workload-identity authenticator wherever the platform offers one, so the workload stores no secret:
 
 | Method | When to use |
 |:-------|:-----------|
-| **Client Certificate** | Strongest option — recommended for production. |
-| **JWT** | Ideal for tools running in Kubernetes, Jenkins, GitLab, or any environment that mints JWTs for workloads. |
-| **API Key** | Use only when certificate or JWT authentication is not possible. Step-level flow: [§4c](#4c-authenticate-with-an-api-key) |
+| **Cloud IAM** — AWS IAM, Azure, Google Cloud | The workload runs on that cloud and can present its platform identity. See [AWS IAM](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/authn/authenticate-awsiam-lp.htm), [Azure](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/authn/authenticate-azure-lp.htm), [Google Cloud](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/operations/authn/authenticate-gcp-lp.htm) |
+| **JWT** | Kubernetes, Jenkins, GitLab, or any environment that mints JWTs for workloads. See [JWT authenticator](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/developer/conjur_api_jwt_authenticator.htm) |
+| **SWA federation (SPIFFE)** | The customer's workloads carry SPIFFE identities — [§4a](#4a-secure-workload-access-spiffe-based-identity) |
+| **Client Certificate** | **Only through Secrets Manager Edge**, a customer-hosted component — not for a workload calling the SaaS tenant directly. See [Client certificate authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/developer/api-cert-authn.htm) |
+| **API Key** | Last resort, when none of the above is possible. Step-level flow: [§4c](#4c-authenticate-with-an-api-key) |
 
 > **SPIFFE / Secure Workload Access:** if the customer's workloads carry SPIFFE identities, Secrets Manager SaaS can authenticate them via **SWA federation** — see §4a below. That is a separate path from the three methods above, not a re-labelling of the certificate/JWT credential.
 
 ### Authentication Flow
 
-1. Retrieve the Workload ID from Secrets Manager UI.
+1. Retrieve the Workload ID from Secrets Manager UI. Its login is `host/<workload-id>`, URL-encoded.
 2. Authenticate the workload using your chosen method.
-3. Receive an access token (valid for a fixed period).
+3. Receive an access token. It expires after 8 minutes.
 4. Use the token to retrieve secrets.
 5. Re-authenticate only when the token has expired — do not request a new token for every retrieval.
 
@@ -214,17 +220,17 @@ Your C3 environment has API key authentication configured on all three pre-provi
 
 #### Exchange the API key for an access token
 
-1. URL-encode the Workload ID. Workload IDs are colon-delimited and contain slashes, so encode `/` as `%2F` and `:` as `%3A`. An unencoded ID returns 404, which reads as a missing workload rather than an encoding fault.
-2. Send the API key in the request body, not in a header:
+1. Build the login: prefix the Workload ID with `host/`, then URL-encode it (`/` → `%2F`, `:` → `%3A`). Workload `data/myspace/application` becomes `host%2Fdata%2Fmyspace%2Fapplication`.
+2. Send the API key as the request body, and ask for a Base64-encoded token:
 
     ```bash
     curl -s -X POST \
-      -H "Content-Type: text/plain" \
+      -H "Accept-Encoding: base64" \
       --data "$IDIRA_API_KEY" \
-      "https://<tenant>.secretsmgr.cyberark.cloud/api/authn/<account>/<url-encoded-workload-id>/authenticate"
+      "https://<tenant>.secretsmgr.cyberark.cloud/api/authn/conjur/host%2Fdata%2Fmyspace%2Fapplication/authenticate"
     ```
 
-3. Store the returned access token for its lifetime, and do not log it. See the note at the end of this section on whether your tenant needs the token Base64-encoded before you send it.
+3. The response body is the access token, already Base64-encoded. Store it for its lifetime (8 minutes), and do not log it. Reference: [API key authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/developer/conjur_api_api-key-authn.htm).
 4. Retrieve secrets with the token, as described in [§5](#5-retrieve-secrets).
 5. Re-authenticate only after the token expires. A 401 mid-run indicates expiry: re-authenticate once and retry the operation. Do not loop.
 
@@ -238,14 +244,12 @@ Your C3 environment has API key authentication configured on all three pre-provi
 
 | Symptom | Cause | Resolution |
 |:---|:---|:---|
-| 404 on the authenticate call | Workload ID is not URL-encoded | Encode `/` as `%2F` and `:` as `%3A` |
+| 401 or 404 on the authenticate call | Login is missing the `host/` prefix, or is not URL-encoded | Use `host/<workload-id>` and encode `/` as `%2F` and `:` as `%3A` |
 | 401 on the authenticate call | Wrong API key, or the key was rotated | Retrieve the current key from the Workloads page |
-| 401 on retrieval, immediately after a successful authenticate | Token encoding — the `Authorization` header expects the JSON token Base64-encoded | Base64-encode the token and strip line wrapping (`\| base64 \| tr -d '\n'`), then retry. See the note at the end of this section |
+| 401 on retrieval, immediately after a successful authenticate | Token not Base64-encoded | Send `Accept-Encoding: base64` on authenticate, or Base64-encode the raw token and strip newlines |
 | 401 on retrieval, later in a long run | Token expired | Re-authenticate once, then retry |
 
-> **One open question, and two things you can rely on.** The `/api/` path prefix and the `<account>` value `conjur` are confirmed against a live `*.secretsmgr.cyberark.cloud` tenant. **Token lifetime is not published** — handle expiry by responding to a 401 and re-authenticating once, never by assuming a fixed duration.
->
-> **Check the token encoding on your first call.** Conjur-derived APIs return the access token as JSON, and the `Authorization: Token token="<value>"` header expects that JSON **Base64-encoded** — which is what the [Secrets Manager Self-Hosted guide](../secrets-manager-self-hosted/development-guide.md#5-authentication) documents. If a retrieval with the token exactly as returned gives you a 401, Base64-encode it and strip any line wrapping (`| base64 | tr -d '\n'`), then retry. Tell your Idira technical contact which one your tenant required so this guide can be pinned down.
+> **Confirmed:** the `/api/` path prefix and the `<account>` value `conjur` (checked against a live `*.secretsmgr.cyberark.cloud` tenant), the `host/` login prefix, and the 8-minute token lifetime.
 
 ---
 
@@ -258,15 +262,15 @@ curl -H "Authorization: Token token=\"<ACCESS_TOKEN>\"" \
   https://<tenant>.secretsmgr.cyberark.cloud/api/secrets/<account>/variable/<variable-path>
 ```
 
-### Batch Retrieval (up to 50 secrets per request)
+### Batch Retrieval
 
-Use batch retrieval whenever your integration needs multiple secrets. This reduces round trips and is required by the certification checklist.
+Use batch retrieval whenever your integration needs multiple static secrets. Each ID is the fully-qualified resource ID `conjur:variable:<path>`, URL-encoded. Batch retrieval is not supported for dynamic secrets. Reference: [Batch secret retrieval](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/developer/conjur_api_batch_retrieve.htm).
 
 ```bash
 curl -H "Authorization: Token token=\"<ACCESS_TOKEN>\"" \
   -H "Content-Type: application/json" \
   -X GET \
-  "https://<tenant>.secretsmgr.cyberark.cloud/api/secrets?variable_ids=<id1>,<id2>,<id3>"
+  "https://<tenant>.secretsmgr.cyberark.cloud/api/secrets?variable_ids=conjur:variable:data%2Fmyapp%2Fdb-password,conjur:variable:data%2Fmyapp%2Fapi-key"
 ```
 
 ---
@@ -339,5 +343,6 @@ All certified integrations must include the `x-cybr-telemetry` HTTP header, Base
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Fixed]** The authenticate login is `host/<workload-id>`, URL-encoded — the `host/` prefix was missing from every example. Client certificate authentication works only through Secrets Manager Edge, so it is no longer presented as the strongest option for SaaS workloads. **[Added]** The AWS IAM, Azure and Google Cloud authenticators and the JWT authenticator reference; `Accept-Encoding: base64` for a pre-encoded token; the 8-minute token lifetime; fully-qualified IDs in batch retrieval, and that batch retrieval does not support dynamic secrets. **[Removed]** The unsourced 50-per-batch figure. An integration that authenticates without the `host/` prefix must add it | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the four things generated code gets wrong in the authenticate call — the API key goes in the request **body** under `Content-Type: text/plain` rather than a header, the Workload ID must be URL-encoded (an unencoded ID 404s and reads as a missing workload), the retrieval header is `Authorization: Token token="…"` and not `Bearer` with the token possibly needing Base64-encoding first, and `<account>` is the literal `conjur` rather than the tenant or partner name. It also records that **token lifetime is not published**, so an agent must not generate a fixed-duration refresh timer and must handle a 401 by re-authenticating once; that SWA federation (SPIFFE) is a separate fourth auth path with three 2026 attestation additions that each remove a provisioning step; that an AI agent is a workload and must never carry an embedded static key; and the graded limits from Section 7 (batch of 50, 1000-object query cap, 500 req/s, `data` policy, one workload identity per client). One gap is recorded rather than filled: check 4.2 grades dual-account support and this guide does not document it, and CP/CCP's `VirtualUsername` Vault query syntax does not transfer to Conjur variable paths. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

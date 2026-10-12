@@ -3,9 +3,9 @@
 **Workflow:** Credential Rotation  
 **Dev Kit:** CPM REST API Plugin  
 **Type:** Certification Checklist  
-**Version:** 2.2  
+**Version:** 2.3  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-02  
+**Last Updated:** 2026-10-08  
 **Converted from:** Idira_Credential_Rotation_Certification_Checklist.doc
 
 ---
@@ -29,8 +29,9 @@ Policy Manager. Almost every check below grades the structure of that XML, not a
 An agent that generates a REST client here has misread the kit.
 
 KIT-SPECIFIC WARNINGS:
-- The plugin extends Idira.Extensions.Generic.Plugin.RestAPI.dll and
-  Idira.Extensions.Generic.Infra.RestAPI.dll (checks 2.1, 2.2). Those assembly names are exact.
+- The plugin extends CyberArk.Extensions.Generic.Plugin.RestAPI.dll and
+  CyberArk.Extensions.Generic.Infra.RestAPI.dll (checks 2.1, 2.2). Those file names are exact and
+  keep `CyberArk` — they are not rebranded.
 - The XML needs all four sections — <Parameters>, <ErrorMessages>, <APICalls>, <Chains> — and
   each has its own minimum-content rule (section 3). A configuration that omits one does not
   partially pass; it fails schema validity.
@@ -39,7 +40,7 @@ KIT-SPECIFIC WARNINGS:
 - A parameter may not carry both a hardcoded value and a dynamic path attribute (check 6.1).
   This is a frequent generated-config error and it is graded.
 - The whole of section 5.5 applies only to AccessKeys target systems. Do not implement
-  Deletepass / Deletepassafterreconcile for other target types.
+  the deletepass / deletepassafterreconcile chains for other target types.
 
 KNOWN DEFECT IN THIS KIT: the development guide does not document the telemetry requirement that
 section 7 grades. Build the header from ../../telemetry-reference.md, which is authoritative.
@@ -74,30 +75,30 @@ To achieve formal Idira® certification and ensure seamless integration within t
 
 Every check in this document is **Required** — a single failure blocks certification — except the demonstration in section 8, where either format satisfies the requirement. Work through the checklist **during** development, not at submission.
 
-Official Reference Documentation: [REST API Infrastructure Development Architecture Guide | Idira® Docs](https://docs.cyberark.com)
+Official Reference Documentation: [REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm)
 
 ---
 
 ## 2. Core Plugin Framework Implementation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 2.1 | Plugin strictly utilizes and extends the `Idira.Extensions.Generic.Plugin.RestAPI.dll` core framework assembly | Required |
-| 2.2 | Plugin strictly utilizes and extends the `Idira.Extensions.Generic.Infra.RestAPI.dll` underlying infrastructure engine | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 2.1 | Plugin strictly utilizes and extends the `CyberArk.Extensions.Generic.Plugin.RestAPI.dll` core framework assembly | Required | [docs: Create CPM plugins for REST API applications](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api.htm) |
+| 2.2 | Plugin strictly utilizes and extends the `CyberArk.Extensions.Generic.Infra.RestAPI.dll` underlying infrastructure engine | Required | [docs: Create CPM plugins for REST API applications](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api.htm) |
 
 ---
 
 ## 3. Configuration File Structure & Schema Validity
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 3.1 | The XML configuration structural schema contains all four foundational mandatory sections: `<Parameters>`, `<ErrorMessages>`, `<APICalls>`, and `<Chains>` | Required |
-| 3.2 | All target parameter identifiers within the `<Parameters>` block are unique and distinct | Required |
-| 3.3 | All standardized error definitions within the `<ErrorMessages>` block map to unique naming identifiers | Required |
-| 3.4 | The functional `<APICalls>` structural block declares at least one fully formed operational `<APICall>` element | Required |
-| 3.5 | The `<Responses>` processing block nested inside each `<APICall>` contains a minimum of one explicit `<Response>` resolution rule | Required |
-| 3.6 | The orchestration `<Chains>` execution block incorporates at least one valid operational `<Chain>` routine | Required |
-| 3.7 | Each individual `<Chain>` execution sequence invokes at least one transactional `<Request>` element | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 3.1 | The XML configuration structural schema contains all four foundational mandatory sections: `<Parameters>`, `<ErrorMessages>`, `<APICalls>`, and `<Chains>` | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 3.2 | All target parameter identifiers within the `<Parameters>` block are unique and distinct | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 3.3 | All standardized error definitions within the `<ErrorMessages>` block map to unique naming identifiers | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 3.4 | The functional `<APICalls>` structural block declares at least one fully formed operational `<APICall>` element | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 3.5 | The `<Responses>` processing block nested inside each `<APICall>` contains a minimum of one explicit `<Response>` resolution rule | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 3.6 | The orchestration `<Chains>` execution block incorporates at least one valid operational `<Chain>` routine | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 3.7 | Each individual `<Chain>` execution sequence invokes at least one transactional `<Request>` element | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
 
 ---
 
@@ -105,30 +106,30 @@ Official Reference Documentation: [REST API Infrastructure Development Architect
 
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
-| 4.1 | All high-value sensitive variables (including access tokens, transient secrets, and payload passwords extracted from responses) are explicitly designated with the `secure="true"` attribute within the `<Parameter>` context for production environments | Required | Idira docs — CPM REST plugin: parameter definitions (URL pending); OWASP ASVS 5.0.0 V16.2.5 |
+| 4.1 | All high-value sensitive variables (including access tokens, transient secrets, and payload passwords extracted from responses) are explicitly designated with the `secure="true"` attribute within the `<Parameter>` context for production environments | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm); OWASP ASVS 5.0.0 V16.2.5 |
 | 4.2 | Cryptographic authentication methods are strictly restricted to standardized secure Basic or Bearer token transport mechanisms | Required | OWASP ASVS 5.0.0 V14.2.1 |
 
 ---
 
 ## 5. Functional Completeness & Operational Robustness
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | The plugin configuration establishes comprehensive interoperability across standard REST API HTTP verbs: `GET`, `POST`, `PUT`, `DELETE`, and `PATCH` | Required |
-| 5.2 | Every distinct error handler block defined as `<Response type="error">` is explicitly linked to a corresponding global `<ErrorMessage>` definition | Required |
-| 5.3 | All target error structures accurately expose a distinct `returnCode`, an explicit numeric or alphanumeric `name`, and a human-readable `description` | Required |
-| 5.4 | Payload parsers natively map and process data exchanges using clean, strictly structured JSON, XML, or normalized plaintext body formats | Required |
-| 5.5 | For specialized AccessKeys target systems executing lifecycle rotations, both the `Deletepass` and `Deletepassafterreconcile` operations are implemented to automatically purge legacy or stale key assets upon successful rollover | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | The plugin uses the HTTP methods the target API documents for each operation — the framework supports `GET`, `POST`, `PUT`, `DELETE` and `PATCH` | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 5.2 | Every distinct error handler block defined as `<Response type="error">` is explicitly linked to a corresponding global `<ErrorMessage>` definition | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 5.3 | All target error structures accurately expose a distinct `returnCode`, an explicit numeric or alphanumeric `name`, and a human-readable `description` | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 5.4 | Payload parsers natively map and process data exchanges using clean, strictly structured JSON, XML, or normalized plaintext body formats | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 5.5 | For AccessKeys target systems where new keys are created rather than rotated, both the `deletepass` and `deletepassafterreconcile` chains are implemented so the previous key is removed after a successful Change or Reconcile | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
 
 ---
 
 ## 6. Validation & Schema Parsing Accuracy
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 6.1 | Parameters are cleanly declared; no parameter element may concurrently leverage both a hardcoded value and a dynamic path attribute | Required |
-| 6.2 | Parameters configured within the global `<Parameters>` container explicitly define a `validationPattern` to handle rigorous data type validation where applicable | Required |
-| 6.3 | The targeted `<Validate>` contextual evaluation block is systematically deployed inside responses when standard HTTP status codes are insufficient to definitively guarantee transaction validity | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 6.1 | Parameters are cleanly declared; no parameter element may concurrently leverage both a hardcoded value and a dynamic path attribute | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 6.2 | Parameters configured within the global `<Parameters>` container explicitly define a `validationPattern` to handle rigorous data type validation where applicable | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
+| 6.3 | The targeted `<Validate>` contextual evaluation block is systematically deployed inside responses when standard HTTP status codes are insufficient to definitively guarantee transaction validity | Required | [docs: REST API infrastructure development guide](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api-infrastructure.htm) |
 
 ---
 
@@ -136,14 +137,14 @@ Official Reference Documentation: [REST API Infrastructure Development Architect
 
 All certified partner integrations must inject marketplace telemetry into every transaction via the HTTP header key `x-cybr-telemetry`, encoded in Base64 URL-safe format. Build it from [`telemetry-reference.md`](../../telemetry-reference.md) — that file carries the transform, the assigned `IntegrationType` value, reference code, and test vectors.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 7.1 | `x-cybr-telemetry` header present on every API transaction | Required |
-| 7.2 | Header value is Base64 URL-encoded | Required |
-| 7.3 | `in` (IntegrationName) field populated | Required |
-| 7.4 | `it` (IntegrationType) field set to `CredentialRotation` | Required |
-| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required |
-| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 7.1 | `x-cybr-telemetry` header present on every API transaction | Required | House rule — telemetry |
+| 7.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 7.3 | `in` (IntegrationName) field populated | Required | House rule — telemetry |
+| 7.4 | `it` (IntegrationType) field set to `CredentialRotation` | Required | House rule — telemetry |
+| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required | House rule — telemetry |
+| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required | House rule — telemetry |
 
 ---
 
@@ -151,10 +152,10 @@ All certified partner integrations must inject marketplace telemetry into every 
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 8.1 | Demo video recorded (2–5 minutes) showing an end-to-end credential rotation against the target system via the CPM plugin | One of 8.1 / 8.2 |
-| 8.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end rotation flow | One of 8.1 / 8.2 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 8.1 | Demo video recorded (2–5 minutes) showing an end-to-end credential rotation against the target system via the CPM plugin | One of 8.1 / 8.2 | House rule — demonstration |
+| 8.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end rotation flow | One of 8.1 / 8.2 | House rule — demonstration |
 
 ---
 
@@ -187,6 +188,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
-| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
-| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §4 (Secure Data Handling, Transmission and Auditing), naming the authority behind both of its checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). This is the corpus's smallest graded security section and the one where the column changes the most: 4.1 reads as plugin boilerplate until it is sourced to V16.2.5, at which point a missing `secure="true"` is a logging-exposure finding with quotable control text behind it rather than a style note. Also renamed the header field `**Source:**` to `**Converted from:**`, which pointed at the original `.doc` and collided with the new column's meaning. No requirement, level or wording changed. — Idira Technical Alliances |
-| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land. **The telemetry section was ungradeable and is now graded** — it previously held only a field-reference table with no checkboxes, so a partner or agent self-scoring this checklist mechanically never scored the telemetry requirement at all; it is now six numbered checks (7.1–7.6). The demonstration is expressed as **One of 8.1 / 8.2** rather than a nested checkbox. No check was re-levelled to Recommended: this checklist grades XML schema conformance, where a partial structure is a failure rather than a style preference. Added an AI context block, including an explicit note that this kit is an XML configuration rather than a REST client, and that the development guide does not yet document the telemetry requirement section 7 grades. No check was removed and no requirement was loosened. — Idira Technical Alliances |
+| 2.3 | 2026-10-08 | **[Fixed]** Checks 2.1 and 2.2 name the framework assemblies by their real file names, `CyberArk.Extensions.Generic.Plugin.RestAPI.dll` and `CyberArk.Extensions.Generic.Infra.RestAPI.dll`. Check 5.1 no longer requires every HTTP verb — a plugin uses the methods its target API documents. Check 5.5 names the chains in their documented lowercase form. **[Added]** A `Source` on every check. A plugin built on the correct assemblies previously could not satisfy 2.1–2.2 as written | Idira Technical Alliances |
+| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §4 (Secure Data Handling, Transmission and Auditing), naming the authority behind both of its checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). This is the corpus's smallest graded security section and the one where the column changes the most: 4.1 reads as plugin boilerplate until it is sourced to V16.2.5, at which point a missing `secure="true"` is a logging-exposure finding with quotable control text behind it rather than a style note. Also renamed the header field `**Source:**` to `**Converted from:**`, which pointed at the original `.doc` and collided with the new column's meaning. No requirement, level or wording changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land. **The telemetry section was ungradeable and is now graded** — it previously held only a field-reference table with no checkboxes, so a partner or agent self-scoring this checklist mechanically never scored the telemetry requirement at all; it is now six numbered checks (7.1–7.6). The demonstration is expressed as **One of 8.1 / 8.2** rather than a nested checkbox. No check was re-levelled to Recommended: this checklist grades XML schema conformance, where a partial structure is a failure rather than a style preference. Added an AI context block, including an explicit note that this kit is an XML configuration rather than a REST client, and that the development guide does not yet document the telemetry requirement section 7 grades. No check was removed and no requirement was loosened. — Idira Technical Alliances | House rule — certification programme |

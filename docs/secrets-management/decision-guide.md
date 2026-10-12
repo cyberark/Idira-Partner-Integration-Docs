@@ -4,8 +4,8 @@
 **Type:** Decision Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira Secrets Manager Overview & Best Practices for Tech Partners  
-**Version:** 1.1  
-**Last Updated:** 2026-09-30
+**Version:** 1.2  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -189,7 +189,7 @@ Do not build an integration that hands an AI agent a long-lived API key in an en
 
 | If the agent runs as… | Build against | Identity |
 |:---|:---|:---|
-| A cloud-native / containerized service (K8s, serverless, CI/CD) | **Secrets Manager SaaS** | Workload identity — SPIFFE SVID, JWT, or client certificate (see [SaaS guide §3](secrets-manager-saas/development-guide.md)) |
+| A cloud-native / containerized service (K8s, serverless, CI/CD) | **Secrets Manager SaaS** | Workload identity — cloud IAM, JWT or SPIFFE (SWA); client certificate only through Secrets Manager Edge (see [SaaS guide §4](secrets-manager-saas/development-guide.md#4-authentication)) |
 | A traditional app or bot on a static host, agent allowed | **Credential Provider (CP)** | App authentication on the local agent |
 | A traditional app or bot on a static host, no local agent | **Central Credential Provider (CCP)** | Client cert / allowed machine (agentless REST) |
 | A self-hosted / air-gapped agent platform | **Secrets Manager Self-Hosted** | Conjur authenticators (K8s, cloud IAM, JWT) |
@@ -255,4 +255,5 @@ Idira product naming has changed over time. Use current names in all documentati
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.2 | 2026-10-08 | **[Updated]** The Secrets Manager SaaS row lists cloud IAM, JWT and SPIFFE authentication, and notes that client certificate authentication works only through Secrets Manager Edge | Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, extending the agent-readable layer from the fifteen kits to the workflow decision guides. It states up front that this file is a router with no endpoints or auth procedure, so a build question must be answered from the selected kit rather than from here, and that all four kits grade "solution confirmed via the Decision Guide" as check 2.1 — skipping this step is a graded failure. It records the three decision inputs in order and the trap that the first one does not discriminate everything: CP and CCP work against both PAM backends, so the deployment question does not choose between them and the agent question does. It carries the four kit paths with their per-kit `it` telemetry values, Section 3a's static-key anti-pattern for AI agents, that Secure Workload Access is a federation layer on Secrets Manager SaaS rather than a product or an API, and the direction trap that separates these four retrieval kits from the Discovery secrets and AI-agents kits. It also records the Skytap-versus-C3 environment split that this guide does not state, that Section 4's best practices are graded in all four checklists rather than advisory, and that Section 6's retired-name column is a recognition aid whose use fails certification — `DAP` specifically against check 4.1 of the Self-Hosted kit. Finally it notes that no checklist pairs with this file and the corpus checker never reads it, so nothing here is cross-validated and it should stay limited to routing. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No routing guidance was changed. — Idira Technical Alliances |

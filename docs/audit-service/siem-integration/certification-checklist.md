@@ -4,9 +4,9 @@
 **Use Case:** SIEM Integration — streaming Idira audit events into a partner security platform
 **Idira Products:** Idira Identity Security Platform, Audit Service
 **Type:** Certification Checklist
-**Version:** 2.2
+**Version:** 2.3
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -34,7 +34,8 @@ PICK THE RIGHT KIT FIRST — this kit is confused with two others:
 
 TWO DISTINCT CREDENTIALS, BOTH GRADED. This is the most-missed thing in the kit:
 - The OAuth Client ID + Client Secret for the confidential client (checks 3.1, 3.3).
-- A SEPARATE SIEM API Key, generated in SIEM Management (check 3.7).
+- A SEPARATE SIEM API Key, generated in the Setup space under Integrations > Export to SIEM
+  (check 3.7), and sent as the `x-api-key` header on every stream call (check 4.3).
 All three must live in a secrets manager — not hardcoded, not in environment variables, not in a
 config file in source control (check 3.7) — and none may reach log or debug output (check 3.8).
 An integration that handles the OAuth secret properly and leaves the SIEM API Key in config fails.
@@ -42,8 +43,9 @@ An integration that handles the OAuth secret properly and leaves the SIEM API Ke
 KIT-SPECIFIC WARNINGS:
 - The read pattern is a TWO-CALL STREAM: createQuery, then results (check 4.2). It is not a single
   GET against an events endpoint. Do not generate one.
-- Role scope is graded tightly: (Global) Auditor plus the relevant per-service Auditor role, and
-  nothing broader (check 3.4). A tenant-admin service user fails.
+- The service user must hold the Read Only System Administration role right and nothing broader
+  (check 3.4). Without it, every query returns zero events and no error is raised. A tenant-admin
+  service user fails.
 - The Bearer token comes from the Idira Identity endpoint, the one carrying `.id.` in its hostname
   (check 3.5) — not from the Audit Service host.
 - LOSSLESS RESUME IS GRADED TWICE. Check 4.9 requires resuming from the last successful position
@@ -91,13 +93,13 @@ Items are the minimum best-practice requirements for a partner platform that pol
 
 ## 2. Solution Selection
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 2.1 | Confirmed this is an Audit Service integration: your platform **consumes** Idira audit events for monitoring, analytics, or forensics | Required |
-| 2.2 | Confirmed this is **not** an Identity Response integration — if your platform also triggers response actions back into Idira, that is a separate kit with its own checklist ([`identity-response/response-actions/`](../../identity-response/response-actions/certification-checklist.md)) | Required |
-| 2.3 | Official Idira documentation reviewed and best practices applied | Required |
-| 2.4 | Scope of audit data in this release documented (which event categories, which Idira services) | Required |
-| 2.5 | At least one production or pilot customer identified for the integration before certification | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 2.1 | Confirmed this is an Audit Service integration: your platform **consumes** Idira audit events for monitoring, analytics, or forensics | Required | House rule — certification programme |
+| 2.2 | Confirmed this is **not** an Identity Response integration — if your platform also triggers response actions back into Idira, that is a separate kit with its own checklist ([`identity-response/response-actions/`](../../identity-response/response-actions/certification-checklist.md)) | Required | House rule — certification programme |
+| 2.3 | Official Idira documentation reviewed and best practices applied | Required | House rule — certification programme |
+| 2.4 | Scope of audit data in this release documented (which event categories, which Idira services) | Required | House rule — certification programme |
+| 2.5 | At least one production or pilot customer identified for the integration before certification | Required | House rule — certification programme |
 
 ---
 
@@ -105,42 +107,42 @@ Items are the minimum best-practice requirements for a partner platform that pol
 
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
-| 3.1 | OAuth 2.0 `client_credentials` flow used for all Audit Service API calls | Required | Idira docs — Audit Service API: authentication (URL pending); OWASP ASVS 5.0.0 V13.2.1 |
+| 3.1 | OAuth 2.0 `client_credentials` flow used for all Audit Service API calls | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm); OWASP ASVS 5.0.0 V13.2.1 |
 | 3.2 | A dedicated service (API) user is used — no interactive user credentials | Required | OWASP ASVS 5.0.0 V13.2.1 |
-| 3.3 | The service user is created as an **OAuth confidential client** | Required | Idira docs — Identity: OAuth confidential clients (URL pending) |
-| 3.4 | The service user holds only the roles the integration needs: **(Global) Auditor**, plus the relevant per-service Auditor role — no broader privilege | Required | OWASP ASVS 5.0.0 V13.3.2 |
-| 3.5 | Bearer token is retrieved from the Idira Identity (`.id.`) token endpoint | Required | Idira docs — Audit Service API: authentication (URL pending) |
-| 3.6 | Token expiry is handled — token re-requested on expiry, not on every operation call | Required | Idira docs — Audit Service API: authentication (URL pending) |
-| 3.7 | The SIEM API Key generated in SIEM Management is stored in a secrets manager — not hardcoded, not in environment variables, not in a config file in source control | Required | OWASP ASVS 5.0.0 V13.3.1 |
+| 3.3 | The service user is created as an **OAuth confidential client** | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm) |
+| 3.4 | The service user holds the **Read Only System Administration** role right — required for the API to return audit events — and no broader privilege | Required | [docs: Export audit activities to SIEM applications](https://docs.cyberark.com/setup/latest/en/content/setup-space/ecosystem-integration/integrate-siem-main.htm); OWASP ASVS 5.0.0 V13.3.2 |
+| 3.5 | Bearer token is retrieved from the Idira Identity (`.id.`) token endpoint | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm) |
+| 3.6 | Token expiry is handled — token re-requested on expiry, not on every operation call | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm) |
+| 3.7 | The SIEM API Key generated in the Setup space (Integrations › Export to SIEM) is stored in a secrets manager — not hardcoded, not in environment variables, not in a config file in source control | Required | OWASP ASVS 5.0.0 V13.3.1 |
 | 3.8 | Client ID, Client Secret, and the SIEM API Key are never written to log or debug output | Required | OWASP ASVS 5.0.0 V16.2.5 |
 
 ---
 
 ## 4. API Implementation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 4.1 | Only documented and supported Idira Audit Service endpoints are used | Required |
-| 4.2 | `createQuery` / `results` stream pattern used as documented — no undocumented or scraped endpoints | Required |
-| 4.3 | `Authorization: Bearer <token>` header applied correctly on every request | Required |
-| 4.4 | Server-side filtering used where available — the integration does not pull the full event stream and filter locally | Recommended |
-| 4.5 | Polling interval is configurable by the customer, with a documented default | Required |
-| 4.6 | Pagination handled to completion — the integration does not silently stop at the first page of results | Required |
-| 4.7 | Common error responses handled: `401` (token expired), `403` (insufficient role), `429` (rate limit) | Required |
-| 4.8 | Rate-limit (`429`) backoff is exponential — no tight retry loops | Required |
-| 4.9 | A transient failure does not lose events: the integration resumes from its last successful position rather than skipping forward | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 4.1 | Only documented and supported Idira Audit Service endpoints are used | Required | [docs: SIEM integration API](https://docs.cyberark.com/audit-and-reports/latest/en/content/audit/isp_siem-integration-api.htm) |
+| 4.2 | `createQuery` / `results` stream pattern used as documented — no undocumented or scraped endpoints | Required | [docs: SIEM integration API](https://docs.cyberark.com/audit-and-reports/latest/en/content/audit/isp_siem-integration-api.htm) |
+| 4.3 | `Authorization: Bearer <access_token>` and `x-api-key: <siem-api-key>` headers applied on every stream request | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm) |
+| 4.4 | Server-side filtering used where available — the integration does not pull the full event stream and filter locally | Recommended | [docs: SIEM integration API](https://docs.cyberark.com/audit-and-reports/latest/en/content/audit/isp_siem-integration-api.htm) |
+| 4.5 | Polling interval is configurable by the customer, with a documented default no faster than the once-a-minute API limit | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm) |
+| 4.6 | Pagination handled to completion — each returned `cursorRef` is passed to the next `results` call, and the integration does not silently stop at the first page | Required | [docs: Integrate Audit with third-party SIEM applications](https://docs.cyberark.com/setup/latest/en/content/siem-integration/siem-export-3rd-party.htm) |
+| 4.7 | Common error responses handled: `401` (token expired), `403` (insufficient role), `429` (rate limit) | Required | [docs: SIEM integration API](https://docs.cyberark.com/audit-and-reports/latest/en/content/audit/isp_siem-integration-api.htm) |
+| 4.8 | Rate-limit (`429`) backoff is exponential — no tight retry loops | Required | [docs: SIEM integration API](https://docs.cyberark.com/audit-and-reports/latest/en/content/audit/isp_siem-integration-api.htm) |
+| 4.9 | A transient failure does not lose events: the integration resumes from its last successful position rather than skipping forward, and the customer documentation states that the API retains only the previous 7 days | Required | [docs: Export audit activities to SIEM applications](https://docs.cyberark.com/setup/latest/en/content/setup-space/ecosystem-integration/integrate-siem-main.htm) |
 
 ---
 
 ## 5. Data Quality
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | Duplicate audit events are avoided — the integration deduplicates on a stable event identifier across polling cycles | Required |
-| 5.2 | Event timestamps are preserved as emitted by Idira, in UTC, without re-stamping to ingestion time | Required |
-| 5.3 | Field mapping from the Idira event schema to the partner platform's schema is documented and stable across releases | Required |
-| 5.4 | Events are not silently dropped on a mapping miss — an unmapped field or event type is logged, not discarded without trace | Required |
-| 5.5 | Integration tested with real Idira activity, not synthetic payloads only — see §8 | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | Duplicate audit events are avoided — the integration deduplicates on a stable event identifier across polling cycles | Required | House rule — certification programme |
+| 5.2 | Event timestamps are preserved as emitted by Idira, in UTC, without re-stamping to ingestion time | Required | House rule — certification programme |
+| 5.3 | Field mapping from the Idira event schema to the partner platform's schema is documented and stable across releases | Required | House rule — certification programme |
+| 5.4 | Events are not silently dropped on a mapping miss — an unmapped field or event type is logged, not discarded without trace | Required | House rule — certification programme |
+| 5.5 | Integration tested with real Idira activity, not synthetic payloads only — see §8 | Required | House rule — certification programme |
 
 ---
 
@@ -160,15 +162,15 @@ Items are the minimum best-practice requirements for a partner platform that pol
 
 All certified integrations must include the `x-cybr-telemetry` HTTP header on every API request, Base64 URL-encoded. Build it from [`telemetry-reference.md`](../../telemetry-reference.md) — that file carries the transform, the assigned `IntegrationType` value, reference code, and test vectors.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 7.1 | `x-cybr-telemetry` header included on all Idira API requests | Required |
-| 7.2 | Header value is Base64 URL-encoded | Required |
-| 7.3 | `in` (IntegrationName) field populated and describes the partner platform | Required |
-| 7.4 | `it` (IntegrationType) field set to `SIEM` | Required |
-| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required |
-| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required |
-| 7.7 | `in`, `it`, and `vn` values agreed with the Idira Technical Alliances contact before submission | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 7.1 | `x-cybr-telemetry` header included on all Idira API requests | Required | House rule — telemetry |
+| 7.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 7.3 | `in` (IntegrationName) field populated and describes the partner platform | Required | House rule — telemetry |
+| 7.4 | `it` (IntegrationType) field set to `SIEM` | Required | House rule — telemetry |
+| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required | House rule — telemetry |
+| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required | House rule — telemetry |
+| 7.7 | `in`, `it`, and `vn` values agreed with the Idira Technical Alliances contact before submission | Required | House rule — telemetry |
 
 ---
 
@@ -176,26 +178,26 @@ All certified integrations must include the `x-cybr-telemetry` HTTP header on ev
 
 Generate real events in the Idira tenant and confirm each arrives and displays correctly in the partner platform. Synthetic payloads do not satisfy this section.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 8.1 | **Failed login** — attempt a login with an incorrect password; the security-monitoring event arrives | Required |
-| 8.2 | **Credential retrieval** — click Show or Copy on a test account in Idira Privileged Access Manager SaaS; the high-priority "Fetch credential" event arrives | Required |
-| 8.3 | **Session initiation** — launch a secure session; the session-initiation event arrives | Required |
-| 8.4 | Events are searchable in the partner platform by timestamp, user, and event type | Required |
-| 8.5 | Polling recovers cleanly after a deliberate interruption (stop the integration, generate events, restart) with no gap and no duplicates | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 8.1 | **Failed login** — attempt a login with an incorrect password; the security-monitoring event arrives | Required | House rule — certification programme |
+| 8.2 | **Credential retrieval** — click Show or Copy on a test account in Idira Privileged Access Manager SaaS; the high-priority "Fetch credential" event arrives | Required | House rule — certification programme |
+| 8.3 | **Session initiation** — launch a secure session; the session-initiation event arrives | Required | House rule — certification programme |
+| 8.4 | Events are searchable in the partner platform by timestamp, user, and event type | Required | House rule — certification programme |
+| 8.5 | Polling recovers cleanly after a deliberate interruption (stop the integration, generate events, restart) with no gap and no duplicates | Required | House rule — certification programme |
 
 ---
 
 ## 9. Documentation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 9.1 | Integration setup steps documented end to end, written for the customer who will deploy it | Required |
-| 9.2 | The audit data collected is clearly described — which event categories and which Idira services | Required |
-| 9.3 | Required customer configuration documented: service-user creation, OAuth app registration, Auditor role assignment, SIEM API Key generation | Required |
-| 9.4 | Field-mapping reference published (Idira field → partner platform field) | Required |
-| 9.5 | Documentation uses current Idira product terminology — Idira Identity Security Platform, Idira Privileged Access Manager SaaS, Idira Privileged Access Manager Self-Hosted; not the legacy CyberArk names | Required |
-| 9.6 | Partner attests the integration is tested against the current Idira Audit Service APIs | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 9.1 | Integration setup steps documented end to end, written for the customer who will deploy it | Required | House rule — certification programme |
+| 9.2 | The audit data collected is clearly described — which event categories and which Idira services | Required | House rule — certification programme |
+| 9.3 | Required customer configuration documented: OAuth2 web app (token type, scope, claim script), service-user creation with the Read Only System Administration right, and SIEM API Key generation — including that the integration uses one of the tenant's two SIEM integration slots | Required | House rule — certification programme |
+| 9.4 | Field-mapping reference published (Idira field → partner platform field) | Required | House rule — certification programme |
+| 9.5 | Documentation uses current Idira product terminology — Idira Identity Security Platform, Idira Privileged Access Manager SaaS, Idira Privileged Access Manager Self-Hosted; not the legacy CyberArk names | Required | House rule — certification programme |
+| 9.6 | Partner attests the integration is tested against the current Idira Audit Service APIs | Required | House rule — certification programme |
 
 ---
 
@@ -203,22 +205,22 @@ Generate real events in the Idira tenant and confirm each arrives and displays c
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 10.1 | Demo video recorded (2–5 minutes) showing Idira audit events ingested and surfaced in the partner platform end to end | One of 10.1 / 10.2 |
-| 10.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end ingestion flow | One of 10.1 / 10.2 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 10.1 | Demo video recorded (2–5 minutes) showing Idira audit events ingested and surfaced in the partner platform end to end | One of 10.1 / 10.2 | House rule — demonstration |
+| 10.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end ingestion flow | One of 10.1 / 10.2 | House rule — demonstration |
 
 ---
 
 ## 11. Yearly Recertification
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 11.1 | Best practices reviewed and reflected in the current integration version | Required |
-| 11.2 | New Idira Audit Service endpoints or event types reviewed, tested, and supported where appropriate | Recommended |
-| 11.3 | Integration tested against the latest version of the partner platform | Required |
-| 11.4 | Security scan results reviewed and addressed | Required |
-| 11.5 | Documentation updated — version numbers, API paths, field references | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 11.1 | Best practices reviewed and reflected in the current integration version | Required | House rule — recertification |
+| 11.2 | New Idira Audit Service endpoints or event types reviewed, tested, and supported where appropriate | Recommended | House rule — recertification |
+| 11.3 | Integration tested against the latest version of the partner platform | Required | House rule — recertification |
+| 11.4 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 11.5 | Documentation updated — version numbers, API paths, field references | Required | House rule — recertification |
 
 ---
 
@@ -251,6 +253,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-08 | **[Fixed]** v2.3 — Check 3.4 now requires the Read Only System Administration role right, without which the API returns no events; the Auditor roles it previously named do not grant audit data access. Check 3.7 names the Setup space as where the SIEM API Key is created. **[Updated]** Check 4.3 grades both the Bearer and `x-api-key` headers; 4.5 adds the once-a-minute floor; 4.6 names `cursorRef` paging; 4.9 adds the 7-day retention note; 9.3 lists the full customer configuration. A `Source` on every check | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v2.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. The `TAM waiver` label is now `Idira Technical Alliances waiver`. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v2.1 — A `Source` column on §3 (Authentication & Identity) and §6 (Security Best Practices), naming the authority behind each of those 13 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira documentation where it is a product contract, and `House rule` where it is our own programme policy (6.4, security-scan review). Until now no check in this repository recorded where it came from, so a security control and an internal preference were indistinguishable on the page and a partner pushing back on either got the same unsourced answer. The vocabulary and the verbatim control text are in [`security-baseline-reference.md`](../../security-baseline-reference.md). Three §3 cells read `(URL pending)` rather than carrying a link — the Audit Service API has no entry in the vault's verified deep-links index, and guessing a plausible doc URL is prohibited precisely because nothing downstream would catch it. No requirement, level or wording changed | Idira Technical Alliances |
 | 2026-09-30 | **[Restructured]** v2.0 — Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land — including §8, which §5.5 cross-references by number. The demonstration is expressed as **One of 10.1 / 10.2** rather than a nested checkbox. The telemetry section was **partially** gradeable and is now fully graded: it previously held a field-reference table plus three loose checkboxes, so the per-field requirements (`in`, `it`, `iv`, `vn`) were stated but never scored; it is now seven numbered checks (7.1–7.7), with the reference table replaced by a pointer to `telemetry-reference.md`. The Overview's "every box must be satisfied or explicitly waived" line was rewritten to explain the three levels, keeping the Idira Technical Alliances waiver route intact for Required items. Two checks are now **Recommended** rather than gates: 4.4 (server-side filtering where available) and 11.2 (adopting new endpoints where appropriate), both conditional on availability rather than on partner effort. Added an AI context block, leading with the SIEM-vs-EPMAudit `it` confusion and the two-distinct-credentials point — an integration that vaults the OAuth secret and leaves the SIEM API Key in config fails 3.7, and that is the most-missed check in the kit. No check was removed and no requirement was loosened beyond the two re-levelled above | Idira Technical Alliances |

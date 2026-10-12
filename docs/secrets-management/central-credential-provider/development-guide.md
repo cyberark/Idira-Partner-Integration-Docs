@@ -4,8 +4,8 @@
 **Integration:** Central Credential Provider (CCP)  
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.1  
-**Last Updated:** 2026-09-30
+**Version:** 1.2  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -18,22 +18,31 @@ PRODUCT: Idira Central Credential Provider (CCP) — agentless secret retrieval 
 WORKFLOW: Secrets Management
 USE CASE: Central Credential Provider — an application retrieves a secret from the Idira Vault over
   the network, with no agent on the application's own machine.
-INTEGRATION PATTERN: REST. A single GET against an IIS-hosted web service the customer deploys on
-  their own network. There is no SDK and no SaaS endpoint.
+INTEGRATION PATTERN: REST. One call — POST (preferred) or GET — against an IIS-hosted web service the
+  customer deploys on their own network. There is no SDK and no SaaS endpoint.
 AUTH METHOD: Application authentication, configured server-side — NOT a token flow (see Section 7)
-AUTH HEADER FORMAT: NONE. There is no Authorization header and no bearer token anywhere in this kit.
+AUTH HEADER FORMAT: NO TOKEN. Client-certificate (mTLS) and Allowed Machines need no header; OS User
+  authentication sends the calling user's Windows credentials (Negotiate/Kerberos) — Section 7.
 BASE URL: https://<CCP-SERVER>/AIMWebService/api/Accounts   (customer-hosted; no fixed hostname)
 TELEMETRY: Required on every request — x-cybr-telemetry header, Base64url-encoded key=value pairs.
   it=CCP — see ../../telemetry-reference.md
 CONTACT: cybr-bizdevtech@paloaltonetworks.com
 
 THERE IS NO TOKEN ENDPOINT AND NO OAUTH IN THIS KIT. Do not generate a client-credentials flow, a
-`platformtoken` call, or an `Authorization:` header here — none of them exist. CCP authenticates the
-CALLING APPLICATION, not a user, by three server-side mechanisms (Section 7): OS User, Allowed
-Machines, and Certificate Serial Number. The partner's code contributes exactly one thing to that:
-presenting a client certificate (mTLS — `requests.get(..., cert=Certificate)`, Section 6). Everything
-else is configured by the customer in the CP-CCP Application Management tile. Checks 4.2 and 4.3
-grade that all three are configured and tested.
+`platformtoken` call, or a bearer token here — none of them exist. CCP authenticates the CALLING
+APPLICATION, not a user, by server-side mechanisms (Section 7): Allowed Machines, OS User,
+Certificate Serial Number and Certificate Attribute. The partner's code contributes one of two
+things, depending on the method the customer configures:
+- a client certificate (mTLS) — `requests.post(..., cert=(client_crt, client_key), verify=ccp_ca)`;
+- for OS User, the calling user's Windows credentials, sent as IIS Windows Authentication
+  (Negotiate/Kerberos — `curl --negotiate -u :` from a domain-joined Linux host,
+  `-UseDefaultCredentials` in PowerShell).
+Applications that use different methods need separate CCP endpoints. Checks 4.2 and 4.3 grade that
+the configured methods are set up and tested.
+
+VERIFY THE CCP SERVER, NEVER DISABLE IT. The CA bundle that verifies the CCP server's TLS certificate
+is a different file from the client certificate you present. Never pass the client certificate as
+the CA bundle, and never set `verify=False` on a call that returns a password.
 
 CCP IS NOT STANDALONE — IT REQUIRES CP. The CP agent holds the Vault connection; CCP is a REST web
 service layered on top of it (Section 1). An integration plan that installs only CCP does not work.
@@ -46,7 +55,11 @@ production. Both are correct in their own kit. Do not carry either setting acros
 direction.
 
 THE QUERY CONTRACT — WHERE GENERATED CODE FAILS:
-- The query MUST return EXACTLY ONE account (Section 5). Multiple matches is an error, not a list.
+- The query MUST return EXACTLY ONE account (Section 5). Multiple matches is an error
+  (`APPAP227E`–`APPAP229E`, "Too many objects"), not a list.
+- Requests need `AppID` plus at least one other parameter. `Folder` applies only to PAM Self-Hosted.
+- Prefer POST: it keeps `AppID` and the query out of the URL, so they do not land in IIS, proxy or
+  load-balancer logs.
 - Never hardcode an `Object` name. The customer must be able to supply a free-text `Query` from
   configuration (check 3.3). This is not a convenience — it is the prerequisite for dual accounts.
 - Dual accounts use `VirtualUsername` in the query so the currently active account is always the one
@@ -128,6 +141,10 @@ For agent-based SDK retrieval, use the [Credential Provider (CP)](../credential-
 
 ---
 
+> **Safe membership — two members.** The CP provider user needs List, Retrieve and View Safe Members on the Safe, and the **application** (your Application ID) needs Retrieve. See [Provisioning privileged application accounts](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/provisioning-privileged-application-accounts.htm).
+
+---
+
 ## 4. CCP Installation
 
 1. Log in as administrator on the CCP server.
@@ -156,48 +173,90 @@ For agent-based SDK retrieval, use the [Credential Provider (CP)](../credential-
 
 ## 5. Retrieve a Secret via REST
 
+CCP offers the same GetPassword service as **POST** (preferred) and **GET**. POST keeps your `AppID` and query out of the URL — and therefore out of IIS, proxy and load-balancer logs.
+
+**POST (preferred):**
+
+```bash
+curl -X POST "https://<CCP-SERVER>/AIMWebService/api/Accounts" \
+  -H "Content-Type: application/json" \
+  --cacert ccp-ca.pem --cert client.crt --key client.key \
+  -d '{"AppID": "<APP_ID>", "Safe": "<SAFE>", "Object": "<OBJECT_NAME>"}'
+```
+
+**GET:**
+
 ```bash
 curl -X GET \
   "https://<CCP-SERVER>/AIMWebService/api/Accounts?AppID=<APP_ID>&Safe=<SAFE>&Object=<OBJECT_NAME>" \
-  --cert client.pem
+  --cacert ccp-ca.pem --cert client.crt --key client.key
 ```
 
-**Query parameters:**
+In the GET form, URL values cannot contain `+`, `&` or `%`, and account property values cannot contain `;`.
 
-| Parameter | Required | Description |
-|:----------|:---------|:------------|
-| `AppID` | Yes | Your Application ID |
-| `Safe` | Yes | Safe name containing the account |
-| `Object` | Conditional | Account object name — use with Safe to target a specific account |
-| `UserName` | Conditional | Username property of the account |
-| `Address` | Conditional | Address property of the account |
-| `Query` | Optional | Free-text query string combining multiple properties |
+**Parameters:** `AppID` is required, plus at least one other.
 
-The query must return exactly one account. If multiple accounts match, CCP returns an error.
+| Parameter | Description |
+|:----------|:------------|
+| `AppID` | Your Application ID (required) |
+| `Safe` | Safe containing the account |
+| `Folder` | Folder within the Safe — PAM Self-Hosted only (default `Root`) |
+| `Object` | Account object name |
+| `UserName`, `Address`, `Database` | Search by those account properties |
+| `PolicyID` | Search by platform ID |
+| `Query` | Free-text query of account properties; when present, the individual search parameters are ignored |
+| `QueryFormat` | `Exact` (default) or `Regexp` |
+| `Reason` | Why the password is being retrieved — written to the CP audit log |
+| `ConnectionTimeout` | Seconds to wait for the Vault (default 30) |
+| `FailRequestOnPasswordChange` | Return an error while a password change is in progress (default `false`) |
+
+The response returns the password in `Content`, plus `UserName`, `Address`, `Database` and `PasswordChangeInProcess` where defined. The query must return exactly one account — more than one returns a 400 with `APPAP227E`–`APPAP229E` ("Too many objects"). See [Call the web service using REST (POST)](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/calling-the-web-service-using-rest_post.htm) and [(GET)](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/calling-the-web-service-using-rest.htm).
 
 **Recommendation:** Allow the customer to provide a free-text query in your integration's configuration. This is required for dual accounts support.
 
 ---
 
-## 6. Certificate Authentication Example
+## 6. Client Examples
+
+### Client certificate (mTLS)
 
 ```python
 import requests
-import json
-import sys
 
-Certificate = '.\client.pem'
-BASEURL = 'https://{}/AIMWebService/api/Accounts?AppID={}&Query={}'
+CCP_CA = "ccp-ca.pem"                      # CA chain that signed the CCP server's TLS certificate
+CLIENT_CERT = ("client.crt", "client.key")  # the certificate CCP authenticates
 
-if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print("usage: {} Address ApplicationID Query".format(sys.argv[0]))
-        quit()
-    address, appid, query = sys.argv[1], sys.argv[2], sys.argv[3]
-    URL = BASEURL.format(address, appid, query)
-    response = requests.get(URL, verify=Certificate, cert=Certificate)
-    print(json.dumps(json.loads(response.text), indent=2))
+resp = requests.post(
+    "https://<CCP-SERVER>/AIMWebService/api/Accounts",
+    json={"AppID": app_id, "Query": query},
+    verify=CCP_CA,
+    cert=CLIENT_CERT,
+    timeout=30,
+)
+resp.raise_for_status()
+password = resp.json()["Content"]
 ```
+
+`verify` is the CA bundle for the **server**; `cert` is the **client** certificate. They are different files. Never set `verify=False`.
+
+### OS User (Windows Authentication)
+
+OS User authentication on CCP is IIS Windows Authentication: the call must carry the calling user's domain credentials.
+
+```bash
+# Linux, domain-joined host with a Kerberos ticket (SPNEGO)
+curl --negotiate -u : -X POST "https://<CCP-SERVER-FQDN>/AIMWebService/api/Accounts" \
+  -H "Content-Type: application/json" -d '{"AppID": "<APP_ID>", "Safe": "<SAFE>", "Object": "<OBJECT_NAME>"}'
+```
+
+```powershell
+# Windows
+Invoke-RestMethod -Method Post -Uri "https://<CCP-SERVER>/AIMWebService/api/Accounts" `
+  -ContentType "application/json" -UseDefaultCredentials `
+  -Body '{"AppID":"<APP_ID>","Safe":"<SAFE>","Object":"<OBJECT_NAME>"}'
+```
+
+The customer configures Windows Authentication on the CCP's IIS site (Negotiate provider, kernel-mode authentication off) and runs `iisreset`. See [Authentication method configurations on the Central Credential Provider](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/authentication-methods-for-ccp.htm).
 
 ---
 
@@ -209,9 +268,10 @@ CCP validates the calling application using one or more of these mechanisms. Con
 |:-------|:------------|
 | **OS User** | CCP validates the requesting OS user against the user specified for the Application ID in the Vault |
 | **Allowed Machines** | Restrict to specific IPs, DNS names, hostnames, or CIDR IPv4 subnets |
-| **Certificate Serial Number** | Application sends the correct client certificate; CCP validates Serial Number, SAN, Subject, and Issuer |
+| **Certificate Serial Number** | Application presents a client certificate; CCP validates its serial number |
+| **Certificate Attribute** | Application presents a client certificate; CCP validates attributes such as Subject, Issuer and SAN |
 
-Use all three in production where possible. After any change to authentication mechanisms, restart IIS.
+Configure every method the application can satisfy. OS User requires Windows Authentication on the CCP endpoint (Section 6); if some applications use OS User and others use certificates, the customer configures separate CCP endpoints. After any change to authentication mechanisms, run `iisreset`. See [Application authentication methods](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/application-authentication-methods-general.htm).
 
 ---
 
@@ -235,7 +295,7 @@ Because customers rotate secrets on a schedule:
 2. Retry the operation once.
 3. If it fails again, surface a clear error to the user.
 
-You can also check the `PasswordChangeInProcess` property in the CCP response — if `True`, wait and retry.
+You can also check the `PasswordChangeInProcess` property in the CCP response — if `True`, wait and retry. Or send `FailRequestOnPasswordChange=true` so the call fails while a change is in progress.
 
 ---
 
@@ -266,4 +326,5 @@ Include the `x-cybr-telemetry` HTTP header on all CCP REST requests, Base64 URL-
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.2 | 2026-10-08 | **[Fixed]** The Python example now verifies the CCP server with its own CA bundle and presents the client certificate separately; it previously passed the client certificate as the server CA bundle. OS User authentication requires the calling user's Windows credentials (Negotiate/Kerberos), with examples. **[Added]** The POST form of GetPassword, recommended because it keeps the query out of URLs and logs; all request parameters; error codes for multiple matches; Certificate Attribute authentication; the application's own Safe membership. **[Updated]** `Safe` is optional — `AppID` plus at least one other parameter is required | Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the two facts a generated integration gets wrong here: there is no token endpoint, no OAuth flow and no `Authorization` header in this kit at all — authentication is of the calling *application*, configured server-side, with the partner's code contributing only a client certificate — and CCP is not standalone, it requires CP already installed to hold the Vault connection. It also records the cross-kit auditing trap (check 3.2 requires CP/CCP audit logging **disabled** for production, the inverse of the EPM Ticketing/JIT kit's mandatory `Audit: true`), the query contract (exactly one account, no hardcoded `Object`, `VirtualUsername` for dual accounts, password in `Content`), and that a rotation-time auth failure is expected behaviour to retry rather than an error to surface. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

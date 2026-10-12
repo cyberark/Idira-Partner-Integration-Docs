@@ -4,8 +4,8 @@
 **Dev Kit:** AI Agents  
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-02
+**Version:** 1.3  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -46,10 +46,13 @@ KEY CONSTRAINTS:
 - Idira deduplicates on `originId` — the stable identifier from the partner's own system. Push the
   same `originId` twice and the record is updated in place, not duplicated. Getting `originId`
   wrong (for example, using a value that changes between scans) creates duplicate inventory.
-- `providerId` identifies the partner source. Reconciliation is: push the full set, then query by
-  `providerId` and diff `originId` sets, then delete what is no longer present.
-- Batch 100 agents per mutation call. Track `totalProcessedAiAgents` on the response to confirm
-  the batch landed completely — a partial success is otherwise silent.
+- `providerId` identifies the partner source. RECONCILE ON YOUR SIDE: the Machines External Data
+  Contributor role can write but CANNOT READ inventory. Persist the set of `originId`s you pushed on
+  the previous run, diff it against the current scan, and call `deleteExternalAiAgents` filtered by `originId`
+  for what is gone. Querying by `providerId` and diffing in Idira is possible only with Machines Admin.
+- Size batches by PAYLOAD, not count: each mutation request may be at most 64 KB. Track
+  `totalProcessedAiAgents` on the response — if it is lower than the number you sent, the batch landed only
+  partly, which is otherwise silent.
 - Delete returns `totalDeleted`.
 - A push is an upsert, not a sync. Stale records are NOT removed by pushing a smaller set; they
   must be deleted explicitly.
@@ -95,10 +98,10 @@ This integration pushes AI agent identities into the Idira AI Agents inventory a
 | # | Capability | What it does | Guide section |
 |:--|:---|:---|:--:|
 | 1 | Push (upsert) AI agents | Send discovered agents into the Idira inventory; re-sending updates the existing record | [7.1](#71-push-upsert-ai-agents) |
-| 2 | Query AI agents | Read back the agents your integration has pushed, for reconciliation | [7.2](#72-query-ai-agents) |
+| 2 | Query AI agents | Read back what your integration has pushed — requires Machines Admin; not needed for reconciliation | [7.2](#72-query-ai-agents) |
 | 3 | Delete AI agents | Remove agents that no longer exist in the source, to keep the inventory clean | [7.3](#73-delete-ai-agents) |
 
-A complete discovery integration typically implements all three: push on each scan, query to reconcile, and delete stale records. Document which operations your integration implements in the certification checklist.
+A complete discovery integration pushes on each scan and deletes stale records, reconciling against its own record of what it pushed (Section 8). Query is optional and needs the Machines Admin role. Document which operations your integration implements in the certification checklist.
 
 ---
 
@@ -127,6 +130,10 @@ Customers use this inventory to identify unmanaged agents, correlate them with s
 To call the Discovery Context API, the integration user must sign in to **ISPSS (Identity Security Platform SaaS)** and hold the **Machines External Data Contributor** role. This is the least-privilege role for a partner integration that pushes inventory data in over the API — it grants write access only, which is exactly this integration's access pattern. Do not request **Machines Admin** unless the integration also needs to read or manage inventory beyond its own upserts.
 
 > **Note for administrators:** Provisioning **Machines External Data Contributor** membership in ISPSS is the required step. If this integration user previously held the Secrets Hub role for this API, that assignment must be replaced, not supplemented. Consult your Idira tenant administrator or the Idira Docs portal for the current role assignment procedure.
+
+---
+
+> **What the Contributor role cannot do.** Machines External Data Contributor grants write access through the external API — push and delete — *without the ability to read inventory data*. Queries need **Machines Admin**, which grants full access including queries, mutations and onboarding operations. Build reconciliation from your own record of what you pushed (Section 8), so the integration needs only the Contributor role. Role definitions: Idira Docs what's new, "Simplified roles for the machine identities, AI agents, and secrets inventories" (August 6, 2026).
 
 ---
 
@@ -228,18 +235,27 @@ mutation AddReplaceAiAgents($aiAgents: [AiAgentInput!]!) {
 | `providerId` | Yes | Account/tenant/subscription ID in the source cloud or platform |
 | `providerType` | Yes | Cloud or platform identifier (e.g. `AWS`, `AZURE`, `GCP`, `GITHUB`, `CUSTOM`) |
 | `name` | Yes | Human-readable agent name |
-| `type` | No | Broad classification (e.g. `LLM_AGENT`, `RPA_BOT`, `AUTOMATION_AGENT`) |
+| `type` | Yes | Broad classification (e.g. `LLM_AGENT`, `RPA_BOT`, `AUTOMATION_AGENT`) |
 | `subType` | No | Framework or service subtype (e.g. `BEDROCK_AGENT`, `AZURE_AI_AGENT`, `LANGCHAIN`) |
 | `description` | No | Plain-text description of what the agent does |
 | `location` | No | Region, namespace, or deployment location |
-| `tags` | No | Key/value tags — use for env, team, risk tier, framework, owner |
-| `additionalData` | No | Arbitrary JSON string — include IAM role ARN, model ID, tools, last deploy timestamp |
+| `tags` | No | Tag entries (`type` `TAG`, `ANNOTATION` or `LABEL`, plus key and value) — use for env, team, risk tier, framework |
+| `additionalData` | No | A JSON object **serialized as a string** (escaped quotes, not a nested object) — include IAM role ARN, model ID, tools, last deploy timestamp |
+| `instructions` | No | The agent's instruction text or configuration notes |
+| `model` | No | The model identifier the agent runs (for example `gpt-4o`) |
+| `owners` | No | The agent's owners. Send it whenever you have it — the inventory raises a **missing-owner** risk for agents without one |
+| `accountEnabled` | No | Whether the agent is enabled in its origin |
+| `originCreatedAt`, `originUpdatedAt` | No | When the agent was created and last updated in its origin |
+
+Full field list: [Add or replace external AI agents](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm).
 
 > **Best practice:** Populate `additionalData` generously. Customers use it to answer: *what model does this agent run? what tools can it call? what IAM role does it assume?* These fields materially improve security review quality.
 
 ---
 
 ### 7.2 Query AI Agents
+
+> Requires the **Machines Admin** role. An integration holding only Machines External Data Contributor cannot query — reconcile from your own push record instead (Section 8).
 
 Use queries to verify what has been pushed and to support reconciliation.
 
@@ -315,9 +331,9 @@ mutation DeleteAiAgents($filter: AiAgentsFilterInput!) {
 |:---|:---|
 | **Full replace** | Scheduled scans (hourly/daily) — query all agents from source, call `addReplaceExternalAiAgents` with the full set. Agents no longer present in source should be deleted using the delete mutation. |
 | **Delta push** | Event-driven sources — push only on create/update events from source. Avoid delete unless you have a reliable tombstone event. |
-| **Reconciliation** | After any full replace, query Idira with the same `providerId` filter and compare `originId` sets. Delete stale records not present in the latest scan. |
+| **Reconciliation** | Keep the set of `originId`s you pushed on the last run. After each full scan, diff it against the current `originId`s and call `deleteExternalAiAgents` filtered by `originId` for the ones that are gone. This needs only the Machines External Data Contributor role. (Querying Idira by `providerId` and diffing there requires Machines Admin.) |
 
-Batch size recommendation: **100 agents per mutation call**. For larger environments, paginate in batches and track `totalProcessedAiAgents` to verify completeness.
+Batch size: each mutation request may be at most **64 KB** — there is no record-count limit. Size batches by payload, and compare `totalProcessedAiAgents` with the number you sent to detect a partial batch. See [the add/replace mutation reference](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm).
 
 ---
 
@@ -368,5 +384,6 @@ Always log the `originId` of each agent alongside the API response status. If Id
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Fixed]** Reconciliation is done against the integration's own record of what it pushed, then `deleteExternalAiAgents` by `originId` — the Machines External Data Contributor role this kit requires cannot read inventory, so the query-and-diff method did not work with it. Batches are limited by request size (64 KB per mutation), not by a count of 100. `type` is a required field. **[Added]** `instructions`, `model`, `owners` (an agent without one raises a missing-owner risk), `accountEnabled`, `originCreatedAt` and `originUpdatedAt`; the tag types; that `additionalData` is a serialized JSON string; that queries need Machines Admin | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It states the GraphQL single-endpoint pattern, the operation-name vs. server-field distinction (`addReplaceExternalAiAgents` is the field; `AddReplaceAiAgents` is only a client-side label), the post-2026-08-06 role requirement, and the `originId` / `providerId` reconciliation contract. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

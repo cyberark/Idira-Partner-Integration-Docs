@@ -4,9 +4,9 @@
 **Use Case:** SOC Response — XDR/SOAR Endpoint Containment
 **Idira Product:** Endpoint Privilege Manager (EPM)
 **Type:** Certification Checklist
-**Version:** 2.2
+**Version:** 2.3
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -82,26 +82,26 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 
 ## 1. Solution Selection
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 1.1 | Confirmed via the [EPM Decision Guide](../decision-guide.md) that SOC Response is the correct integration path | Required |
-| 1.2 | Official Idira EPM documentation reviewed and best practices applied | Required |
-| 1.3 | Target endpoints confirmed as Windows or Windows Server (macOS/Linux not supported) | Required |
-| 1.4 | EPM Windows agent version 26.4 or later confirmed on all target endpoints | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 1.1 | Confirmed via the [EPM Decision Guide](../decision-guide.md) that SOC Response is the correct integration path | Required | House rule — certification programme |
+| 1.2 | Official Idira EPM documentation reviewed and best practices applied | Required | House rule — certification programme |
+| 1.3 | Target endpoints confirmed as Windows or Windows Server (macOS/Linux not supported) | Required | House rule — certification programme |
+| 1.4 | EPM Windows agent version 26.4 or later confirmed on all target endpoints | Required | House rule — certification programme |
 
 ---
 
 ## 2. EPM Tenant Configuration
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 2.1 | Endpoint management service APIs enabled in the EPM tenant | Required |
-| 2.2 | `SOC_Response_Application_Policies.epmp` policy package imported | Required |
-| 2.3 | `SOC_Response_User_Policies.epmp` policy package imported | Required |
-| 2.4 | Static group `High_Risk_Endpoint` exists in the EPM tenant | Required |
-| 2.5 | Static group `Medium_Risk_Endpoint` exists in the EPM tenant | Required |
-| 2.6 | Audit settings enabled for all SOC response policies | Required |
-| 2.7 | MFA configured in EPM tenant (required if medium-risk policies are in scope) | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 2.1 | Endpoint management service APIs enabled in the EPM tenant | Required | House rule — certification programme |
+| 2.2 | `SOC_Response_Application_Policies.epmp` policy package imported | Required | House rule — certification programme |
+| 2.3 | `SOC_Response_User_Policies.epmp` policy package imported | Required | House rule — certification programme |
+| 2.4 | Static group `High_Risk_Endpoint` exists in the EPM tenant | Required | House rule — certification programme |
+| 2.5 | Static group `Medium_Risk_Endpoint` exists in the EPM tenant | Required | House rule — certification programme |
+| 2.6 | Audit settings enabled for all SOC response policies | Required | House rule — certification programme |
+| 2.7 | MFA configured in EPM tenant (required if medium-risk policies are in scope) | Required | House rule — certification programme |
 
 ---
 
@@ -121,18 +121,18 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 
 ## 4. API Implementation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 4.1 | `SetId` retrieved via Get sets list API and cached at startup — not hardcoded | Required |
-| 4.2 | Get Endpoints (`POST .../Sets/<SetId>/Endpoints/search`) used to resolve endpoint `id` from alert hostname or IP — no hardcoded IDs | Required |
-| 4.3 | Search Groups V2 (`POST .../Sets/<SetId>/endpoints/groups/search`) used to resolve `GroupId` — V1 deprecated API not used | Required |
-| 4.4 | `GroupId` values for both risk groups cached at startup and refreshed only on `404` | Required |
-| 4.5 | Add Static Group Members (`POST .../Sets/<SetId>/endpoints/Groups/<GroupId>/members/ids`) tested for both risk groups with body field `membersIds` | Required |
-| 4.6 | Delete Static Group Members (`POST .../Sets/<SetId>/endpoints/Groups/<GroupId>/members/ids/remove`) tested and confirmed to lift policy | Required |
-| 4.7 | Endpoint `id` and `GroupId` values logged per alert alongside alert/incident ID | Required |
-| 4.8 | Severity-to-group mapping logic tested: High alert → `High_Risk_Endpoint`, Medium → `Medium_Risk_Endpoint` | Required |
-| 4.9 | Idempotency handled — endpoint already in group does not cause unhandled error | Required |
-| 4.10 | Rate limit handling implemented — exponential backoff on `429` responses | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 4.1 | `SetId` retrieved via Get sets list API and cached at startup — not hardcoded | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.2 | Get Endpoints (`POST .../Sets/<SetId>/Endpoints/search`) used to resolve endpoint `id` from alert hostname or IP — no hardcoded IDs | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.3 | Search Groups V2 (`POST .../Sets/<SetId>/endpoints/groups/search`) used to resolve `GroupId` — V1 deprecated API not used | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.4 | `GroupId` values for both risk groups cached at startup and refreshed only on `404` | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.5 | Add Static Group Members (`POST .../Sets/<SetId>/endpoints/Groups/<GroupId>/members/ids`) tested for both risk groups with body field `membersIds` | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.6 | Delete Static Group Members (`POST .../Sets/<SetId>/endpoints/Groups/<GroupId>/members/ids/remove`) tested and confirmed to lift policy | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.7 | Endpoint `id` and `GroupId` values logged per alert alongside alert/incident ID | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.8 | Severity-to-group mapping logic tested: High alert → `High_Risk_Endpoint`, Medium → `Medium_Risk_Endpoint` | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.9 | Idempotency handled — endpoint already in group does not cause unhandled error | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
+| 4.10 | Rate limit handling implemented — exponential backoff on `429` responses, group IDs cached, and incident batches sent in one `membersIds` call within the documented limits | Required | [docs: Endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm) |
 
 ---
 
@@ -140,15 +140,15 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 
 All certified integrations must include the `x-cybr-telemetry` HTTP header on every API request, Base64 URL-encoded. Build it from [`telemetry-reference.md`](../../telemetry-reference.md) — that file carries the transform, the assigned `IntegrationType` value, reference code, and test vectors.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | `x-cybr-telemetry` header included on all API requests (Get Endpoints, Search Groups, Add Members, Delete Members) | Required |
-| 5.2 | Header value is Base64 URL-encoded | Required |
-| 5.3 | `in` (IntegrationName) field populated | Required |
-| 5.4 | `it` (IntegrationType) field set to `SOCResponse` | Required |
-| 5.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required |
-| 5.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required |
-| 5.7 | Header values agreed with your Idira Technical Alliances contact before certification submission | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | `x-cybr-telemetry` header included on all API requests (Get Endpoints, Search Groups, Add Members, Delete Members) | Required | House rule — telemetry |
+| 5.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 5.3 | `in` (IntegrationName) field populated | Required | House rule — telemetry |
+| 5.4 | `it` (IntegrationType) field set to `SOCResponse` | Required | House rule — telemetry |
+| 5.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required | House rule — telemetry |
+| 5.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required | House rule — telemetry |
+| 5.7 | Header values agreed with your Idira Technical Alliances contact before certification submission | Required | House rule — certification programme |
 
 ---
 
@@ -156,26 +156,26 @@ All certified integrations must include the `x-cybr-telemetry` HTTP header on ev
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 6.1 | Documentation uses current Idira product terminology (`Idira EPM`, not `CyberArk EPM`) | Required |
-| 6.2 | Severity-to-group mapping documented for the partner's alert taxonomy | Required |
-| 6.3 | Prerequisites (agent version, policy packages, static groups, MFA) documented for customer IT/EPM administrators | Required |
-| 6.4 | Authentication method documented — service account setup, OAuth app registration, token lifecycle | Required |
-| 6.5 | Demo video recorded (2–5 minutes) showing: alert trigger → endpoint containment → analyst review → restoration | One of 6.5 / 6.6 |
-| 6.6 | Live demonstration call held with the Idira Technical Alliances contact, walking the same flow: alert trigger → endpoint containment → analyst review → restoration | One of 6.5 / 6.6 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 6.1 | Documentation uses current Idira product terminology (`Idira EPM`, not `CyberArk EPM`) | Required | House rule — certification programme |
+| 6.2 | Severity-to-group mapping documented for the partner's alert taxonomy | Required | House rule — certification programme |
+| 6.3 | Prerequisites (agent version, policy packages, static groups, MFA) documented for customer IT/EPM administrators | Required | House rule — certification programme |
+| 6.4 | Authentication method documented — service account setup, OAuth app registration, token lifecycle | Required | House rule — certification programme |
+| 6.5 | Demo video recorded (2–5 minutes) showing: alert trigger → endpoint containment → analyst review → restoration | One of 6.5 / 6.6 | House rule — demonstration |
+| 6.6 | Live demonstration call held with the Idira Technical Alliances contact, walking the same flow: alert trigger → endpoint containment → analyst review → restoration | One of 6.5 / 6.6 | House rule — demonstration |
 
 ---
 
 ## 7. Yearly Recertification
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 7.1 | Best practices reviewed and reflected in the current integration version | Required |
-| 7.2 | EPM endpoint management API changes reviewed in EPM release notes | Required |
-| 7.3 | Integration tested against the latest EPM agent version | Required |
-| 7.4 | Security scan results reviewed and addressed | Required |
-| 7.5 | Documentation updated — version numbers, API paths, group names, field references | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 7.1 | Best practices reviewed and reflected in the current integration version | Required | House rule — recertification |
+| 7.2 | EPM endpoint management API changes reviewed in EPM release notes | Required | House rule — recertification |
+| 7.3 | Integration tested against the latest EPM agent version | Required | House rule — recertification |
+| 7.4 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 7.5 | Documentation updated — version numbers, API paths, group names, field references | Required | House rule — recertification |
 
 ---
 
@@ -208,7 +208,8 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
-| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
-| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Authentication & Credential Handling), naming the authority behind each of its 7 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira EPM Web Services SDK documentation where it is a product contract. Vocabulary and verbatim control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). Note what the column now makes visible about 3.4: `Authorization: basic` is an Idira API contract, not a security position — it is graded because the EPM token endpoint requires it, and a partner cannot argue it away on security grounds any more than we can defend it on them. Also **[Fixed]** the v1.1 change log row, which carried four cells under a three-column header (Rule 3). No requirement, level or wording changed. — Idira Technical Alliances |
-| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land — the demonstration stayed in section 6 and is now expressed as **One of 6.5 / 6.6** instead of a nested checkbox. The telemetry section was **partially** gradeable and is now fully graded: it previously held a field-reference table plus two loose checkboxes, so the per-field requirements (`in`, `it`, `iv`, `vn`) were stated but never scored; it is now seven numbered checks (5.1–5.7), with the reference table replaced by a pointer to `telemetry-reference.md`. One check is now **Recommended** rather than a gate: 3.5 (requesting the token on expiry only), matching the same call made on the Secrets Manager SaaS kit's 4.11. Added an AI context block, leading with the `Authorization: basic` requirement — this kit's auth differs from every other EPM kit, and normalising it to `Bearer` is the most common error an agent makes here. No check was removed and no requirement was loosened beyond the one re-levelled above. This file previously had no change log; earlier revisions are recorded only by their version header. — Idira Technical Alliances |
-| 1.1 | 2026-07-29 | Prior revision. — Idira Technical Alliances |
+| 2.3 | 2026-10-08 | **[Updated]** Check 4.10 names the endpoint-group and membership rate limits it grades against. **[Added]** A `Source` on every check | Idira Technical Alliances |
+| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Authentication & Credential Handling), naming the authority behind each of its 7 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira EPM Web Services SDK documentation where it is a product contract. Vocabulary and verbatim control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). Note what the column now makes visible about 3.4: `Authorization: basic` is an Idira API contract, not a security position — it is graded because the EPM token endpoint requires it, and a partner cannot argue it away on security grounds any more than we can defend it on them. Also **[Fixed]** the v1.1 change log row, which carried four cells under a three-column header (Rule 3). No requirement, level or wording changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land — the demonstration stayed in section 6 and is now expressed as **One of 6.5 / 6.6** instead of a nested checkbox. The telemetry section was **partially** gradeable and is now fully graded: it previously held a field-reference table plus two loose checkboxes, so the per-field requirements (`in`, `it`, `iv`, `vn`) were stated but never scored; it is now seven numbered checks (5.1–5.7), with the reference table replaced by a pointer to `telemetry-reference.md`. One check is now **Recommended** rather than a gate: 3.5 (requesting the token on expiry only), matching the same call made on the Secrets Manager SaaS kit's 4.11. Added an AI context block, leading with the `Authorization: basic` requirement — this kit's auth differs from every other EPM kit, and normalising it to `Bearer` is the most common error an agent makes here. No check was removed and no requirement was loosened beyond the one re-levelled above. This file previously had no change log; earlier revisions are recorded only by their version header. — Idira Technical Alliances | House rule — certification programme |
+| 1.1 | 2026-07-29 | Prior revision. — Idira Technical Alliances | House rule — certification programme |

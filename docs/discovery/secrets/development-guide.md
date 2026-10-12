@@ -4,8 +4,8 @@
 **Dev Kit:** Secrets  
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-02
+**Version:** 1.3  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -59,10 +59,13 @@ KEY CONSTRAINTS:
 - Idira deduplicates on `originId` — the stable identifier from the partner's own system. Push the
   same `originId` twice and the record is updated in place, not duplicated. It must be stable
   across rescans; deriving it from a file path or line number that moves creates duplicates.
-- `providerId` identifies the partner source. Reconciliation is: push the full set, then query by
-  `providerId` and diff `originId` sets, then delete what is no longer present.
-- Batch 100 secrets per mutation call. Track `totalProcessedSecrets` on the response to confirm
-  each batch landed completely — a partial success is otherwise silent.
+- `providerId` identifies the partner source. RECONCILE ON YOUR SIDE: the Machines External Data
+  Contributor role can write but CANNOT READ inventory. Persist the set of `originId`s you pushed on
+  the previous run, diff it against the current scan, and call `deleteExternalSecrets` filtered by `originId`
+  for what is gone. Querying by `providerId` and diffing in Idira is possible only with Machines Admin.
+- Size batches by PAYLOAD, not count: each mutation request may be at most 64 KB. Track
+  `totalProcessedSecrets` on the response — if it is lower than the number you sent, the batch landed only
+  partly, which is otherwise silent.
 - Delete returns `totalDeleted`.
 - A push is an upsert, not a sync. Stale records are NOT removed by pushing a smaller set; they
   must be deleted explicitly. A remediated secret that is no longer in the source must be deleted,
@@ -111,10 +114,10 @@ This integration pushes discovered secrets into the Idira inventory and keeps th
 | # | Capability | What it does | Guide section |
 |:--|:---|:---|:--:|
 | 1 | Push (upsert) secrets | Send discovered secrets into the Idira inventory; re-sending updates the existing record | [7.1](#71-push-upsert-secrets) |
-| 2 | Query secrets | Read back the secrets your integration has pushed, for reconciliation | [7.2](#72-query-secrets) |
+| 2 | Query secrets | Read back what your integration has pushed — requires Machines Admin; not needed for reconciliation | [7.2](#72-query-secrets) |
 | 3 | Delete secrets | Remove secrets that no longer exist in the source, to keep the inventory clean | [7.3](#73-delete-secrets) |
 
-A complete discovery integration typically implements all three: push on each scan, query to reconcile, and delete stale records. Document which operations your integration implements in the certification checklist.
+A complete discovery integration pushes on each scan and deletes stale records, reconciling against its own record of what it pushed (Section 8). Query is optional and needs the Machines Admin role. Document which operations your integration implements in the certification checklist.
 
 ---
 
@@ -147,6 +150,10 @@ Customers use this inventory to identify orphaned secrets (no associated workloa
 To call the Discovery Context API, the integration user must sign in to **ISPSS (Identity Security Platform SaaS)** and hold the **Machines External Data Contributor** role. This is the least-privilege role for a partner integration that pushes inventory data in over the API — it grants write access only, which is exactly this integration's access pattern. Do not request **Machines Admin** unless the integration also needs to read or manage inventory beyond its own upserts.
 
 > **Note for administrators:** Provisioning **Machines External Data Contributor** membership in ISPSS is the required step. If this integration user previously held the Secrets Hub role for this API, that assignment must be replaced, not supplemented. Consult your Idira tenant administrator or the Idira Docs portal for the current role assignment procedure.
+
+---
+
+> **What the Contributor role cannot do.** Machines External Data Contributor grants write access through the external API — push and delete — *without the ability to read inventory data*. Queries need **Machines Admin**, which grants full access including queries, mutations and onboarding operations. Build reconciliation from your own record of what you pushed (Section 8), so the integration needs only the Contributor role. Role definitions: Idira Docs what's new, "Simplified roles for the machine identities, AI agents, and secrets inventories" (August 6, 2026).
 
 ---
 
@@ -247,7 +254,7 @@ mutation AddReplaceSecrets($secrets: [SecretInput!]!) {
 | `providerId` | Yes | Account/tenant/subscription ID in the source cloud |
 | `providerType` | Yes | Cloud or platform identifier (see Section 9) |
 | `name` | Yes | Human-readable secret name or path |
-| `type` | No | Broad credential category (see mapping table in Section 9) |
+| `type` | Yes | Broad credential category (see mapping table in Section 9) |
 | `subType` | No | Specific service or format |
 | `description` | No | Plain-text description of the secret's purpose |
 | `location` | No | Region, vault path, or repository location |
@@ -255,7 +262,11 @@ mutation AddReplaceSecrets($secrets: [SecretInput!]!) {
 | `permanence` | No | `STATIC` (long-lived, rotation required) or `DYNAMIC` (short-lived, auto-generated) |
 | `validityFrom` | No | ISO 8601 / AWSDateTime — when the credential became valid |
 | `validityTo` | No | ISO 8601 / AWSDateTime — expiry date — populate for all certificates and time-bounded keys |
-| `tags` | No | Key/value pairs — include env, team, rotation policy, compliance scope |
+| `tags` | No | Tag entries (`type`, `key`, `value` — for example `{"type":"TAG","key":"env","value":"prod"}`) — include env, team, rotation policy, compliance scope |
+| `permanence` | No | `DYNAMIC` or static — lets the customer separate short-lived from long-lived credentials |
+| `originLastRetrieved` | No | When the secret was last read in its origin — the field that lets the inventory flag unused secrets |
+| `originCreatedAt`, `originUpdatedAt` | No | When the secret was created and last updated in its origin |
+| `additionalData` | No | Provider-specific fields as a JSON string. **All provider-specific fields must be sent here.** For AWS, `storeName`, `createdAt`, `awsAccountId`, `region`, `discoveredAt`, `kmsKeyId` and `lastScannedAt` appear in the UI as their own fields only when sent in `additionalData` |
 | `secretValue` | No | Raw secret value — **do not populate in discovery use cases unless explicitly required** |
 
 > **Best practice:** Always populate `permanence` and `validityTo` where the data is available. These two fields drive the most actionable customer workflows: identifying static credentials that should be rotated and certificates approaching expiry.
@@ -263,6 +274,10 @@ mutation AddReplaceSecrets($secrets: [SecretInput!]!) {
 ---
 
 ### 7.2 Query Secrets
+
+> Requires the **Machines Admin** role. An integration holding only Machines External Data Contributor cannot query — reconcile from your own push record instead (Section 8).
+
+Query results also carry `managedByCyberArk` (whether the secret is already vaulted in Idira) and `compliance`. Full field list: [Add or replace external secrets](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-external-secrets.htm), [Query secrets](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-query-secrets.htm).
 
 ```graphql
 query ListSecrets($filter: SecretsFilterInput, $pageInput: PageInput, $sort: [SecretsSortInput]) {
@@ -335,9 +350,9 @@ mutation DeleteSecrets($filter: SecretsFilterInput!) {
 | **Full replace** | Scheduled scans — enumerate all secrets in scope, upsert the full set, delete records whose `originId` is absent from the latest scan |
 | **Delta push** | Event-driven sources (CloudTrail, Vault audit log, GitHub webhook) — push on create/rotate/delete events |
 | **Expiry-focused** | For certificate and key discovery — push with `validityTo` populated, re-scan and update whenever a rotation occurs |
-| **Reconciliation** | After any full replace, query Idira by `providerId`, diff `originId` sets, and delete stale records |
+| **Reconciliation** | Keep the set of `originId`s you pushed on the last run. After each full scan, diff it against the current `originId`s and call `deleteExternalSecrets` filtered by `originId` for the ones that are gone. This needs only the Machines External Data Contributor role. (Querying Idira by `providerId` and diffing there requires Machines Admin.) |
 
-Batch size recommendation: **100 secrets per mutation call**. Track `totalProcessedSecrets` to verify completeness.
+Batch size: each mutation request may be at most **64 KB** — there is no record-count limit. Size batches by payload, and compare `totalProcessedSecrets` with the number you sent to detect a partial batch. See [the add/replace mutation reference](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-external-secrets.htm).
 
 ---
 
@@ -418,5 +433,6 @@ Log the `originId` of every record alongside the API response. Surface per-item 
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Fixed]** Reconciliation is done against the integration's own record of what it pushed, then `deleteExternalSecrets` by `originId` — the Machines External Data Contributor role this kit requires cannot read inventory. Batches are limited by request size (64 KB per mutation), not by a count of 100. `type` is a required field. **[Added]** `additionalData` — where every provider-specific field must go, with the AWS field list — and `permanence`, `originLastRetrieved`, `originCreatedAt`, `originUpdatedAt` and the tag format; `managedByCyberArk` and `compliance` in query results; that queries need Machines Admin | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the two distinctions an agent gets wrong reading this kit cold: that it reports secrets existing *elsewhere* rather than retrieving them from Idira (the `secrets-management/` kits do the reverse), and that the secret *value* is never transmitted — only metadata. Also states the GraphQL single-endpoint pattern, the operation-name vs. server-field distinction (`addReplaceExternalSecrets` is the field), the post-2026-08-06 role requirement including why Secrets Hub is the wrong role despite the name, and the `originId` / `providerId` reconciliation contract. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

@@ -3,9 +3,9 @@
 **Workflow:** Secrets Management  
 **Integration:** Secrets Manager Self-Hosted  
 **Type:** Certification Checklist  
-**Version:** 2.2  
+**Version:** 2.3  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -64,12 +64,12 @@ Work through this checklist **during** development, not at submission. It is the
 
 ## 2. Solution Selection
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 2.1 | Secrets Manager Self-Hosted confirmed as the correct solution via the [Decision Guide](../decision-guide.md) | Required |
-| 2.2 | Official Idira documentation best practices reviewed and applied | Required |
-| 2.3 | Integration is tolerant to temporarily incorrect secrets during rotation | Required |
-| 2.4 | API key authentication used only when no other authenticator (cloud IAM, JWT, Kubernetes) is available | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 2.1 | Secrets Manager Self-Hosted confirmed as the correct solution via the [Decision Guide](../decision-guide.md) | Required | House rule — certification programme |
+| 2.2 | Official Idira documentation best practices reviewed and applied | Required | House rule — certification programme |
+| 2.3 | Integration is tolerant to temporarily incorrect secrets during rotation | Required | House rule — certification programme |
+| 2.4 | API key authentication used only when no other authenticator (cloud IAM, JWT, Kubernetes, client certificate) is available | Required | [docs: Secrets Manager Self-Hosted REST API](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/developer/lp_rest_api.htm) |
 
 ---
 
@@ -85,20 +85,20 @@ Work through this checklist **during** development, not at submission. It is the
 | 3.6 | Security scan results reviewed and addressed | Required | House rule — certification programme |
 | 3.7 | `x-cybr-telemetry` header included on all API requests | Required | House rule — 2026-08-13 KPI decision |
 | 3.8 | User and error messaging is clear and actionable | Recommended | House rule — certification programme |
-| 3.9 | Access tokens requested only on expiry — not per secret retrieval | Recommended | Idira docs — Secrets Manager Self-Hosted: access token lifetime (URL pending) |
-| 3.10 | Batch secret retrieval used where multiple secrets are needed (maximum 50 per batch) | Recommended | Idira docs — Secrets Manager Self-Hosted: batch secret retrieval (URL pending) |
+| 3.9 | Access tokens requested only on expiry — not per secret retrieval | Recommended | [docs: API key authentication](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/developer/conjur_api_api-key-authn.htm) |
+| 3.10 | Batch secret retrieval used where multiple static secrets are needed | Recommended | [docs: Batch secret retrieval](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/developer/conjur_api_batch_retrieve.htm) |
 
 ---
 
 ## 4. Documentation Review
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 4.1 | Documentation uses current Idira terminology (Secrets Manager Self-Hosted / Conjur Enterprise, not DAP) | Required |
-| 4.2 | Solution overview and architecture documented | Required |
-| 4.3 | Policy structure and workload identity setup instructions provided | Required |
-| 4.4 | Authentication method documented and recommended options explained | Required |
-| 4.5 | Safe and policy requirements for customer configuration provided | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 4.1 | Documentation uses current Idira terminology (Secrets Manager Self-Hosted / Conjur Enterprise, not DAP) | Required | House rule — certification programme |
+| 4.2 | Solution overview and architecture documented | Required | House rule — certification programme |
+| 4.3 | Policy structure and workload identity setup instructions provided | Required | House rule — certification programme |
+| 4.4 | Authentication method documented and recommended options explained | Required | House rule — certification programme |
+| 4.5 | Safe and policy requirements for customer configuration provided | Required | House rule — certification programme |
 
 ---
 
@@ -106,22 +106,22 @@ Work through this checklist **during** development, not at submission. It is the
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | Demo video recorded (2–5 minutes) showing end-to-end secret retrieval from Secrets Manager Self-Hosted | One of 5.1 / 5.2 |
-| 5.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end retrieval flow | One of 5.1 / 5.2 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | Demo video recorded (2–5 minutes) showing end-to-end secret retrieval from Secrets Manager Self-Hosted | One of 5.1 / 5.2 | House rule — demonstration |
+| 5.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end retrieval flow | One of 5.1 / 5.2 | House rule — demonstration |
 
 ---
 
 ## 6. Yearly Recertification
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 6.1 | Best practices reviewed and reflected in the solution | Required |
-| 6.2 | Solution tested with the latest version of Secrets Manager Self-Hosted | Required |
-| 6.3 | Security scan results reviewed and addressed | Required |
-| 6.4 | Documentation updated (version numbers, API paths, diagrams) | Required |
-| 6.5 | New Secrets Manager Self-Hosted functionality reviewed and adopted where appropriate | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 6.1 | Best practices reviewed and reflected in the solution | Required | House rule — recertification |
+| 6.2 | Solution tested with the latest version of Secrets Manager Self-Hosted | Required | House rule — recertification |
+| 6.3 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 6.4 | Documentation updated (version numbers, API paths, diagrams) | Required | House rule — recertification |
+| 6.5 | New Secrets Manager Self-Hosted functionality reviewed and adopted where appropriate | Recommended | House rule — recertification |
 
 ---
 
@@ -154,6 +154,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
-| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
-| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Code Review), naming the authority behind each of its 10 checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). 3.3 is the row the column clarifies most: reads-to-Followers / writes-to-Leader looks like a hardening rule and is not one — it is how the self-hosted topology works, and an integration that writes to a Follower fails on correctness, not on security posture. It is sourced to the Leader/Follower documentation accordingly. 3.4 carries the verified Secrets Manager SaaS REST landing, since that row grades only the SaaS half of a dual-target integration. No requirement, level or wording changed. — Idira Technical Alliances |
-| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Four checks are now **Recommended** rather than gates — 3.8 (message quality), 3.9 (token request cadence), 3.10 (batch retrieval), 6.5 (adopting new functionality); all four are practices a reviewer notes, not correctness failures. The demonstration requirement moved to its own section 5 and is expressed as **One of 5.1 / 5.2** rather than a nested checkbox. Added an AI context block. No check was removed and no requirement was loosened beyond the four re-levelled above. — Idira Technical Alliances |
+| 2.3 | 2026-10-08 | **[Updated]** Check 2.4 adds client certificate to the authenticators that come before an API key. Check 3.9 cites the 8-minute token lifetime. Check 3.10 drops the unsourced 50-per-batch maximum. **[Added]** A `Source` on every check | Idira Technical Alliances |
+| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Code Review), naming the authority behind each of its 10 checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). 3.3 is the row the column clarifies most: reads-to-Followers / writes-to-Leader looks like a hardening rule and is not one — it is how the self-hosted topology works, and an integration that writes to a Follower fails on correctness, not on security posture. It is sourced to the Leader/Follower documentation accordingly. 3.4 carries the verified Secrets Manager SaaS REST landing, since that row grades only the SaaS half of a dual-target integration. No requirement, level or wording changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Four checks are now **Recommended** rather than gates — 3.8 (message quality), 3.9 (token request cadence), 3.10 (batch retrieval), 6.5 (adopting new functionality); all four are practices a reviewer notes, not correctness failures. The demonstration requirement moved to its own section 5 and is expressed as **One of 5.1 / 5.2** rather than a nested checkbox. Added an AI context block. No check was removed and no requirement was loosened beyond the four re-levelled above. — Idira Technical Alliances | House rule — certification programme |

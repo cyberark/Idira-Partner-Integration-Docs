@@ -3,9 +3,9 @@
 **Workflow:** EPM  
 **Dev Kit:** Audit Events  
 **Type:** Certification Checklist  
-**Version:** 2.2  
+**Version:** 2.3  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-02  
+**Last Updated:** 2026-10-08  
 **Converted from:** Idira_EPM_Certification_Checklist.docx
 
 ---
@@ -89,11 +89,11 @@ Items marked **Required** are gate criteria — a single failure blocks certific
 
 ## 3. API Usage
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 3.1 | Only documented and supported Idira Endpoint Privilege Manager Audit APIs are used | Required |
-| 3.2 | Authorization header uses the Bearer token correctly | Required |
-| 3.3 | API filtering is used where available — no raw event dumping | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 3.1 | Only documented and supported Idira Endpoint Privilege Manager audit and event APIs are used — event search calls are `POST` with a JSON body, and the deprecated set/account admin-audit APIs are not used | Required | [docs: EPM audit and event APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/auditseventsapis.htm) |
+| 3.2 | Authorization header uses the Bearer token correctly | Required | [docs: EPM API authentication using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-identity-administration.htm) |
+| 3.3 | API filtering is used where available — no raw event dumping | Recommended | [docs: EPM query language](https://docs.cyberark.com/epm/latest/en/content/webservices/epmquerylanguage.htm) |
 
 ---
 
@@ -109,11 +109,12 @@ Items marked **Required** are gate criteria — a single failure blocks certific
 
 ## 5. Reliability and Data Quality
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | Integration handles common errors (401, 403, 429) | Required |
-| 5.2 | Duplicate audit events are avoided | Required |
-| 5.3 | Integration tested with real Idira Endpoint Privilege Manager policy activity | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | Integration handles common errors (401, 403, 429), and request rates stay within each event category's limits (1,000 per 5 minutes, 5 per second) | Required | [docs: EPM API limitations](https://docs.cyberark.com/epm/latest/en/content/webservices/webservicesintro.htm) |
+| 5.2 | Duplicate audit events are avoided across polling cycles — the integration tracks the last `arrivalTime` processed | Required | [docs: Get detailed raw events](https://docs.cyberark.com/epm/latest/en/content/webservices/getdetailedrawevents.htm) |
+| 5.3 | Integration tested with real Idira Endpoint Privilege Manager policy activity | Required | House rule — certification programme |
+| 5.4 | Pagination handled to completion — `nextCursor` is followed until no cursor is returned, so no event past the first page is dropped | Required | [docs: Get detailed raw events](https://docs.cyberark.com/epm/latest/en/content/webservices/getdetailedrawevents.htm) |
 
 ---
 
@@ -121,13 +122,13 @@ Items marked **Required** are gate criteria — a single failure blocks certific
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 6.1 | Integration setup steps are documented | Required |
-| 6.2 | Idira Endpoint Privilege Manager Audit data collected is clearly described | Required |
-| 6.3 | Partner attests the integration is tested against current Idira Endpoint Privilege Manager APIs | Required |
-| 6.4 | Demo video recorded (2–5 minutes) showing EPM audit events ingested and surfaced in the partner platform end to end | One of 6.4 / 6.5 |
-| 6.5 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end ingestion flow | One of 6.4 / 6.5 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 6.1 | Integration setup steps are documented | Required | House rule — certification programme |
+| 6.2 | Idira Endpoint Privilege Manager Audit data collected is clearly described | Required | House rule — certification programme |
+| 6.3 | Partner attests the integration is tested against current Idira Endpoint Privilege Manager APIs | Required | House rule — certification programme |
+| 6.4 | Demo video recorded (2–5 minutes) showing EPM audit events ingested and surfaced in the partner platform end to end | One of 6.4 / 6.5 | House rule — demonstration |
+| 6.5 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end ingestion flow | One of 6.4 / 6.5 | House rule — demonstration |
 
 ---
 
@@ -135,26 +136,26 @@ A demonstration is mandatory. Either format satisfies the requirement — you do
 
 All partner integrations require telemetry headers for Idira to analyze Marketplace integration data. The data is sent via an HTTP header named `x-cybr-telemetry`, Base64 URL-encoded. Build it from [`telemetry-reference.md`](../../telemetry-reference.md) — that file carries the transform, the assigned `IntegrationType` value, reference code, and test vectors.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 7.1 | `x-cybr-telemetry` header present on every API request | Required |
-| 7.2 | Header value is Base64 URL-encoded | Required |
-| 7.3 | `in` (IntegrationName) field populated | Required |
-| 7.4 | `it` (IntegrationType) field set to `EPMAudit` | Required |
-| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required |
-| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 7.1 | `x-cybr-telemetry` header present on every API request | Required | House rule — telemetry |
+| 7.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 7.3 | `in` (IntegrationName) field populated | Required | House rule — telemetry |
+| 7.4 | `it` (IntegrationType) field set to `EPMAudit` | Required | House rule — telemetry |
+| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required | House rule — telemetry |
+| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required | House rule — telemetry |
 
 ---
 
 ## 8. Yearly Recertification
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 8.1 | Best practices reviewed and reflected in the current integration version | Required |
-| 8.2 | Integration tested against the latest version of the partner platform | Required |
-| 8.3 | Security scan results reviewed and addressed | Required |
-| 8.4 | Documentation updated — version numbers, API paths, field references | Required |
-| 8.5 | New Idira Endpoint Privilege Manager audit endpoints or event types reviewed, tested, and supported where appropriate | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 8.1 | Best practices reviewed and reflected in the current integration version | Required | House rule — recertification |
+| 8.2 | Integration tested against the latest version of the partner platform | Required | House rule — recertification |
+| 8.3 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 8.4 | Documentation updated — version numbers, API paths, field references | Required | House rule — recertification |
+| 8.5 | New Idira Endpoint Privilege Manager audit endpoints or event types reviewed, tested, and supported where appropriate | Recommended | House rule — recertification |
 
 ---
 
@@ -187,6 +188,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-08 | **[Added]** v2.3 — Check 5.4: pagination must be followed to completion. A `Source` on every check. **[Updated]** Check 3.1 now states that event search calls are `POST` and that the deprecated admin-audit APIs are out of scope; check 5.1 adds the per-category request limits; check 5.2 names `arrivalTime` as the deduplication anchor. An integration that reads only the first page of results, or calls event search with `GET`, no longer passes | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v2.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v2.1 — A `Source` column on §2 (Authentication & Identity) and §4 (Security Best Practices), naming the authority behind each of those 7 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira EPM Web Services SDK documentation where it is a product contract. Vocabulary and verbatim control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). §4's three checks are the clearest case for the column in the corpus — "least-privilege", "stored securely", "not exposed in logs" are stated so broadly that a partner could read each as advisory; they are now V13.3.2, V13.3.1 and V16.2.5, with verbatim text a reviewer can quote. Also renamed the header field `**Source:**` to `**Converted from:**`, which pointed at the original `.docx` and collided with the new column's meaning. No requirement, level or wording changed | Idira Technical Alliances |
 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land — the demonstration stayed in section 6 rather than moving to its own section, and is now expressed as **One of 6.4 / 6.5** instead of a nested checkbox. **The telemetry section was ungradeable and is now graded** — it previously held only a field-reference table with no checkboxes, so a partner or agent self-scoring this checklist mechanically never scored the telemetry requirement at all; it is now six numbered checks (7.1–7.6). Two checks are now **Recommended** rather than gates: 3.3 (filtering where available) and 8.5 (adopting new endpoints where appropriate), both conditional on availability rather than on partner effort. Added an AI context block, including the kit-selection distinctions and a note that the development guide does not yet document the telemetry requirement section 7 grades. No check was removed and no requirement was loosened beyond the two re-levelled above. | Idira Technical Alliances |

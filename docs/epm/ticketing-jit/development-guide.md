@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira Docs — JIT Policy Definition API + Idira Marketplace  
-**Version:** 1.2  
-**Last Updated:** 2026-10-02
+**Version:** 1.3  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -22,7 +22,7 @@ USE CASE: Ticketing — JIT Admin Elevation. A ticketing/ITSM platform gates tem
 INTEGRATION PATTERN: REST. The PARTNER CALLS EPM — create, read, update and delete a JIT policy.
 AUTH METHOD: OAuth 2.0 `client_credentials`, sent as HTTP Basic over TLS (Section 4.1)
 AUTH HEADER FORMAT: Authorization: Bearer <ACCESS_TOKEN>
-BASE URL: https://<epm-tenant>.epm.cyberark.com/EPM/API/<Version>/Policies/JIT
+BASE URL: https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets/<SetId>/Policies/Server
 TOKEN ENDPOINT: POST https://<TENANT>.id.cyberark.cloud/oauth2/token/<APP_NAME>
 TELEMETRY: Required on every request — x-cybr-telemetry header, Base64url-encoded key=value pairs.
   it=JIT — see ../../telemetry-reference.md
@@ -33,12 +33,21 @@ policy into EPM. ../audit-events/ READS events out of it. A closed-loop ticketin
 both, and they are separate integrations with separate checklists and separate `it` values (`JIT` here,
 `EPMAudit` there).
 
-THE HOST IS THE DISPATCHER, AND THE SIBLING GUIDE CARRIES THE WARNING THIS ONE OMITS.
-`<epm-tenant>` in Section 4.2 is the same regional dispatcher value ../audit-events/ documents
-(`na228`, `eu14`, …), found in the EPM console under tenant settings. Do NOT use
-`login.epm.cyberark.com` or the "EPM Login Server" field — that returns `invalid client` or
-`token request failed`, which reads as a credential fault and is not one. See
-../audit-events/development-guide.md Section 8 for the full statement of this.
+THE HOST IS THE EPM SERVER (Section 4.2). `<EPM_Server>` is the subdomain of the tenant's EPM console
+URL — `https://na101.epm.cyberark.com/...` means `na101`. Do NOT use `login.epm.cyberark.com` or the
+"EPM Login Server" field — that returns `invalid client` or `token request failed`, which reads as a
+credential fault and is not one.
+
+THE POLICY PATHS ARE UNDER A SET (Section 6). Every policy call is addressed as
+`/EPM/API/<Version>/Sets/<SetId>/Policies/Server[/<PolicyId>]`:
+  POST   …/Policies/Server                -> create
+  GET    …/Policies/Server/<PolicyId>     -> details
+  PUT    …/Policies/Server/<PolicyId>     -> update
+  DELETE …/Policies/Server/<PolicyId>     -> delete / revoke
+There is no `/Policies/JIT` path. Resolve `<SetId>` with `GET /EPM/API/<Version>/Sets` at startup,
+cache it for the run only, and re-resolve on a `404` — EPM set management is being retired on a
+published timeline (see ../audit-events/development-guide.md Section 8).
+POLICY API RATE LIMIT: 30 calls per minute. Batch revocations during an incident and back off on 429.
 
 `Audit: true` ALWAYS, AND NEVER DISABLED IN PRODUCTION (Section 10). CROSS-KIT TRAP — THIS KIT GRADES
 THE INVERSE OF THE CREDENTIAL PROVIDER KITS: ../../secrets-management/credential-provider/ and
@@ -50,23 +59,22 @@ THE MAGIC NUMBERS ARE NOT GUESSABLE AND ARE ALL GRADED (Section 7):
 - `PolicyType` MUST be `40`. This is the JIT policy type; there is no other valid value here.
 - `Action` defaults to `20`.
 - `ExecutorType`: `0` = computer group, `1` = single computer.
-- `AccountType` on an entry in `Accounts`: `0` = group, `1` = single AD account, `2` = manual,
-  `4` = Azure user, `5` = Azure group.
+- `AccountType` on an entry in `Accounts`: `0` = group, `1` = single AD account, `4` = Azure user,
+  `5` = Azure group. (`2` = manual is deprecated; EPM converts it to `1`.)
 - `AccountType` on an entry in `TargetLocalGroups`: `0`, paired with `DisplayName: "Administrators"`.
 - `Duration` is in HOURS, range `1`–`120`. Not minutes, not seconds.
 
-TYPE DISCREPANCY BETWEEN SECTION 6.1's EXAMPLE AND SECTION 7's TABLE — FLAG RATHER THAN GUESS. The
-table types `Duration` as Number and `KillRunningApps` as Boolean, while the example body sends
-`"Duration": "2"` and `"KillRunningApps": "true"` as QUOTED STRINGS — and sends `"Audit": true`
-unquoted in the same object. The three are inconsistent with each other. Send what the example sends
-if you must choose, since that is the form known to have been exercised, and confirm with the Idira Technical Alliances contact
-before shipping. Do not silently normalise all three to one form and present it as documented.
+TYPES FOLLOW THE PARAMETER TABLE (Section 7): `Duration` is a Number (hours, 1–120, default 1),
+`KillRunningApps` and `Audit` are Booleans (both default `true`). Send them typed. EPM's own JSON
+example quotes `"Duration"` and `"KillRunningApps"` as strings; the parameter table is the contract.
 
 AN `Executors` ENTRY TAKES AN EPM AGENT ID GUID, NOT A HOSTNAME (Section 7, Section 8). Resolve it
-first via `GET /EPM/API/<Version>/Sets`. That call is a hard dependency of policy creation — a
-generated integration that accepts a computer name from the ticket and posts it directly will fail.
-Set `IsAppliedToAllComputers: false` when targeting specific computers; `IncludeADComputerGroups` is
-the alternative to `Executors`, not a supplement to it.
+from the hostname with Get endpoints — `POST /EPM/API/<Version>/Sets/<SetId>/Endpoints/search` with
+`{"filter": "name EQ \"<hostname>\""}` — which replaced the deprecated Get computers API. NOT with
+`GET /Sets`, which returns Set IDs. Each endpoint carries `id` and `legacyId` (the agent's legacy
+identifier); see Section 8 for which to use and how to confirm it. Every `Executors` item needs
+`IsIncluded: true`. Set `IsAppliedToAllComputers: false` when targeting specific computers;
+`IncludeADComputerGroups` is the alternative to `Executors`, not a supplement to it.
 
 AN ACCOUNT NEEDS `SamName` OR `Sid`, NOT NECESSARILY BOTH (Section 7). `DisplayName` is required
 either way and should match `SamName`. `SamName` is `domain\user` format — note the escaped backslash
@@ -91,12 +99,12 @@ reference, the requesting user and a timestamp so any active policy resolves bac
 Check 8.7 closes the loop by requiring the elevation to appear in EPM audit data attributable to the
 ticket.
 
-`<Version>` is a literal path segment and this guide does not enumerate the valid values. Section 11's
+`<Version>` is `x.x.x.x` (for example `24.12.0.0`), optional, and defaults to the latest. Section 11's
 two reference links resolve to real pages rather than a portal front page — use them for the full
 parameter schema and error tables.
 
 SIBLING KITS — three EPM kits:
-- ../audit-events/: reads EPM audit events out. it=EPMAudit. Carries the dispatcher-URL warning.
+- ../audit-events/: reads EPM audit events out. it=EPMAudit. Carries the full EPM server-host warning.
 - ../soc-response/: a SOC platform acting on EPM.
 - ../decision-guide.md — which EPM dev kit to build against.
 
@@ -190,8 +198,12 @@ Use the `access_token` as the `Authorization: Bearer <token>` header on all subs
 ### 4.2 Base URL
 
 ```
-https://<epm-tenant>.epm.cyberark.com/
+https://<EPM_Server>.epm.cyberark.com/
 ```
+
+`<EPM_Server>` is the subdomain of your EPM management console URL — if the console is `https://na101.epm.cyberark.com/...`, use `na101`. Do not use `login.epm.cyberark.com` or the "EPM Login Server" value; that returns `invalid client`.
+
+`<Version>` is `x.x.x.x` (for example `24.12.0.0`). It is optional and defaults to the latest version.
 
 ---
 
@@ -226,12 +238,14 @@ Ticketing system receives callback / marks ticket resolved
 
 ## 6. JIT Policy API
 
+All four calls are addressed under a Set: resolve `<SetId>` first (Section 8). The policy APIs allow **30 calls per minute** — handle `429` with exponential backoff, and during an incident revoke in a paced loop rather than a burst. Reference: [Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm).
+
 ### 6.1 Create a JIT Policy (on approval)
 
 Called by the ticketing system when an approver approves the elevation request.
 
 ```
-POST https://<epm-tenant>.epm.cyberark.com/EPM/API/<Version>/Policies/JIT
+POST https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets/<SetId>/Policies/Server
 Authorization: Bearer <ACCESS_TOKEN>
 Content-Type: application/json
 ```
@@ -245,13 +259,14 @@ Content-Type: application/json
   "IsAppliedToAllComputers": false,
   "PolicyType": 40,
   "Action": 20,
-  "Duration": "2",
-  "KillRunningApps": "true",
+  "Duration": 2,
+  "KillRunningApps": true,
   "Audit": true,
   "Executors": [
     {
       "Id": "<agent-id-guid>",
-      "ExecutorType": 1
+      "ExecutorType": 1,
+      "IsIncluded": true
     }
   ],
   "Accounts": [
@@ -280,7 +295,7 @@ Content-Type: application/json
 Called to check the current state of an active elevation policy.
 
 ```
-GET https://<epm-tenant>.epm.cyberark.com/EPM/API/<Version>/Policies/JIT/<PolicyId>
+GET https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets/<SetId>/Policies/Server/<PolicyId>
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
@@ -291,12 +306,12 @@ Authorization: Bearer <ACCESS_TOKEN>
 Called if the approver extends the duration or modifies scope.
 
 ```
-PUT https://<epm-tenant>.epm.cyberark.com/EPM/API/<Version>/Policies/JIT/<PolicyId>
+PUT https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets/<SetId>/Policies/Server/<PolicyId>
 Authorization: Bearer <ACCESS_TOKEN>
 Content-Type: application/json
 ```
 
-Use the same body structure as the create request, with updated fields.
+Use the same body structure as the create request, with updated fields. Add `?cleanDeletedEndpoints=true` to drop executors whose endpoints have been deleted.
 
 ---
 
@@ -305,7 +320,7 @@ Use the same body structure as the create request, with updated fields.
 Called by the ticketing system when an approver rejects the request, the ticket is closed early, or a security incident triggers immediate revocation.
 
 ```
-DELETE https://<epm-tenant>.epm.cyberark.com/EPM/API/<Version>/Policies/JIT/<PolicyId>
+DELETE https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets/<SetId>/Policies/Server/<PolicyId>
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
@@ -324,12 +339,12 @@ A successful response returns `HTTP 200 OK`. The user is immediately removed fro
 | `IsAppliedToAllComputers` | Boolean | Yes | Set to `false` when targeting specific computers via `Executors` |
 | `PolicyType` | Number | Yes | Must be `40` (JIT type) |
 | `Action` | Number | No | Defaults to `20` |
-| `Duration` | Number | No | Elevation duration in hours — range: `1`–`120` |
-| `KillRunningApps` | Boolean | No | If `true`, admin processes are terminated when policy expires (default: `true`) |
+| `Duration` | Number | No | Elevation duration in hours — range: `1`–`120`, default `1`. Send a number, not a string |
+| `KillRunningApps` | Boolean | No | If `true`, admin processes are terminated when policy expires (default: `true`). Send a boolean, not a string |
 | `Audit` | Boolean | No | If `true`, audit information is collected (default: `true`) |
-| `Executors` | Array | Conditional | Target computers or computer groups. Required if `IsAppliedToAllComputers` is `false` |
+| `Executors` | Array | Conditional | Target computers or computer groups. Required unless `IncludeADComputerGroups` is set. Every item must have `IsIncluded: true` |
 | `IncludeADComputerGroups` | Array | Conditional | AD groups containing the target computers. Alternative to `Executors` |
-| `TargetLocalGroups` | Array | Yes | Local security groups to add the user to — minimum one entry |
+| `TargetLocalGroups` | Array | Yes | Local security groups to add the user to — minimum one entry; only `AccountType: 0` items are allowed |
 | `Accounts` | Array | Yes | Users or groups to elevate — minimum one entry |
 
 ### Account Fields
@@ -337,8 +352,8 @@ A successful response returns `HTTP 200 OK`. The user is immediately removed fro
 | Parameter | Type | Required | Description |
 |:----------|:-----|:---------|:------------|
 | `SamName` | String | If `Sid` missing | Username in `domain\user` format |
-| `Sid` | String | If `SamName` missing | Security Identifier for the account |
-| `AccountType` | Number | No | `0` = group, `1` = single AD account, `2` = manual, `4` = Azure user, `5` = Azure group |
+| `Sid` | String | If `SamName` missing | AD SID for types 0/1; GUID for Azure types 4/5 |
+| `AccountType` | Number | No | `0` = group, `1` = single AD account, `4` = Azure user, `5` = Azure group (`2` = manual is deprecated and converted to `1`) |
 | `DisplayName` | String | Yes | Display name shown in EPM agent — recommend matching `SamName` |
 
 ### Executor Fields
@@ -348,21 +363,37 @@ A successful response returns `HTTP 200 OK`. The user is immediately removed fro
 | `Id` | GUID | Yes | Internal EPM Agent ID (GUID) of the target computer or group |
 | `Name` | String | No | Display name — returned on GET, not stored on create |
 | `ExecutorType` | Number | Yes | `0` = computer group, `1` = single computer |
+| `IsIncluded` | Boolean | Yes | Must be `true` |
 
 ---
 
 ## 8. Retrieving Required IDs
 
-Before creating a JIT policy, the integration must resolve the Agent ID and Set ID for the target computer.
+Before creating a JIT policy, resolve the Set ID and the target computer's agent ID.
 
-### Get Computer Sets (for resolving Agent IDs)
+### Get the Set ID
 
 ```bash
-curl -X GET https://<epm-tenant>.epm.cyberark.com/EPM/API/<Version>/Sets \
+curl -X GET "https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets" \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
-Use the returned Set and computer IDs to populate the `Executors` array in the policy create request.
+Use `Sets[].Id` as `<SetId>`. Reference: [Get sets list](https://docs.cyberark.com/epm/latest/en/content/webservices/getsetslist.htm).
+
+### Resolve the computer from its hostname
+
+```bash
+curl -X POST "https://<EPM_Server>.epm.cyberark.com/EPM/API/<Version>/Sets/<SetId>/Endpoints/search" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"filter": "name EQ \"<hostname>\""}'
+```
+
+Get endpoints replaced the deprecated Get computers API. Each endpoint carries `id` (the endpoint ID) and `legacyId` (the agent's legacy identifier). Reference: [Get endpoints](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-apis/get-endpoints.htm).
+
+> **Stop and confirm which ID the policy takes.** The JIT policy definition describes `Executors[].Id` as the agent ID returned by the deprecated Get computers API, which corresponds to `legacyId`. Before you ship, create one test policy on your tenant with `legacyId` and confirm it applies to the endpoint; if it does not, raise it with your Idira Technical Alliances contact rather than trying other values in production.
+
+For computer groups (`ExecutorType: 0`), use the [endpoint group APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-group-apis/endpoint-group-apis.htm).
 
 ---
 
@@ -373,16 +404,16 @@ Use the returned Set and computer IDs to populate the `Executors` array in the p
 1. **Trigger:** End user submits elevation request in the ticketing system, providing their username, target computer name, requested duration, and business justification.
 2. **Ticket created:** Ticketing system creates a ticket and routes it to the approver group.
 3. **Approval webhook:** On approval, the ticketing system fires a webhook to your integration layer.
-4. **Resolve Agent ID:** Integration layer calls EPM `GET /Sets` to resolve the target computer's Agent ID.
-5. **Create JIT policy:** Integration layer calls EPM `POST /Policies/JIT` with the resolved Agent ID, username, and approved duration. Store the returned `PolicyId` against the ticket.
+4. **Resolve IDs:** Integration layer resolves `<SetId>` (`GET /Sets`, cached for the run) and the target computer's agent ID (`POST /Sets/<SetId>/Endpoints/search`).
+5. **Create JIT policy:** Integration layer calls EPM `POST /Sets/<SetId>/Policies/Server` with the resolved Agent ID, username, and approved duration. Store the returned `PolicyId` against the ticket.
 6. **Notify user:** Ticketing system notifies the end user that elevation is active and states the expiry time.
 7. **Policy expiry:** EPM automatically removes elevation after the duration. No callback needed.
-8. **Ticket closure:** Integration layer optionally calls `DELETE /Policies/JIT/<PolicyId>` on ticket closure to ensure revocation even if the duration has not yet elapsed.
+8. **Ticket closure:** Integration layer optionally calls `DELETE /Sets/<SetId>/Policies/Server/<PolicyId>` on ticket closure to ensure revocation even if the duration has not yet elapsed.
 
 ### Rejection / revocation path
 
-- On ticket rejection: call `DELETE /Policies/JIT/<PolicyId>` immediately.
-- On security incident (e.g. triggered by SIEM alert): call `DELETE /Policies/JIT/<PolicyId>` to force immediate revocation regardless of duration.
+- On ticket rejection: call `DELETE /Sets/<SetId>/Policies/Server/<PolicyId>` immediately.
+- On security incident (e.g. triggered by SIEM alert): call `DELETE /Sets/<SetId>/Policies/Server/<PolicyId>` to force immediate revocation regardless of duration.
 
 ---
 
@@ -430,5 +461,6 @@ For full parameter schemas, error code tables, and additional API operations, re
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Fixed]** Every policy call is addressed under a Set: `/EPM/API/<Version>/Sets/<SetId>/Policies/Server` for create and `…/Policies/Server/<PolicyId>` for details, update and delete — the previous `/Policies/JIT` paths do not exist. The target computer's agent ID is resolved with Get endpoints (`POST /Sets/<SetId>/Endpoints/search`), not `GET /Sets`. `Duration` and `KillRunningApps` are sent as a number and a boolean. **[Added]** `IsIncluded: true` on executors; the 30-per-minute policy API limit; the `<Version>` format; the EPM server-name host. **[Removed]** `AccountType 2` (manual), which EPM has deprecated. An integration built to v1.2 must update every policy path | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus — this was the last of the fifteen development guides. It leads with direction (the partner **writes** policy into EPM here, the inverse of the EPM Audit kit that reads events out) and carries across the dispatcher-URL warning the sibling guide states and this one omits. It records the cross-kit auditing trap in both directions — `Audit: true` always and never disabled here, against the Credential Provider kits' requirement that CP/CCP audit logging be **disabled** for production — and enumerates the magic numbers an agent cannot guess: `PolicyType` 40, `Action` 20, `ExecutorType` 0/1, the five `AccountType` values, and `Duration` in hours over a 1–120 range. Two structural points are called out that this guide does not make explicit: an `Executors` entry needs an EPM Agent ID GUID resolved via `GET /Sets` rather than a hostname from the ticket, and `DELETE` is three separately graded paths (rejection, early closure, incident revocation) rather than optional cleanup. It also points at the checklist's §6 Approval Integrity before the ticket flow is designed, naming check 6.4 specifically — the elevation target must not be alterable between approval and policy creation, which is a real privilege-escalation hole in an otherwise working integration and which nothing in this guide implies. One **discrepancy** is recorded rather than resolved: Section 6.1's example body sends `"Duration": "2"` and `"KillRunningApps": "true"` as quoted strings alongside an unquoted `"Audit": true`, while Section 7's table types the first two as Number and Boolean; the block advises following the exercised example and confirming with the Idira Technical Alliances contact rather than silently normalising. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

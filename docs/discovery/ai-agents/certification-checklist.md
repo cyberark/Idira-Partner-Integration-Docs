@@ -3,9 +3,9 @@
 **Workflow:** Discovery  
 **Dev Kit:** AI Agents  
 **Type:** Certification Checklist  
-**Version:** 1.2  
+**Version:** 1.3  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-02  
+**Last Updated:** 2026-10-08  
 
 ---
 
@@ -64,53 +64,53 @@ To achieve Idira certification for an AI Agent Discovery integration, your solut
 
 ## 3. Telemetry Header
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 3.1 | `x-cybr-telemetry` header present on every API request | Required |
-| 3.2 | Header value is Base64 URL-encoded | Required |
-| 3.3 | `in` (IntegrationName) field populated | Required |
-| 3.4 | `it` (IntegrationType) field set to `AI-Agent-Discovery` | Required |
-| 3.5 | `iv` (IntegrationVersion) field populated and matches released version | Required |
-| 3.6 | `vn` (VendorName) field populated with partner's legal entity name | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 3.1 | `x-cybr-telemetry` header present on every API request | Required | House rule — telemetry |
+| 3.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 3.3 | `in` (IntegrationName) field populated | Required | House rule — telemetry |
+| 3.4 | `it` (IntegrationType) field set to `AI-Agent-Discovery` | Required | House rule — telemetry |
+| 3.5 | `iv` (IntegrationVersion) field populated and matches released version | Required | House rule — telemetry |
+| 3.6 | `vn` (VendorName) field populated with partner's legal entity name | Required | House rule — telemetry |
 
 ---
 
 ## 4. Data Quality — AI Agent Records
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 4.1 | `originId` is a stable, globally unique identifier from the source system (cloud resource ARN, full resource path, or equivalent) | Required |
-| 4.2 | `originId` does not change between rescans for the same agent | Required |
-| 4.3 | `providerId` accurately identifies the source account/tenant/subscription | Required |
-| 4.4 | `providerType` matches one of the standard values or a clearly documented custom value | Required |
-| 4.5 | `name` is human-readable and reflects the agent's identity in the source system | Required |
-| 4.6 | `type` field is populated for all agent records | Recommended |
-| 4.7 | `subType` field populated and reflects the specific framework or cloud service | Recommended |
-| 4.8 | `location` field populated (region, namespace, or deployment zone) | Recommended |
-| 4.9 | `tags` include at minimum: `env`, `team`, and one classification tag | Recommended |
-| 4.10 | `additionalData` includes the IAM role or permission set the agent assumes, and any tools or APIs it can invoke | Recommended |
-| 4.11 | No PII or sensitive values in `name`, `description`, `tags`, or `additionalData` | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 4.1 | `originId` is a stable, globally unique identifier from the source system (cloud resource ARN, full resource path, or equivalent) | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.2 | `originId` does not change between rescans for the same agent | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.3 | `providerId` accurately identifies the source account/tenant/subscription | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.4 | `providerType` matches one of the standard values or a clearly documented custom value | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.5 | `name` is human-readable and reflects the agent's identity in the source system | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.6 | `type` field is populated for all agent records | Recommended | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.7 | `subType` field populated and reflects the specific framework or cloud service | Recommended | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.8 | `location` field populated (region, namespace, or deployment zone) | Recommended | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.9 | `tags` include at minimum: `env`, `team`, and one classification tag | Recommended | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.10 | `additionalData` includes the IAM role or permission set the agent assumes, and any tools or APIs it can invoke | Recommended | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 4.11 | No PII or sensitive values in `name`, `description`, `tags`, or `additionalData` | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
 
 ---
 
 ## 5. Upsert & Deduplication Behaviour
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | `addReplaceExternalAiAgents` mutation used (not repeated inserts) | Required |
-| 5.2 | Repeated pushes of the same `originId` update the record without creating duplicates | Required |
-| 5.3 | Batch size does not exceed 100 agents per mutation call | Required |
-| 5.4 | `totalProcessedAiAgents` is logged after each batch | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | `addReplaceExternalAiAgents` mutation used (not repeated inserts) | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 5.2 | Repeated pushes of the same `originId` update the record without creating duplicates | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 5.3 | Each mutation request stays within the documented 64 KB request-size limit, and a response whose processed count is lower than the number sent is treated as a partial failure | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
+| 5.4 | `totalProcessedAiAgents` is logged after each batch | Required | [docs: add/replace mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-ai-agents.htm) |
 
 ---
 
 ## 6. Stale Record Management
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 6.1 | Integration removes records from Idira when agents are deleted or deprovisioned in the source system | Required |
-| 6.2 | Delete operations are always scoped — `filter` by `providerId` or `originId`; unfiltered deletes are not used | Required |
-| 6.3 | Reconciliation logic is tested: agents removed from source do not persist indefinitely in inventory | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 6.1 | Integration removes records from Idira when agents are deleted or deprovisioned in the source system | Required | [docs: delete mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-delete-ai-agents.htm) |
+| 6.2 | Delete operations are always scoped — `filter` by `providerId` or `originId`; unfiltered deletes are not used | Required | [docs: delete mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-delete-ai-agents.htm) |
+| 6.3 | Reconciliation logic is tested: agents removed from source do not persist indefinitely in inventory — reconciliation uses the integration\'s own record of pushed `originId`s, since the Machines External Data Contributor role cannot read inventory | Required | [docs: delete mutation](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-delete-ai-agents.htm) |
 
 ---
 
@@ -127,33 +127,33 @@ To achieve Idira certification for an AI Agent Discovery integration, your solut
 
 ## 8. Inventory Validation (Functional Test)
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 8.1 | After a push, pushed records are visible in `Inventory > AI Agents` in the Idira UI | Required |
-| 8.2 | Agent `name`, `type`, `location`, and `tags` display correctly in the inventory view | Required |
-| 8.3 | After source deletion and reconciliation run, deleted agents are no longer present in inventory | Required |
-| 8.4 | `additionalData` fields are visible in the agent detail view | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 8.1 | After a push, pushed records are visible in `Inventory > AI Agents` in the Idira UI | Required | House rule — certification programme |
+| 8.2 | Agent `name`, `type`, `location`, and `tags` display correctly in the inventory view | Required | House rule — certification programme |
+| 8.3 | After source deletion and reconciliation run, deleted agents are no longer present in inventory | Required | House rule — certification programme |
+| 8.4 | `additionalData` fields are visible in the agent detail view | Recommended | House rule — certification programme |
 
 ---
 
 ## 9. Documentation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 9.1 | Partner provides a list of all `providerType` values the integration emits | Required |
-| 9.2 | Partner documents the sync schedule / trigger mechanism | Required |
-| 9.3 | Partner documents the `originId` construction strategy | Required |
-| 9.4 | Partner provides a sample payload representing a real discovered agent (with values anonymized) | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 9.1 | Partner provides a list of all `providerType` values the integration emits | Required | House rule — certification programme |
+| 9.2 | Partner documents the sync schedule / trigger mechanism | Required | House rule — certification programme |
+| 9.3 | Partner documents the `originId` construction strategy | Required | House rule — certification programme |
+| 9.4 | Partner provides a sample payload representing a real discovered agent (with values anonymized) | Recommended | House rule — certification programme |
 
 ---
 
 ## 10. Demonstration
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 10.1 | **Demonstration provided — 10.2 or 10.3 satisfies this** | Required |
-| 10.2 | Demo video recorded (2–5 minutes) showing discovery through to agents appearing in `Inventory > AI Agents` | One of 10.2 / 10.3 |
-| 10.3 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end discovery-to-inventory flow | One of 10.2 / 10.3 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 10.1 | **Demonstration provided — 10.2 or 10.3 satisfies this** | Required | House rule — demonstration |
+| 10.2 | Demo video recorded (2–5 minutes) showing discovery through to agents appearing in `Inventory > AI Agents` | One of 10.2 / 10.3 | House rule — demonstration |
+| 10.3 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end discovery-to-inventory flow | One of 10.2 / 10.3 | House rule — demonstration |
 
 ---
 
@@ -188,6 +188,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-08 | **[Fixed]** v1.3 — Check 5.3 grades the documented 64 KB request-size limit instead of a 100-record batch, which had no published basis. Check 6.3 states that reconciliation uses the integration's own record of what it pushed, because the required Machines External Data Contributor role cannot read inventory. **[Added]** A `Source` on every check | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v1.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v1.1 — A `Source` column on §2 (Authentication & Security) and §7 (Logging & Observability), naming the authority behind each of those 9 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira documentation where it is a product contract, and `House rule` where it is our own programme policy. Until now no check in this repository recorded where it came from, so a security control and an internal preference were indistinguishable on the page. Vocabulary and verbatim control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). Cells reading `(URL pending)` carry no link because the Discovery & Context API has no entry in the vault's verified deep-links index, and guessing a doc URL is prohibited. Also added the `Version` / `Last Updated` header fields and this Change Log, which this checklist had never carried — a Rule 1 and Rule 4 gap shared by all four Discovery checklists. No requirement, level or wording changed | Idira Technical Alliances |
 | 2026-06-24 | **[Added]** v1.0 — First publication of the AI Agents certification checklist. The file carried no version history before 2026-10-01, so edits between this date and then are recorded only in git | Idira Technical Alliances |

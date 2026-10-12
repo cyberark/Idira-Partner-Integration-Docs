@@ -4,9 +4,9 @@
 **Use Case:** Ticketing — Just-in-Time admin elevation gated on an approval workflow
 **Idira Product:** Idira Endpoint Privilege Manager
 **Type:** Certification Checklist
-**Version:** 2.2
+**Version:** 2.3
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -52,8 +52,9 @@ EXACT VALUES AND CONSTANTS — all graded:
   (check 5.5). Defaulting to 120 fails even though 120 is in range.
 - `TargetLocalGroups` and `Accounts` each carry at least one entry, scoped to the requesting user
   and the approved group only (check 5.8). Empty or wildcard scoping fails.
-- Agent IDs and Set IDs are resolved at runtime via `GET /Sets` (check 5.1), never hardcoded.
-- Revocation is `DELETE /Policies/JIT/<PolicyId>` and must be tested on ALL THREE paths: ticket
+- Set IDs are resolved at runtime via `GET /Sets` and agent IDs via Get endpoints
+  (`POST /Sets/<SetId>/Endpoints/search`) (check 5.1), never hardcoded.
+- Revocation is `DELETE /Sets/<SetId>/Policies/Server/<PolicyId>` and must be tested on ALL THREE paths: ticket
   rejection, early ticket closure, and incident-triggered revocation (check 5.11).
 - Policy `Name` must include the ticket reference, requesting user, and timestamp (check 6.5), and
   the returned `PolicyId` must be stored against the originating ticket (check 5.9). Together these
@@ -106,25 +107,25 @@ Every check in this document is **Required** — a single failure blocks certifi
 
 ## 2. Solution Selection
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 2.1 | Confirmed via the [EPM Decision Guide](../decision-guide.md) that Ticketing / JIT is the correct integration path | Required |
-| 2.2 | Confirmed the partner platform is a ticketing or ITSM system with a real approval workflow — not an unattended automation that self-approves | Required |
-| 2.3 | Confirmed this is **not** SOC Response (endpoint containment) or EPM Audit Events — both are separate kits with their own checklists | Required |
-| 2.4 | Official Idira EPM documentation reviewed and best practices applied | Required |
-| 2.5 | At least one production or pilot customer identified for the integration before certification | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 2.1 | Confirmed via the [EPM Decision Guide](../decision-guide.md) that Ticketing / JIT is the correct integration path | Required | House rule — certification programme |
+| 2.2 | Confirmed the partner platform is a ticketing or ITSM system with a real approval workflow — not an unattended automation that self-approves | Required | House rule — certification programme |
+| 2.3 | Confirmed this is **not** SOC Response (endpoint containment) or EPM Audit Events — both are separate kits with their own checklists | Required | House rule — certification programme |
+| 2.4 | Official Idira EPM documentation reviewed and best practices applied | Required | House rule — certification programme |
+| 2.5 | At least one production or pilot customer identified for the integration before certification | Required | House rule — certification programme |
 
 ---
 
 ## 3. EPM Tenant Prerequisites
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 3.1 | A provisioned Idira EPM tenant (production or partner sandbox) used for development and testing | Required |
-| 3.2 | A configured OAuth 2.0 Web Application entity exists in the Idira Identity directory | Required |
-| 3.3 | Access to the EPM management console confirmed for retrieving Set IDs and Agent IDs | Required |
-| 3.4 | JIT Access and Elevation policy capability confirmed available on the tenant | Required |
-| 3.5 | Audit settings enabled on the tenant for JIT policy activity | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 3.1 | A provisioned Idira EPM tenant (production or partner sandbox) used for development and testing | Required | House rule — certification programme |
+| 3.2 | A configured OAuth 2.0 Web Application entity exists in the Idira Identity directory | Required | House rule — certification programme |
+| 3.3 | Access to the EPM management console and the EPM APIs confirmed for resolving Set IDs and endpoint agent IDs | Required | House rule — certification programme |
+| 3.4 | JIT Access and Elevation policy capability confirmed available on the tenant | Required | House rule — certification programme |
+| 3.5 | Audit settings enabled on the tenant for JIT policy activity | Required | House rule — certification programme |
 
 ---
 
@@ -142,22 +143,22 @@ Every check in this document is **Required** — a single failure blocks certifi
 
 ## 5. API Implementation
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | `GET /Sets` used to resolve the target computer's Agent ID at runtime — Agent IDs and Set IDs are **not** hardcoded | Required |
-| 5.2 | `POST /Policies/JIT` used to create the elevation policy only after the approval event fires | Required |
-| 5.3 | `PolicyType` set to `40` on every create request | Required |
-| 5.4 | `IsAppliedToAllComputers` set to `false`, with the target resolved through `Executors` — a JIT policy is never applied tenant-wide | Required |
-| 5.5 | `Duration` is bounded and within the supported `1`–`120` hour range, and is the approved duration rather than a fixed maximum | Required |
-| 5.6 | `Audit: true` set on every policy — never disabled, including in production | Required |
-| 5.7 | `KillRunningApps` behaviour chosen deliberately, documented, and tested for both settings | Required |
-| 5.8 | `TargetLocalGroups` and `Accounts` each carry at least one entry, scoped to the requesting user and the approved group only | Required |
-| 5.9 | Returned `PolicyId` stored against the originating ticket so every elevation is traceable to an approval | Required |
-| 5.10 | `GET /Policies/JIT/<PolicyId>` used to verify policy state rather than assuming create succeeded | Required |
-| 5.11 | `DELETE /Policies/JIT/<PolicyId>` implemented and tested on **all three** revocation paths: ticket rejection, early ticket closure, and security-incident-triggered revocation | Required |
-| 5.12 | Idempotency handled — a repeated approval webhook does not create a second overlapping policy for the same ticket | Required |
-| 5.13 | Error handling implemented for `401` (token expired), `403` (insufficient permissions), `404` (policy not found), `429` (rate limit) | Required |
-| 5.14 | Rate-limit (`429`) backoff is exponential — no tight retry loops | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | `GET /Sets` used to resolve the Set ID and Get endpoints (`POST /Sets/<SetId>/Endpoints/search`) to resolve the target computer's agent ID at runtime — agent IDs and Set IDs are **not** hardcoded | Required | [docs: Get sets list](https://docs.cyberark.com/epm/latest/en/content/webservices/getsetslist.htm); [docs: Get endpoints](https://docs.cyberark.com/epm/latest/en/content/webservices/endpoint-apis/get-endpoints.htm) |
+| 5.2 | `POST /Sets/<SetId>/Policies/Server` used to create the elevation policy only after the approval event fires | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.3 | `PolicyType` set to `40` on every create request | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.4 | `IsAppliedToAllComputers` set to `false`, with the target resolved through `Executors` — a JIT policy is never applied tenant-wide | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.5 | `Duration` is bounded and within the supported `1`–`120` hour range, and is the approved duration rather than a fixed maximum | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.6 | `Audit: true` set on every policy — never disabled, including in production | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.7 | `KillRunningApps` behaviour chosen deliberately, documented, and tested for both settings | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.8 | `TargetLocalGroups` and `Accounts` each carry at least one entry, scoped to the requesting user and the approved group only | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.9 | Returned `PolicyId` stored against the originating ticket so every elevation is traceable to an approval | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.10 | `GET /Sets/<SetId>/Policies/Server/<PolicyId>` used to verify policy state rather than assuming create succeeded | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.11 | `DELETE /Sets/<SetId>/Policies/Server/<PolicyId>` implemented and tested on **all three** revocation paths: ticket rejection, early ticket closure, and security-incident-triggered revocation | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.12 | Idempotency handled — a repeated approval webhook does not create a second overlapping policy for the same ticket | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.13 | Error handling implemented for `401` (token expired), `403` (insufficient permissions), `404` (policy not found), `429` (rate limit) | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
+| 5.14 | Rate-limit (`429`) backoff is exponential — no tight retry loops | Required | [docs: Just in Time access and elevation policy](https://docs.cyberark.com/epm/latest/en/content/webservices/jitpolicydefinition.htm) |
 
 ---
 
@@ -179,15 +180,15 @@ The grant is only as trustworthy as the approval behind it.
 
 All certified integrations must include the `x-cybr-telemetry` HTTP header on every API request, Base64 URL-encoded. Build it from [`telemetry-reference.md`](../../telemetry-reference.md) — that file carries the transform, the assigned `IntegrationType` value, reference code, and test vectors.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 7.1 | `x-cybr-telemetry` header included on all EPM API requests | Required |
-| 7.2 | Header value is Base64 URL-encoded | Required |
-| 7.3 | `in` (IntegrationName) field populated and describes the partner platform | Required |
-| 7.4 | `it` (IntegrationType) field set to `JIT` | Required |
-| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required |
-| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required |
-| 7.7 | `in`, `it`, and `vn` values agreed with the Idira Technical Alliances contact before submission | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 7.1 | `x-cybr-telemetry` header included on all EPM API requests | Required | House rule — telemetry |
+| 7.2 | Header value is Base64 URL-encoded | Required | House rule — telemetry |
+| 7.3 | `in` (IntegrationName) field populated and describes the partner platform | Required | House rule — telemetry |
+| 7.4 | `it` (IntegrationType) field set to `JIT` | Required | House rule — telemetry |
+| 7.5 | `iv` (IntegrationVersion) field populated and matches the released version | Required | House rule — telemetry |
+| 7.6 | `vn` (VendorName) field populated with the partner's legal entity name | Required | House rule — telemetry |
+| 7.7 | `in`, `it`, and `vn` values agreed with the Idira Technical Alliances contact before submission | Required | House rule — telemetry |
 
 ---
 
@@ -195,30 +196,30 @@ All certified integrations must include the `x-cybr-telemetry` HTTP header on ev
 
 Test the full lifecycle on a real EPM tenant, not against mocks.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 8.1 | **Approval path** — request → ticket → approval → policy created → user is in the local Administrators group on the target endpoint | Required |
-| 8.2 | **Expiry path** — duration elapses → elevation is removed automatically → user is no longer in the group | Required |
-| 8.3 | **Rejection path** — request → ticket → rejection → no policy is created (or an already-created policy is deleted) | Required |
-| 8.4 | **Early revocation path** — active elevation → ticket closed early → `DELETE` issued → elevation removed immediately | Required |
-| 8.5 | **Incident revocation path** — active elevation → external revoke trigger → elevation removed regardless of remaining duration | Required |
-| 8.6 | `KillRunningApps: true` verified: running administrative processes terminate on expiry or revocation | Required |
-| 8.7 | Elevation activity appears in EPM audit data and is attributable to the ticket | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 8.1 | **Approval path** — request → ticket → approval → policy created → user is in the local Administrators group on the target endpoint | Required | House rule — certification programme |
+| 8.2 | **Expiry path** — duration elapses → elevation is removed automatically → user is no longer in the group | Required | House rule — certification programme |
+| 8.3 | **Rejection path** — request → ticket → rejection → no policy is created (or an already-created policy is deleted) | Required | House rule — certification programme |
+| 8.4 | **Early revocation path** — active elevation → ticket closed early → `DELETE` issued → elevation removed immediately | Required | House rule — certification programme |
+| 8.5 | **Incident revocation path** — active elevation → external revoke trigger → elevation removed regardless of remaining duration | Required | House rule — certification programme |
+| 8.6 | `KillRunningApps: true` verified: running administrative processes terminate on expiry or revocation | Required | House rule — certification programme |
+| 8.7 | Elevation activity appears in EPM audit data and is attributable to the ticket | Required | House rule — certification programme |
 
 ---
 
 ## 9. Documentation Review
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 9.1 | Integration setup steps documented end to end, written for the customer who will deploy it | Required |
-| 9.2 | Prerequisites documented for customer IT and EPM administrators: tenant access, OAuth app registration, service account, Set/Agent ID retrieval | Required |
-| 9.3 | Approval workflow configuration documented — who approves, how approver groups are set, what happens on rejection | Required |
-| 9.4 | Duration policy documented, including the customer-configurable maximum and the `1`–`120` hour bound | Required |
-| 9.5 | `KillRunningApps` behaviour documented so customers understand what happens to open admin sessions at expiry | Required |
-| 9.6 | Revocation paths documented, including how a customer forces immediate revocation during an incident | Required |
-| 9.7 | Documentation uses current Idira product terminology — `Idira Endpoint Privilege Manager`, not `CyberArk EPM` | Required |
-| 9.8 | Partner attests the integration is tested against the current Idira EPM APIs | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 9.1 | Integration setup steps documented end to end, written for the customer who will deploy it | Required | House rule — certification programme |
+| 9.2 | Prerequisites documented for customer IT and EPM administrators: tenant access, OAuth app registration, service account, Set/Agent ID retrieval | Required | House rule — certification programme |
+| 9.3 | Approval workflow configuration documented — who approves, how approver groups are set, what happens on rejection | Required | House rule — certification programme |
+| 9.4 | Duration policy documented, including the customer-configurable maximum and the `1`–`120` hour bound | Required | House rule — certification programme |
+| 9.5 | `KillRunningApps` behaviour documented so customers understand what happens to open admin sessions at expiry | Required | House rule — certification programme |
+| 9.6 | Revocation paths documented, including how a customer forces immediate revocation during an incident | Required | House rule — certification programme |
+| 9.7 | Documentation uses current Idira product terminology — `Idira Endpoint Privilege Manager`, not `CyberArk EPM` | Required | House rule — certification programme |
+| 9.8 | Partner attests the integration is tested against the current Idira EPM APIs | Required | House rule — certification programme |
 
 ---
 
@@ -226,22 +227,22 @@ Test the full lifecycle on a real EPM tenant, not against mocks.
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 10.1 | Demo video recorded (2–5 minutes) showing the full cycle: request → approval → elevation active → expiry or revocation | One of 10.1 / 10.2 |
-| 10.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same full cycle | One of 10.1 / 10.2 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 10.1 | Demo video recorded (2–5 minutes) showing the full cycle: request → approval → elevation active → expiry or revocation | One of 10.1 / 10.2 | House rule — demonstration |
+| 10.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same full cycle | One of 10.1 / 10.2 | House rule — demonstration |
 
 ---
 
 ## 11. Yearly Recertification
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 11.1 | Best practices reviewed and reflected in the current integration version | Required |
-| 11.2 | EPM JIT policy API changes reviewed in the EPM release notes | Required |
-| 11.3 | Integration tested against the latest EPM agent version and the latest version of the partner ticketing platform | Required |
-| 11.4 | Security scan results reviewed and addressed | Required |
-| 11.5 | Documentation updated — version numbers, API paths, parameter names, field references | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 11.1 | Best practices reviewed and reflected in the current integration version | Required | House rule — recertification |
+| 11.2 | EPM JIT policy API changes reviewed in the EPM release notes | Required | House rule — recertification |
+| 11.3 | Integration tested against the latest EPM agent version and the latest version of the partner ticketing platform | Required | House rule — recertification |
+| 11.4 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 11.5 | Documentation updated — version numbers, API paths, parameter names, field references | Required | House rule — recertification |
 
 ---
 
@@ -274,6 +275,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-08 | **[Fixed]** v2.3 — Checks 5.2, 5.10 and 5.11 grade the documented policy paths under `/Sets/<SetId>/Policies/Server`; the `/Policies/JIT` paths they named do not exist. Check 5.1 resolves agent IDs with Get endpoints rather than `GET /Sets`. **[Added]** A `Source` on every check. An integration graded against v2.2 paths could not pass | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v2.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v2.1 — A `Source` column on §4 (Authentication & Credential Handling) and §6 (Approval Integrity), naming the authority behind each of those 10 checks. Vocabulary and verbatim ASVS control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). §6 is the one section in the corpus where the mapping is knowingly incomplete: 6.3–6.5 are time-of-check-time-of-use controls that most likely belong to ASVS 5.0.0 **V2 Validation and Business Logic**, but no V2 control text has been read, and citing an ID from memory is prohibited — they carry `House rule — approval integrity`, which under-states them. That gap is recorded in the reference file rather than papered over, because a house rule reads to a partner as ours to waive and these are not. No requirement, level or wording changed | Idira Technical Alliances |
 | 2026-09-30 | **[Restructured]** v2.0 — Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Section numbering is unchanged, so existing references still land. The demonstration is expressed as **One of 10.1 / 10.2** rather than a nested checkbox. The telemetry section was **partially** gradeable and is now fully graded: it previously held a field-reference table plus three loose checkboxes, so the per-field requirements (`in`, `it`, `iv`, `vn`) were stated but never scored; it is now seven numbered checks (7.1–7.7), with the reference table replaced by a pointer to `telemetry-reference.md`. **No check was re-levelled to Recommended.** This is the only kit where that is stated as a deliberate position rather than an outcome: every check is a functional path or a security control on a flow that grants administrator rights, so there is nothing a reviewer would merely note. Added an AI context block covering the exact constants (`PolicyType` 40, `IsAppliedToAllComputers` false, the 1–120 hour bound), the approval-integrity failure modes a generated webhook falls into, and the cross-kit auditing trap — `Audit: true` is mandatory here while the Central Credential Provider kit grades the inverse. No check was removed and no requirement was loosened | Idira Technical Alliances |

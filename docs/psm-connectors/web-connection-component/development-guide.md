@@ -4,9 +4,9 @@
 **Use Case:** Web Connection Component
 **Idira Product:** Idira Privileged Access Manager Self-Hosted
 **Type:** Development Guide
-**Version:** 1.2
+**Version:** 1.3
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -32,7 +32,10 @@ AUTH METHOD: None from the partner side. PSM retrieves the account from the Vaul
 BUILD TOOL: PSM Plugin Generator Utility (Web Connector Generator) — records the login flow and
   emits a connection component packaged as a .zip.
 BASE COMPONENT: PSM-WebAppSample (all new web connection components are cloned from it).
-DISPATCHER: WebAppDispatcher — 64-bit is default from PSM 14.6; 32-bit available via {PSMComponentsFolder32}.
+DISPATCHER: WebAppDispatcher, 32- or 64-bit. From PSM 14.6 OUT-OF-THE-BOX components use the 64-bit
+  dispatcher automatically; components downloaded from the Marketplace — which is how a partner
+  connector ships — stay in the 32-bit Connector folders unless PVWA is configured to switch.
+  Revert to 32-bit by pointing ClientDispatcher at {PSMComponentsFolder32}.
 DEPLOY TARGET: Customer's PSM server, via upload of the connector .zip to PVWA, then linked to a platform.
 SANDBOX: C3 Integrations Platform — https://c3.cyberark.cloud
 CONTACT: cybr-bizdevtech@paloaltonetworks.com
@@ -45,7 +48,7 @@ KEY CONSTRAINTS:
 - Credentials are never handled by the partner. PSM injects {username}/{password} (or
   {logonaccount\username}/{logonaccount\password}) into WebFormFields at connect time.
 - The connector must click the login/submit button (Login, Next, Submit) — do not rely on pressing ENTER.
-- PSM must be hardened for web applications (PSMHardening.ps1 -supportWebApplication) and AppLocker
+- PSM must be hardened for web applications (PSMHardening.ps1 -SupportWebApplications) and AppLocker
   rules enabled before any web connector will run.
 
 TERMINOLOGY (use these exact names in code and docs):
@@ -107,10 +110,11 @@ After the connector is deployed and linked to a platform, an operator selects th
 
 | Requirement | Detail |
 |:---|:---|
-| Idira deployment | Idira Privileged Access Manager Self-Hosted (PVWA + PSM). This use case does not apply to Idira Privileged Access Manager SaaS web app connectors authored the same way, but this guide targets Self-Hosted. |
-| PSM server prepared for web apps | Run `PSMHardening.ps1` with the `-supportWebApplication` option on the PSM server as an administrator; enable the browser sections of `PSMConfigureAppLocker.xml` and run `PSMConfigureAppLocker.ps1`. |
-| Browser + matching web driver | A 32-bit Chrome or Edge browser on the PSM server, plus the **matching** web driver version (ChromeDriver for Chrome, `msedgedriver.exe` for Edge). The browser and driver versions must be identical. Use the WebDriverUpdater tool (runs hourly) or manage versions manually. |
-| WebAppDispatcher | Deploy the WebAppDispatcher with the current PSM version. The 64-bit dispatcher is the default from PSM 14.6 for connectors built on the Secure Web Application Connectors Framework; the 32-bit dispatcher is available by pointing ClientDispatcher at `{PSMComponentsFolder32}`. For Edge, download the current WebAppDispatcher from the Idira Marketplace and copy it to the PSM Components folder. **On PSM 15.0 new installations (2026-08-02): the install package no longer bundles connection components** — PVWA, vSphere, SSMS, Azure Portal and others must be downloaded from the Marketplace. Do not assume any baseline component is present on a fresh 15.0 PSM server; verify what is actually in the Components folder before testing your connector. Existing installations upgraded to 15.0 are unaffected. Whether WebAppDispatcher itself is in or out of that exclusion is not stated in the release note — check the Components folder rather than assuming, and ask your Idira Technical Alliances contact if you need it confirmed before you plan the deployment. |
+| Idira deployment | Idira Privileged Access Manager - Self-Hosted (PVWA + PSM). The same Secure Web Application Connectors Framework is documented for Idira Privilege Cloud, where PSM runs on the customer's connector servers; the procedures in this guide are written for Self-Hosted. See [Self-Hosted](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) and [Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm). |
+| PSM server prepared for web apps | Run `PSMHardening.ps1` with the `-SupportWebApplications` parameter on the PSM server as an administrator; enable the browser sections of `PSMConfigureAppLocker.xml` and run `PSMConfigureAppLocker.ps1`. |
+| Browser + matching web driver | Google Chrome 100 or later, or Microsoft Edge 103 or later (IE mode not supported), 32- or 64-bit, on the PSM server, plus the **matching** web driver (ChromeDriver for Chrome, `msedgedriver.exe` for Edge). Browser and driver versions must be identical, and their bitness must match the dispatcher. Put the driver in the PSM `\Components` folder (32-bit) or `\Components\x64` (64-bit). Deploy the **WebDriverUpgrader** tool to keep drivers current, or manage versions manually. |
+| Framework version | The latest Secure Web Application Connectors Framework from the Marketplace. From Chrome/Edge driver 133, use framework **14.6.0.244 or later**. |
+| WebAppDispatcher | Deploy the WebAppDispatcher with the current PSM version. From PSM 14.6, **out-of-the-box** connection components use the 64-bit dispatcher automatically; **components downloaded from the Marketplace — including yours — stay in the 32-bit Connector folders** unless PVWA is configured to switch. If a target web app does not support 64-bit, PSM reverts to 32-bit; you can also point ClientDispatcher at `{PSMComponentsFolder32}`. For Edge, download the current WebAppDispatcher from the Idira Marketplace and copy it to the PSM Components folder. **On PSM 15.0 new installations (2026-08-02): the install package no longer bundles connection components** — PVWA, vSphere, SSMS, Azure Portal and others must be downloaded from the Marketplace. Do not assume any baseline component is present on a fresh 15.0 PSM server; verify what is actually in the Components folder before testing your connector. Existing installations upgraded to 15.0 are unaffected. Whether WebAppDispatcher itself is in or out of that exclusion is not stated in the release note — check the Components folder rather than assuming, and ask your Idira Technical Alliances contact if you need it confirmed before you plan the deployment. |
 | Sandbox | C3 Integrations Platform — request access at `cybr-bizdevtech@paloaltonetworks.com`. |
 
 ### Partner Environment
@@ -194,6 +198,12 @@ When you adjust the field map directly, WebFormFields use this syntax:
 - **Validate the result:** `Identifier > (Validation)` or `(Verification)` to confirm a successful login
 - **Navigate after login:** `(Navigate=URL)` to redirect after logon
 - **Conditional logic:** `if ()...end-if`, `else-if ()...end-else-if`, and `else...end-else` blocks, using `Exists` and `Count` conditions for multi-step or variable login screens
+- **Frames:** `Identifier > (iFrame) (SearchBy=Type)` to enter a frame before acting on elements inside it
+- **Explicit failure:** `Identifier > (Failure) (SearchBy=Type)(Message=Message)` to fail the connection with a clear message when an error element appears
+- **MFA:** place `&MFACode&` where a generated MFA code must be entered
+- **Timeouts:** `ActionTimeout` (default 10 seconds), `WaitForElementActionableTimeout`, `WaitForElementIsNotVisibleTimeout` and `BrowserDriverCommandTimeout`
+
+> **HTTP targets.** From Chromium 127, Chrome and Edge enable HTTPS-First Mode by default in incognito, which affects login pages served over plain HTTP. Serve the login page over HTTPS.
 
 Bind the username field to `{username}` and the password field to `{password}` (or the logon-account parameters), so the injected value replaces the recorded literal.
 
@@ -224,7 +234,7 @@ Bind the username field to `{username}` and the password field to `{password}` (
 |:---|:---|:---|
 | Connection fails to launch the browser | Browser and web driver versions differ | Match the ChromeDriver / `msedgedriver.exe` version to the installed browser version exactly. |
 | Browser is blocked from running | AppLocker rules not enabled | Uncomment the browser sections in `PSMConfigureAppLocker.xml` and run `PSMConfigureAppLocker.ps1`. |
-| Web app connector not available at all | PSM not hardened for web applications | Run `PSMHardening.ps1 -supportWebApplication` on the PSM server as an administrator. |
+| Web app connector not available at all | PSM not hardened for web applications | Run `PSMHardening.ps1 -SupportWebApplications` on the PSM server as an administrator. |
 | Login submits before fields are filled | ENTER used instead of a click, or timeouts too short | Record a click on the login control; increase Action timeout / Page load timeout. |
 | Password appears not to inject | Dynamic parameter not mapped | Confirm the field is bound to `{password}` (or the logon-account parameter), not the recorded literal. |
 | Edge sessions fail | Wrong or missing WebAppDispatcher | Download the current WebAppDispatcher from the Idira Marketplace and copy it to the PSM Components folder. |
@@ -233,10 +243,10 @@ Bind the username field to `{username}` and the password field to `{password}` (
 
 ## 11. Pre-Development Checklist
 
-- [ ] PSM server hardened for web applications (`PSMHardening.ps1 -supportWebApplication`)
+- [ ] PSM server hardened for web applications (`PSMHardening.ps1 -SupportWebApplications`)
 - [ ] AppLocker browser rules enabled (`PSMConfigureAppLocker.ps1`)
-- [ ] 32-bit Chrome or Edge installed on the PSM server with the matching web driver version
-- [ ] WebAppDispatcher deployed (64-bit default from PSM 14.6; Edge dispatcher from the Idira Marketplace if needed)
+- [ ] Chrome 100+ or Edge 103+ installed on the PSM server with the matching web driver version, bitness matching the dispatcher in use
+- [ ] WebAppDispatcher deployed — Marketplace components default to 32-bit; switch in PVWA if you need 64-bit (Edge dispatcher from the Idira Marketplace if needed)
 - [ ] Login flow recorded with the Plugin Generator Utility (click the login control, do not press ENTER)
 - [ ] Username and password fields mapped to `{username}` / `{password}` (or logon-account parameters) as dynamic parameters
 - [ ] LogonAccount capability added to Supported Capabilities if a separate logon account is used
@@ -250,7 +260,7 @@ Bind the username field to `{username}` and the password field to `{password}` (
 
 ## 12. Resources
 
-- [Idira Developer Docs](https://docs.cyberark.com) (formerly CyberArk Docs)
+- [Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm)
 - [C3 Integrations Platform](https://c3.cyberark.cloud)
 - [Web applications for PSM](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm)
 - [Generate PSM web connectors with the Plugin Generator Utility](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pcp/pgu-psm-plugins-main.htm)
@@ -264,4 +274,5 @@ Bind the username field to `{username}` and the password field to `{password}` (
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Fixed]** Components downloaded from the Marketplace — including partner connectors — use the 32-bit dispatcher unless PVWA is configured to switch; the 64-bit default from PSM 14.6 applies to out-of-the-box components. The hardening parameter is `-SupportWebApplications`, and the driver tool is WebDriverUpgrader. Browsers may be 32- or 64-bit. **[Added]** Minimum browser versions; framework 14.6.0.244 or later for driver 133+; the x64 driver folder; HTTPS-First Mode in incognito; the iFrame, Failure and MFA WebFormFields commands and the timeout parameters; that the framework is also documented for Privilege Cloud | Idira Technical Alliances |
 | 1.2 | 2026-10-05 | **[Fixed]** The WebAppDispatcher prerequisite now states in visible prose that the PSM 15.0 release note does not settle whether WebAppDispatcher itself falls under the connection-component exclusion, and tells you to check what is actually in the Components folder and to ask your Idira Technical Alliances contact if you need it confirmed before planning a deployment. That qualification previously sat in an editorial comment — invisible on the rendered page, fully visible to a partner's AI agent, which reads the raw markdown. The underlying instruction is unchanged: do not assume any baseline component is present on a fresh 15.0 server. Also added this change log — the file previously carried none, so no revision before this one is recorded | Idira Technical Alliances |

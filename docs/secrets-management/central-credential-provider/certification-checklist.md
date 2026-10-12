@@ -3,9 +3,9 @@
 **Workflow:** Secrets Management  
 **Integration:** Central Credential Provider (CCP)  
 **Type:** Certification Checklist  
-**Version:** 2.2  
+**Version:** 2.3  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -68,12 +68,12 @@ Work through this checklist **during** development, not at submission. It is the
 
 ## 2. Solution Selection
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 2.1 | CCP confirmed as the correct solution via the [Decision Guide](../decision-guide.md) | Required |
-| 2.2 | Official Idira documentation best practices reviewed and applied | Required |
-| 2.3 | Integration is tolerant to temporarily incorrect secrets during rotation | Required |
-| 2.4 | Recommended authentication methods applied and tested (OS User, Allowed Machines, Certificate) | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 2.1 | CCP confirmed as the correct solution via the [Decision Guide](../decision-guide.md) | Required | House rule — certification programme |
+| 2.2 | Official Idira documentation best practices reviewed and applied | Required | House rule — certification programme |
+| 2.3 | Integration is tolerant to temporarily incorrect secrets during rotation | Required | House rule — certification programme |
+| 2.4 | Recommended authentication methods applied and tested (OS User, Allowed Machines, Certificate Serial Number or Certificate Attribute) | Required | [docs: Application authentication methods](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/application-authentication-methods-general.htm) |
 
 ---
 
@@ -85,7 +85,7 @@ Work through this checklist **during** development, not at submission. It is the
 | 3.2 | Audit trail and logging for CP/CCP is disabled for production use — enabled only for troubleshooting | Required | Idira docs — Credential Providers: CP audit and debug logging (URL pending) |
 | 3.3 | Dual accounts supported — free-text query accepted from the customer's configuration | Required | [docs: CCP GetPassword REST](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/calling-the-web-service-using-rest.htm) |
 | 3.4 | `VirtualUsername` used in dual-account queries, so the active account is always returned | Required | [docs: CCP GetPassword REST](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/calling-the-web-service-using-rest.htm) |
-| 3.5 | Secret rotation handling implemented (retry after 5 seconds, or poll `PasswordChangeInProcess`) | Required | Idira docs — Credential Providers: password change in process (URL pending) |
+| 3.5 | Secret rotation handling implemented (retry after 5 seconds, or poll `PasswordChangeInProcess`) | Required | [docs: Call the web service using REST (GET)](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/calling-the-web-service-using-rest.htm) |
 | 3.6 | `x-cybr-telemetry` header included on all REST requests, Base64 URL-encoded | Required | House rule — 2026-08-13 KPI decision |
 | 3.7 | User and error messaging is clear and actionable | Recommended | House rule — certification programme |
 
@@ -96,20 +96,20 @@ Work through this checklist **during** development, not at submission. It is the
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
 | 4.1 | Application ID follows the format `<Partner Name>-<Product Name>` | Required | House rule — certification programme |
-| 4.2 | Certificate Serial Number authentication configured and tested where applicable | Required | Idira docs — Credential Providers: application authentication methods (URL pending); OWASP ASVS 5.0.0 V13.2.1 |
-| 4.3 | Allowed Machines and OS User restrictions configured | Required | Idira docs — Credential Providers: application authentication methods (URL pending); OWASP ASVS 5.0.0 V13.3.2 |
-| 4.4 | Authentication mechanism changes restart IIS (`iisreset`) | Required | Idira docs — Credential Providers: CCP configuration (URL pending) |
+| 4.2 | Certificate authentication (Serial Number or Attribute) configured and tested where applicable, with the CCP server verified against its own CA bundle — never `verify=False` | Required | [docs: Application authentication methods](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/application-authentication-methods-general.htm); OWASP ASVS 5.0.0 V12.2.1 |
+| 4.3 | Allowed Machines and OS User restrictions configured — OS User callers send Windows credentials (Negotiate/Kerberos) to the CCP endpoint | Required | [docs: Authentication method configurations on the CCP](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/authentication-methods-for-ccp.htm); OWASP ASVS 5.0.0 V13.2.1 |
+| 4.4 | Authentication mechanism changes restart IIS (`iisreset`) | Required | [docs: Authentication method configurations on the CCP](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/authentication-methods-for-ccp.htm) |
 
 ---
 
 ## 5. Documentation Review
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 5.1 | Documentation uses current Idira terminology (CCP, not AAM) | Required |
-| 5.2 | Safe and policy requirements documented for customer configuration | Required |
-| 5.3 | Application ID and authentication mechanism setup instructions provided | Required |
-| 5.4 | REST endpoint and query format documented for the customer | Required |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 5.1 | Documentation uses current Idira terminology (CCP, not AAM) | Required | House rule — certification programme |
+| 5.2 | Safe and policy requirements documented for customer configuration | Required | House rule — certification programme |
+| 5.3 | Application ID and authentication mechanism setup instructions provided | Required | House rule — certification programme |
+| 5.4 | REST endpoint and query format documented for the customer | Required | House rule — certification programme |
 
 ---
 
@@ -117,22 +117,22 @@ Work through this checklist **during** development, not at submission. It is the
 
 A demonstration is mandatory. Either format satisfies the requirement — you do not need both.
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 6.1 | Demo video recorded (2–5 minutes) showing end-to-end credential retrieval via CCP | One of 6.1 / 6.2 |
-| 6.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end retrieval flow | One of 6.1 / 6.2 |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 6.1 | Demo video recorded (2–5 minutes) showing end-to-end credential retrieval via CCP | One of 6.1 / 6.2 | House rule — demonstration |
+| 6.2 | Live demonstration call held with the Idira Technical Alliances contact, walking the same end-to-end retrieval flow | One of 6.1 / 6.2 | House rule — demonstration |
 
 ---
 
 ## 7. Yearly Recertification
 
-| # | Check | Requirement |
-|:--|:------|:------------|
-| 7.1 | Best practices reviewed and reflected in the solution | Required |
-| 7.2 | Solution tested with the latest version of Idira CCP | Required |
-| 7.3 | Security scan results reviewed and addressed | Required |
-| 7.4 | Documentation updated (version numbers, instructions current) | Required |
-| 7.5 | New CCP functionality reviewed and adopted where appropriate | Recommended |
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 7.1 | Best practices reviewed and reflected in the solution | Required | House rule — recertification |
+| 7.2 | Solution tested with the latest version of Idira CCP | Required | House rule — recertification |
+| 7.3 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 7.4 | Documentation updated (version numbers, instructions current) | Required | House rule — recertification |
+| 7.5 | New CCP functionality reviewed and adopted where appropriate | Recommended | House rule — recertification |
 
 ---
 
@@ -165,6 +165,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
-| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
-| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Code Review) and §4 (Authentication), naming the authority behind each of those 11 checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). 3.2 is why this kit needed the column most: "disable audit logging in production" reads as a security *defect* to anyone who has not been told it is a CCP performance contract — and the EPM Ticketing/JIT kit grades the exact inverse, mandating `Audit: true` on every policy. Sourcing it to the CP logging documentation rather than to a security framework records which of the two it is. 3.3 and 3.4 carry the one verified deep link available here, the GetPassword REST page that documents the `Query` parameter and `VirtualUsername`. No requirement, level or wording changed. — Idira Technical Alliances |
-| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Two checks are now **Recommended** rather than gates — 3.7 (message quality) and 7.5 (adopting new functionality); both are practices a reviewer notes, not correctness failures. The demonstration requirement moved out of Documentation Review into its own section 6 and is expressed as **One of 6.1 / 6.2** rather than a nested checkbox. Added an AI context block, including the CP/CCP distinctions an agent most often gets wrong — telemetry mechanics, certificate auth, and `iisreset` rather than a service restart. No check was removed and no requirement was loosened beyond the two re-levelled above. — Idira Technical Alliances |
+| 2.3 | 2026-10-08 | **[Updated]** Check 2.4 adds Certificate Attribute. Check 4.2 requires the CCP server to be verified against its own CA bundle. Check 4.3 states that OS User callers send Windows credentials. Pending documentation links are now cited. **[Added]** A `Source` on every check | Idira Technical Alliances |
+| 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Code Review) and §4 (Authentication), naming the authority behind each of those 11 checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). 3.2 is why this kit needed the column most: "disable audit logging in production" reads as a security *defect* to anyone who has not been told it is a CCP performance contract — and the EPM Ticketing/JIT kit grades the exact inverse, mandating `Audit: true` on every policy. Sourcing it to the CP logging documentation rather than to a security framework records which of the two it is. 3.3 and 3.4 carry the one verified deep link available here, the GetPassword REST page that documents the `Query` parameter and `VirtualUsername`. No requirement, level or wording changed. — Idira Technical Alliances | House rule — certification programme |
+| 2.0 | 2026-09-30 | **[Restructured]** Migrated from unnumbered checkboxes to the numbered-table format the Discovery kits use: every check now has a stable `section.item` identifier and an explicit grading level. Two checks are now **Recommended** rather than gates — 3.7 (message quality) and 7.5 (adopting new functionality); both are practices a reviewer notes, not correctness failures. The demonstration requirement moved out of Documentation Review into its own section 6 and is expressed as **One of 6.1 / 6.2** rather than a nested checkbox. Added an AI context block, including the CP/CCP distinctions an agent most often gets wrong — telemetry mechanics, certificate auth, and `iisreset` rather than a service restart. No check was removed and no requirement was loosened beyond the two re-levelled above. — Idira Technical Alliances | House rule — certification programme |

@@ -3,8 +3,8 @@
 **Workflow:** Workload Identity  
 **Type:** Decision Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.0  
-**Last Updated:** 2026-10-05
+**Version:** 1.1  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -176,11 +176,12 @@ request forms do not disambiguate it either.
 These apply to any integration in this workflow:
 
 - **Attestation is platform-driven, not preference-driven.** The method follows from where the
-  workload runs — AWS EC2 Instance Identity Document, Google Cloud, or Kubernetes `k8s_jwt`. Check
-  the platform before concluding a workload has no path; a workload holding no SVID today may still
-  attest on one of the three.
-- **Fallback order, only when no attestation path exists:** client certificate, then JWT, then API
-  key as a last resort. An embedded static key is not a fallback — it is the anti-pattern the kit
+  workload runs — `aws_iid` on EC2, `k8s_jwt` or `k8s_psat` on Kubernetes, `x509pop` on Unix/Linux
+  machines, or Google Cloud service-account attestation for Gemini Enterprise agents. Check the
+  platform before concluding a workload has no path; a workload holding no SVID today may still
+  attest through one of them.
+- **Fallback order, only when no attestation path exists:** a cloud IAM authenticator or JWT, then API
+  key as a last resort (client certificate works only through Secrets Manager Edge). An embedded static key is not a fallback — it is the anti-pattern the kit
   grades against.
 - **SVIDs are short-lived.** Build renewal in from the start; never cache one past its validity or
   treat it as a long-term credential.
@@ -205,4 +206,5 @@ These apply to any integration in this workflow:
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.1 | 2026-10-08 | **[Updated]** Lists the documented node attestation methods, and the fallback order no longer starts with client certificate, which works only through Secrets Manager Edge | Idira Technical Alliances |
 | 1.0 | 2026-10-05 | **[Added]** First publication, alongside the SWA Federation kit and the new `workload-identity/` workflow. This guide answers a different question from the other three workflow decision guides and says so up front: with one kit in the workflow there is no within-workflow choice, so its job is the inbound boundary rather than kit selection. It carries the one question that settles that boundary — does the integration *establish* an identity or *use* one to get something — routing establishment here, secret retrieval to Secrets Management, and inventory reporting to Discovery, with the note that these are additive and a platform doing two of them is certified twice rather than once. §4 exists for the `SWA` acronym collision between Secure Workload Access and the Secure Web Application Connectors Framework, which route to different workflows and are unrelated on every axis; the bare acronym is not disambiguated by the request forms either. §5 carries the graded shared requirements for generated code, with emphasis on attestation being platform-driven rather than chosen, on fail-closed behaviour, and on clock skew presenting as a permission failure when the two are not separated. The kit's Preview status and its one deliberate documentation gap are stated here as well as in the kit, so a reader routed by this file learns them before opening the guide. — Idira Technical Alliances |

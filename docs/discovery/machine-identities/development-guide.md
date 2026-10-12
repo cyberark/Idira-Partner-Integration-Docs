@@ -4,8 +4,8 @@
 **Dev Kit:** Machine Identities  
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-02
+**Version:** 1.3  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -50,10 +50,13 @@ KEY CONSTRAINTS:
 - Idira deduplicates on `originId` — the stable identifier from the partner's own system. Push the
   same `originId` twice and the record is updated in place, not duplicated. Use the native cloud
   resource ID, never a display name: an instance rename would otherwise create a second record.
-- `providerId` identifies the partner source. Reconciliation is: push the full set, then query by
-  `providerId` and diff `originId` sets, then delete what is no longer present.
-- Batch 100 workloads per mutation call. Track `totalProcessedWorkloads` on the response to confirm
-  each batch landed completely — a partial success is otherwise silent.
+- `providerId` identifies the partner source. RECONCILE ON YOUR SIDE: the Machines External Data
+  Contributor role can write but CANNOT READ inventory. Persist the set of `originId`s you pushed on
+  the previous run, diff it against the current scan, and call `deleteExternalWorkloads` filtered by `originId`
+  for what is gone. Querying by `providerId` and diffing in Idira is possible only with Machines Admin.
+- Size batches by PAYLOAD, not count: each mutation request may be at most 64 KB. Track
+  `totalProcessedWorkloads` on the response — if it is lower than the number you sent, the batch landed only
+  partly, which is otherwise silent.
 - Delete returns `totalDeleted`.
 - A push is an upsert, not a sync. Stale records are NOT removed by pushing a smaller set; they
   must be deleted explicitly. This matters most here, where workloads are ephemeral by nature —
@@ -103,10 +106,10 @@ This integration pushes machine identities (workloads) into the Idira inventory 
 | # | Capability | What it does | Guide section |
 |:--|:---|:---|:--:|
 | 1 | Push (upsert) workloads | Send discovered workloads into the Idira inventory; re-sending updates the existing record | [7.1](#71-push-upsert-workloads) |
-| 2 | Query workloads | Read back the workloads your integration has pushed, for reconciliation | [7.2](#72-query-workloads) |
+| 2 | Query workloads | Read back what your integration has pushed — requires Machines Admin; not needed for reconciliation | [7.2](#72-query-workloads) |
 | 3 | Delete workloads | Remove workloads that no longer exist in the source, to keep the inventory clean | [7.3](#73-delete-workloads) |
 
-A complete discovery integration typically implements all three: push on each scan, query to reconcile, and delete stale records. Document which operations your integration implements in the certification checklist.
+A complete discovery integration pushes on each scan and deletes stale records, reconciling against its own record of what it pushed (Section 8). Query is optional and needs the Machines Admin role. Document which operations your integration implements in the certification checklist.
 
 ---
 
@@ -135,6 +138,10 @@ Customers correlate these entries against secrets and privileged account records
 To call the Discovery Context API, the integration user must sign in to **ISPSS (Identity Security Platform SaaS)** and hold the **Machines External Data Contributor** role. This is the least-privilege role for a partner integration that pushes inventory data in over the API — it grants write access only, which is exactly this integration's access pattern. Do not request **Machines Admin** unless the integration also needs to read or manage inventory beyond its own upserts.
 
 > **Note for administrators:** Provisioning **Machines External Data Contributor** membership in ISPSS is the required step. If this integration user previously held the Secrets Hub role for this API, that assignment must be replaced, not supplemented. Consult your Idira tenant administrator or the Idira Docs portal for the current role assignment procedure.
+
+---
+
+> **What the Contributor role cannot do.** Machines External Data Contributor grants write access through the external API — push and delete — *without the ability to read inventory data*. Queries need **Machines Admin**, which grants full access including queries, mutations and onboarding operations. Build reconciliation from your own record of what you pushed (Section 8), so the integration needs only the Contributor role. Role definitions: Idira Docs what's new, "Simplified roles for the machine identities, AI agents, and secrets inventories" (August 6, 2026).
 
 ---
 
@@ -232,7 +239,7 @@ mutation AddReplaceWorkloads($workloads: [WorkloadInput!]!) {
 | `providerId` | Yes | Account/tenant/subscription/project ID in the source cloud |
 | `providerType` | Yes | Cloud or platform identifier (e.g. `AWS`, `AZURE`, `GCP`, `KUBERNETES`, `GITHUB`, `CUSTOM`) |
 | `name` | Yes | Human-readable workload name |
-| `type` | No | Identity category (see mapping table in Section 9) |
+| `type` | Yes | Identity category (see mapping table in Section 9) |
 | `subType` | No | Service or runtime subtype |
 | `description` | No | Plain-text description of the workload's function |
 | `location` | No | Region, cluster, namespace, or deployment zone |
@@ -244,6 +251,8 @@ mutation AddReplaceWorkloads($workloads: [WorkloadInput!]!) {
 ---
 
 ### 7.2 Query Workloads
+
+> Requires the **Machines Admin** role. An integration holding only Machines External Data Contributor cannot query — reconcile from your own push record instead (Section 8).
 
 ```graphql
 query ListWorkloads($filter: WorkloadsFilterInput, $pageInput: PageInput) {
@@ -302,9 +311,9 @@ mutation DeleteWorkloads($filter: WorkloadsFilterInput!) {
 |:---|:---|
 | **Full replace** | Scheduled scans — enumerate all workloads in scope, upsert the full set, then delete records whose `originId` is absent from the latest scan result |
 | **Delta push** | Event-driven sources (CloudTrail, Kubernetes audit log) — push on create/modify events; use tombstone events for deletions |
-| **Reconciliation** | Query Idira by `providerId` after each full scan; diff `originId` sets; delete stale records |
+| **Reconciliation** | Keep the set of `originId`s you pushed on the last run. After each full scan, diff it against the current `originId`s and call `deleteExternalWorkloads` filtered by `originId` for the ones that are gone. This needs only the Machines External Data Contributor role. (Querying Idira by `providerId` and diffing there requires Machines Admin.) |
 
-Batch size recommendation: **100 workloads per mutation call**. Track `totalProcessedWorkloads` to verify each batch.
+Batch size: each mutation request may be at most **64 KB** — there is no record-count limit. Size batches by payload, and compare `totalProcessedWorkloads` with the number you sent to detect a partial batch. See [the add/replace mutation reference](https://docs.cyberark.com/manage/latest/en/content/disco/disco-apis/api-add-replace-external-workloads.htm).
 
 ---
 
@@ -361,5 +370,6 @@ Log the `originId` of every record alongside the API response. For partial batch
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Fixed]** Reconciliation is done against the integration's own record of what it pushed, then `deleteExternalWorkloads` by `originId` — the Machines External Data Contributor role this kit requires cannot read inventory. Batches are limited by request size: the documented limit is 64 KB per mutation and there is no record-count limit, so the 100-per-batch rule is removed. `type` is a required field. **[Added]** That queries need Machines Admin | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It states the GraphQL single-endpoint pattern, the operation-name vs. server-field distinction (`addReplaceExternalWorkloads` is the field; `AddReplaceWorkloads` is only a client-side label), the fact that the API names this entity `Workload` rather than "machine identity", the post-2026-08-06 role requirement, and the `originId` / `providerId` reconciliation contract. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

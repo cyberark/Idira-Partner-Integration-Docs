@@ -3,8 +3,8 @@
 **Workflow:** Discovery  
 **Type:** Decision Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-02
+**Version:** 1.3  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -79,10 +79,11 @@ code by default:
   Kubernetes resource path. NOT a display name, NOT an IP address, NOT anything that can change
   between scans. This is the single most consequential field in the workflow: an unstable `originId`
   turns every scan into a duplicate insert rather than an update.
-- Batch size 100 records per mutation, and check the `totalProcessed*` field to confirm completeness
-  rather than trusting a 200 response.
-- Stale-record deletion after a full-replace scan: query by `providerId`, diff the `originId` sets, and
-  delete what is absent from the latest scan. An integration that only ever adds will fail this.
+- Keep each mutation request within the documented 64 KB request-size limit, and check the
+  `totalProcessed*` field to confirm completeness rather than trusting a 200 response.
+- Stale-record deletion after a full-replace scan: diff the current scan against your own record of the
+  `originId`s pushed last run, and delete what is absent — the Machines External Data Contributor role
+  can write but cannot read inventory. An integration that only ever adds will fail this.
 - OAuth credentials in a secrets manager — not an environment variable, not a config file.
 
 TELEMETRY VALUES ARE AGREED WITH THE Idira Technical Alliances contact BEFORE CERTIFICATION (Section 5). The `it` values above are
@@ -166,7 +167,7 @@ Use this dev kit when:
 - You are building a scanner that feeds the Idira onboarding pipeline (discover → check existence → onboard to safe)
 - The customer wants discovered accounts placed into Idira Privileged Access Manager SaaS safes with assigned platforms and rotation policies
 
-> **Scope:** This dev kit uses the Privilege Cloud REST API, not the Discovery Context GraphQL API. The persona required is **Idira Privilege Cloud Discovery Source**.
+> **Scope:** This dev kit uses the Privilege Cloud REST API, not the Discovery Context GraphQL API. Adding accounts requires **Idira Privilege Cloud Discovery Source**; checking, reading and onboarding also require a Privilege Cloud administrator role (Lite, Basic or full).
 
 ### Secrets
 
@@ -235,8 +236,8 @@ These apply regardless of which dev kit you build against:
 - **Token handling:** Cache and reuse the access token; refresh proactively before expiry; never persist to disk
 - **Telemetry header:** All requests must include `x-cybr-telemetry` Base64 URL-encoded — values must be agreed with your Idira Technical Alliances contact before certification
 - **`originId` stability:** Must be a stable, cloud-native resource identifier (ARN, full vault path, Kubernetes resource path) — not a display name or IP address that may change between scans
-- **Batch size:** 100 records per mutation call; track the `totalProcessed*` field to verify completeness
-- **Stale record deletion:** After full-replace scans, query by `providerId`, diff `originId` sets, and delete records not present in the latest scan
+- **Batch size:** each mutation request at most 64 KB; track the `totalProcessed*` field to verify completeness
+- **Stale record deletion:** After full-replace scans, diff against your own record of pushed `originId`s and delete records not present in the latest scan (querying by `providerId` requires Machines Admin)
 - **No secrets in code or config:** OAuth credentials must be stored in a secrets manager, not environment variables or config files
 
 ---
@@ -256,5 +257,6 @@ These apply regardless of which dev kit you build against:
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-10-08 | **[Updated]** Batch sizing follows the documented 64 KB request-size limit rather than a 100-record count. Stale-record deletion reconciles against the integration's own push record, since the required write-only role cannot read inventory. The Privileged Accounts persona names both roles it needs | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, extending the agent-readable layer from the fifteen kits to the workflow decision guides. It leads with direction, which defines the whole workflow and is the inverse of Secrets Management: Discovery kits push inventory **into** Idira and report where a secret lives without ever transmitting its value. It records the property unique to this decision guide — the four kits are **additive**, so a cloud scanner pushing both machine identities and secrets builds against two kits and is certified twice rather than merging them into one submission — and that Privileged Accounts is the exception on every axis, using the Privilege Cloud REST API and its own auth flow while the other three share the Discovery Context GraphQL endpoint. It carries the four mutation names alongside the assigned `it` values, flagging that the Discovery kits are the only ones in the corpus using Title-Hyphen casing and that it must not be normalised. It states that the first decision question turns on intent rather than object type — inventory versus active management, so a tool that reports an SSH key is Secrets while one that vaults it is Privileged Accounts — that the Machine Identities/AI Agents split is a real boundary rather than a spectrum, and that Kubernetes Secrets carrying two checkmarks in Section 4 is deliberate. The shared graded requirements are spelled out for generated code, with emphasis on the `platformtoken` path that differs from the EPM and Audit Service kits and on `originId` stability, since an unstable identifier turns every scan into a duplicate insert. Finally it notes that no checklist pairs with this file and the corpus checker never reads it, so nothing here is cross-validated and it should stay limited to routing. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No routing guidance was changed. — Idira Technical Alliances |

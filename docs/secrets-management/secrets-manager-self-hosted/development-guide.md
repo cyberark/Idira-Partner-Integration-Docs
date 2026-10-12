@@ -5,8 +5,8 @@
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
 **Reference:** [Idira Docs — Secrets Manager Self-Hosted Developer](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/hometileslps/lp-tile5.htm)  
-**Version:** 1.3  
-**Last Updated:** 2026-10-02
+**Version:** 1.4  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -25,7 +25,7 @@ AUTH METHOD: Workload authenticators — Cloud IAM (AWS/Azure/GCP), JWT, Kuberne
 AUTH HEADER FORMAT: Authorization: Token token="<BASE64_ENCODED_JSON_TOKEN>"   — NOT `Bearer`.
 BASE URL: https://<conjur-follower>/   for reads and authentication
           https://<conjur-leader>/     for policy loads and secret writes
-TOKEN ENDPOINT: POST https://<conjur-follower>/authn/<account>/<workload-id>/authenticate
+TOKEN ENDPOINT: POST https://<conjur-follower>/authn/<account>/<url-encoded host/<workload-id>>/authenticate  (API key)
 TELEMETRY: Required on every request — x-cybr-telemetry header, Base64url-encoded key=value pairs.
   it=SecretsManagerSH — see ../../telemetry-reference.md
 CONTACT: your Idira Technical Alliances contact (Skytap access); cybr-bizdevtech@paloaltonetworks.com
@@ -37,9 +37,9 @@ side. Do not add it here and do not report its absence as a defect.
 
 BASE64-ENCODE THE TOKEN, DO NOT DECODE IT (Section 5). The authenticate response is a JSON access
 token; the `Authorization` header expects that JSON Base64-encoded with the line wrapping stripped:
-`| base64 | tr -d '\n'`. A token that was decoded, or that still contains newlines, returns 401 on
-retrieval. This guide is the one place in the corpus that documents the requirement outright — the
-../secrets-manager-saas/ guide links here for it.
+`| base64 | tr -d '\n'`. Or send `Accept-Encoding: base64` on the authenticate call and the response
+is already encoded. A token that was decoded, or that still contains newlines, returns 401 on
+retrieval.
 
 READS GO TO A FOLLOWER, WRITES GO TO THE LEADER (check 3.3, Section 4). Followers are read-only
 replicas behind a load balancer; the Leader is the only read/write node. Targeting the wrong one is
@@ -57,13 +57,17 @@ SaaS tenant it is the literal `conjur`; on a self-hosted cluster the customer se
 is initialised. Do not carry `conjur` across from ../secrets-manager-saas/ and do not hardcode any
 value — take it from configuration.
 
-TOKEN LIFETIME IS NOT PUBLISHED. Request a new token only when the existing one has expired, never
-per retrieval (check 3.9, Section 9). Do not generate a fixed-duration refresh timer.
+THE LOGIN IS `host/<workload-id>`, URL-ENCODED (Section 5). A host authenticates as `host/` followed
+by its ID, with `/` encoded as `%2F`: host `data/myapp` logs in as `host%2Fdata%2Fmyapp`. A missing
+prefix fails authentication.
 
-BATCH RETRIEVAL IS BY FULLY-QUALIFIED ID HERE, NOT A BARE PATH (Section 6, check 3.10). Up to 50 per
-request, and each id is `<account>:variable:<path>`:
-`/secrets?variable_ids=<account>:variable:<path1>,<account>:variable:<path2>`. The SaaS kit's
-`?variable_ids=<id1>,<id2>` shape is not the same string. Do not copy one into the other.
+TOKENS EXPIRE AFTER 8 MINUTES. Reuse a token until it expires — refresh shortly before, or on a 401
+re-authenticate once and retry. Never request a token per retrieval (check 3.9).
+
+BATCH RETRIEVAL IS BY FULLY-QUALIFIED ID (Section 6, check 3.10). Each id is `<account>:variable:<path>`:
+`/secrets?variable_ids=<account>:variable:<path1>,<account>:variable:<path2>`, URL-encoded. The SaaS
+kit uses the same shape with `<account>` fixed to `conjur`. Batch retrieval does not support dynamic
+secrets, which have their own limit (10 per request by default, configurable).
 
 ENVIRONMENT — SKYTAP, NOT C3 (Section 4). Partners integrating with this product get a Skytap
 environment from their Idira Technical Alliances contact, gated on a signed Partner Agreement. The C3 shared ISP
@@ -126,7 +130,7 @@ Your integration authenticates a workload to Conjur, then performs one or more o
 | # | Capability | What it does | Guide section |
 |:--|:---|:---|:--:|
 | 1 | Authenticate a workload | Exchange a workload identity for a short-lived access token | [5](#5-authentication) |
-| 2 | Retrieve a secret | Read a single secret or a batch (up to 50) at runtime | [6](#6-retrieve-secrets) |
+| 2 | Retrieve a secret | Read a single secret or a batch at runtime | [6](#6-retrieve-secrets) |
 | 3 | Manage policy | Define a workload identity and its access grants | [7](#7-policy-management) |
 | 4 | Write a secret | Create or update a secret value (Leader node only) | [8](#8-write-a-secret-if-applicable) |
 
@@ -175,32 +179,26 @@ Secrets Manager Self-Hosted supports several workload authenticators. Use the st
 | **Cloud IAM (AWS, Azure, GCP)** | Workloads running on cloud infrastructure — authenticate using the workload's cloud IAM identity |
 | **JWT** | Workloads in Kubernetes, Jenkins, GitLab, or any environment that issues JWTs to workloads |
 | **Kubernetes** | Native Kubernetes service account authentication |
+| **Client certificate** | Workloads that hold an X.509 certificate — `POST /authn-cert/<service-id>/<account>/<workload-id>/authenticate`, including a SPIFFE host mode. See [Client certificate authentication](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/developer/api-cert-authn.htm) |
 | **API key** | Use only when no other authenticator is available |
 
 API key authentication should be a last resort — it does not leverage native workload identity and requires managing a static credential.
 
 ### Authenticate and Get a Token
 
+The login is the host ID prefixed with `host/`, URL-encoded: host `data/myapp` logs in as `host%2Fdata%2Fmyapp`.
+
 ```bash
 # API key authentication (last resort)
-curl -X POST \
-  https://<conjur-follower>/authn/<account>/<workload-id>/authenticate \
-  -H "Content-Type: text/plain" \
-  -d "<api-key>"
-```
-
-The response is a **JSON access token**. Base64-encode it — do not decode it — and send the encoded value in the `Authorization` header as `Token token="<encoded>"`:
-
-```bash
 TOKEN=$(curl -s -X POST \
-  https://<conjur-follower>/authn/<account>/<workload-id>/authenticate \
-  -H "Content-Type: text/plain" \
-  -d "<api-key>" | base64 | tr -d '\n')
+  -H "Accept-Encoding: base64" \
+  --data "<api-key>" \
+  https://<conjur-follower>/authn/<account>/host%2Fdata%2Fmyapp/authenticate)
 ```
 
-The `| base64 | tr -d '\n'` pipeline is intentional: it encodes the JSON token and strips the line wrapping `base64` adds. A token that is decoded, or that still contains newlines, returns 401 on retrieval.
+With `Accept-Encoding: base64` the response body is the access token already Base64-encoded. Send it in the `Authorization` header as `Token token="<encoded>"`. If you omit that header, the response is the raw JSON token — Base64-encode it yourself and strip the line wrapping: `| base64 | tr -d '\n'`. A token that is decoded, or that still contains newlines, returns 401 on retrieval.
 
-Access tokens expire — request a new token only when the existing one has expired, not per-retrieval.
+Access tokens expire after **8 minutes**. Reuse a token until then — request a new one shortly before expiry or on a 401, never per retrieval. Reference: [API key authentication](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/developer/conjur_api_api-key-authn.htm).
 
 ---
 
@@ -213,9 +211,9 @@ curl -H "Authorization: Token token=\"$TOKEN\"" \
   https://<conjur-follower>/secrets/<account>/variable/<policy-path>/<variable-name>
 ```
 
-### Batch Retrieval (up to 50 secrets per request)
+### Batch Retrieval
 
-Batch retrieval is required for any integration that retrieves more than one secret. It reduces round trips and is checked during certification.
+Batch retrieval is required for any integration that retrieves more than one static secret. It reduces round trips and is checked during certification. IDs are fully qualified and URL-encoded. Batch retrieval does not support dynamic secrets. Reference: [Batch secret retrieval](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/developer/conjur_api_batch_retrieve.htm).
 
 ```bash
 curl -H "Authorization: Token token=\"$TOKEN\"" \
@@ -288,7 +286,7 @@ Only write to the Leader. Followers will reject write requests.
 - Define one workload identity per integration client — do not share workload IDs
 - Always target Followers for reads; use the Leader only for writes and policy updates
 - Refresh the access token only on expiry — do not request a new token for every secret retrieval
-- Use batch retrieval when fetching multiple secrets in one call (max 50 per batch)
+- Use batch retrieval when fetching multiple static secrets in one call
 - Cache secrets only for very short periods when the same secret is retrieved repeatedly in a tight loop; otherwise fetch live to avoid stale values
 - Never log or print secrets, tokens, or API keys
 - Provide clear user-facing error messages — customers need to diagnose configuration issues without Idira support
@@ -346,6 +344,7 @@ Include the `x-cybr-telemetry` HTTP header on all Conjur REST requests, Base64 U
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.4 | 2026-10-08 | **[Fixed]** The authenticate login is `host/<workload-id>`, URL-encoded — the `host/` prefix was missing. **[Added]** `Accept-Encoding: base64` for a pre-encoded token; the 8-minute token lifetime; client certificate authentication; that batch retrieval does not support dynamic secrets. **[Removed]** The unsourced 50-per-batch figure. An integration that authenticates without the `host/` prefix must add it | Idira Technical Alliances |
 | 1.3 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.2 | 2026-10-01 | **[Fixed]** All four "Use Cases at a Glance" section links were off by one, landing a partner on the section above the one named. The table was added in `2e49fc87` (2026-07-20), the same commit that inserted a new Section 2 and renumbered every heading +1 — the new table was written against the pre-renumber numbering and never caught up. Authentication is Section 5 (not 4), Retrieve Secrets 6 (not 5), Policy Management 7 (not 6), Write a Secret 8 (not 7); both the link labels and the anchors are corrected. The seven sibling guides renumbered by the same commit were checked and are correct. No guidance changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the cross-kit traps against the SaaS sibling, in both directions: there is **no `/api` segment** in this kit's URLs (that is a Secrets Manager SaaS requirement, graded here only by the dual-build check 3.4), `<account>` is a deployment-time customer value rather than the literal `conjur`, and batch retrieval takes fully-qualified `<account>:variable:<path>` ids rather than the SaaS kit's bare ids. It also records that reads target a Follower while policy loads and writes target the Leader, and Section 7's identical-403 trap — a write needs both the Leader **and** the `update` privilege, while a read-only integration must not request `update` because certification grades the privilege set against actual behaviour. Environment is Skytap, not the C3 platform the CP/CCP kits use. Two gaps are recorded rather than filled: checks 2.3 and 3.5 grade rotation handling that this guide never documents (the pattern is cited from the sibling guides instead of presented as this guide's own), and this guide's Section 11 key-items list claims a dual-accounts requirement the certification checklist does not carry. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

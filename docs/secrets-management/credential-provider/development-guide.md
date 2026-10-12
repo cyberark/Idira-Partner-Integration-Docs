@@ -4,8 +4,8 @@
 **Integration:** Credential Provider (CP)  
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.1  
-**Last Updated:** 2026-09-30
+**Version:** 1.2  
+**Last Updated:** 2026-10-08
 
 ---
 
@@ -50,7 +50,9 @@ production. Both are correct in their own kit. Do not carry either setting acros
 
 THE QUERY CONTRACT — WHERE GENERATED CODE FAILS:
 - Query syntax is semicolon-delimited Vault account properties: `Property1=Value;Property2=Value`
-  over `Safe`, `UserName`, `Address`, `Object`, `Folder` (Section 8).
+  over `Safe`, `UserName`, `Address`, `Object` and any other account property (Section 8). `Folder`
+  applies only to PAM Self-Hosted. Always include `Safe` and `Object` or `UserName`: without Safe or
+  Object, CP searches as if the query were a regular expression, even when an exact query was sent.
 - The query MUST return EXACTLY ONE account. Multiple matches is an error, not a list.
 - Never hardcode an account or `Object` name. The customer must be able to supply a free-text query
   from configuration (check 3.3) — that is the prerequisite for dual accounts.
@@ -58,7 +60,9 @@ THE QUERY CONTRACT — WHERE GENERATED CODE FAILS:
   (check 3.4, Section 9).
 
 ROTATION IS EXPECTED, NOT AN ERROR (checks 2.3 and 3.6, Section 10). Wait 5 seconds, retrieve again,
-retry the operation — or poll `PasswordChangeInProcess`, which is `False` unless rotation is running.
+retry the operation — or request `PasswordChangeInProcess` in the output, which is `False` unless
+rotation is running. `FailRequestOnPasswordChange=true` makes the request fail during a change;
+`false` returns the value and lets you check `PasswordChangeInProcess` yourself.
 An integration that fails on the first stale-secret error fails this check.
 
 DO NOT PACKAGE THE IDIRA SDKs (check 3.5, Section 12). Reference them from the default installation
@@ -68,16 +72,18 @@ EXACT VALUES AND NAMES, ALL GRADED:
 - Application ID format is `<Partner Name>-<Product Name>` (check 4.1) — e.g. `Acme-SecurityScanner`.
 - Partner safe name is `PARTNER-<PARTNER>`; the provider user created at install is
   `Prov_<Your Hostname>` and needs Retrieve Accounts, List Accounts and View Safe Members on the
-  safe (Section 7). A retrieval that returns empty is a permissions or App ID fault, not a missing
+  safe, AND the application (App ID) itself must be a Safe member with Retrieve Accounts (Section 7).
+  A retrieval that fails with both in place is an App ID or authentication fault, not a missing
   object.
 - After ANY authentication-mechanism change, restart the CP service (check 4.3) — the
   "Idira Application Password Provider" service on Windows, `service aimprv restart` on Linux.
 - Terminology: `CP`, never `AIM` (check 5.1). `AIM` is the retired name — note that the Windows
   distribution file is still named `AAM-Windows64` and the Linux RPM `CARKaim-*`, so the old names
   survive in filenames. Do not use them in documentation or UI text.
-- Certificate authentication is CCP-ONLY and NOT available for agent-based CP (Section 11). Check
-  2.4 and check 4.2 therefore grade only OS User and Allowed Machines here. Do not carry CCP's
-  three-mechanism list across.
+- CP supports four application authentication methods: Allowed Machines, OS User, Path and Hash
+  (Section 11). Certificate methods are CCP-ONLY and NOT available for agent-based CP. Checks 2.4 and
+  4.2 grade Allowed Machines and OS User; Path and Hash are recommended in addition. Do not carry
+  CCP's certificate methods across.
 
 THE LINUX PROVISIONING PASSWORD IS ONE-TIME AND CONSUMED (Section 6, step 3). After
 `appprovideruser.cred` exists the agent authenticates from that file. Do not hardcode it, commit it,
@@ -168,18 +174,18 @@ After any change to authentication mechanisms, restart the CP service on your se
    ```
    This installs binaries, config files, and the "Idira Application Password Provider" service. The server will restart.
 4. After restart, log back in as administrator.
-5. Create the credential file from `C:\Program Files\Idira\ApplicationPasswordProvider\Vault\`:
+5. Create the credential file from `C:\Program Files\CyberArk\ApplicationPasswordProvider\Vault\`:
    ```
    CreateCredFile AppProviderUser.cred Password /Username <username> /Password <password> /Hostname /EntropyFile
    ```
    `<username>` and `<password>` are provided with the distribution.
 6. Update `Vault.ini` to point to the C3 proxy server (use the Proxy folder from the distribution).
 7. Start the "Idira Application Password Provider" service.
-8. Test from `C:\Program Files\Idira\ApplicationPasswordSdk\`:
+8. Test from `C:\Program Files\CyberArk\ApplicationPasswordSdk\`:
    ```
    CLIPasswordSDK64.exe GetPassword /p AppDescs.AppID=<PARTNER_AppID> /p Query="Safe=<PARTNER-SAFE>;Folder=Root;Object=account2retrieve" /o Password
    ```
-   A successful response prints the password for the test account. Check `C:\Program Files\Idira\ApplicationPasswordProvider\Logs` for errors.
+   A successful response prints the password for the test account. Check `C:\Program Files\CyberArk\ApplicationPasswordProvider\Logs` for errors.
 
 ---
 
@@ -210,7 +216,7 @@ After any change to authentication mechanisms, restart the CP service on your se
    service aimprv restart
    cat /var/opt/CARKaim/logs/APPConsole.log
    ```
-6. Test retrieval from `/opt/CARKaim/SDK/`:
+6. Test retrieval from `/opt/CARKaim/sdk/`:
    ```bash
    ./clipasswordsdk GetPassword \
      -p AppDescs.AppID=<PARTNER>_appID \
@@ -230,6 +236,12 @@ In Idira Privileged Access Manager SaaS (or PVWA), go to **Policies → Access C
 - List Accounts
 - View Safe Members
 
+Then add the **application** (your Application ID) as a Safe member with:
+
+- Retrieve Accounts
+
+Both memberships are required. If the Safe uses object-level access, both the provider user and the application need access to the account. See [Provisioning privileged application accounts](https://docs.cyberark.com/credential-providers/latest/en/content/ccp/provisioning-privileged-application-accounts.htm).
+
 ---
 
 ## 8. Retrieving Secrets in Production
@@ -238,13 +250,20 @@ In Idira Privileged Access Manager SaaS (or PVWA), go to **Policies → Access C
 ```
 Property1=Value;Property2=Value;...PropertyN=Value
 ```
-Where `Property` is a Vault account property such as `Safe`, `UserName`, `Address`, or `Object`. The query must return exactly one account.
+Where `Property` is a Vault account property such as `Safe`, `UserName`, `Address`, or `Object`. `Folder` is supported only on PAM Self-Hosted — do not set it for Privilege Cloud customers.
+
+- **The query must return exactly one account.** More than one match is an error (unless one of them is already in the CP cache for the same query).
+- **Always include `Safe` and `Object` or `UserName`.** Without `Safe` or `Object`, CP searches as if a regular-expression query had been sent, even if you sent an exact one.
+- **`QueryFormat`** selects `Exact` (default) or `Regexp` matching.
+- **`RequiredProps`** names the account properties to return (`-p RequiredProps=Address,UserName`, or `*`); **`Reason`** records why the password was retrieved in the CP audit log.
+
+See [CLI Application Password SDK syntax](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/cli-application-password-sdk-egssyntax.htm).
 
 **Recommendation:** Allow the customer to enter a free-text query string in your integration's configuration. This supports dual accounts without requiring code changes and is required for certification.
 
 **Windows:**
 ```
-C:\Program Files (x86)\Idira\ApplicationPasswordSdk\clipasswordsdk GetPassword ^
+C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe GetPassword ^
   /p AppDescs.AppID="PartnerName-ApplicationName" ^
   /p Query="Safe=test;UserName=my-user" ^
   /o Password,PassProps.Address,PassProps.UserName
@@ -280,7 +299,10 @@ If a secret changes between retrieval and use:
 2. Retrieve the secret again.
 3. Retry the operation.
 
-You can also query the `PasswordChangeInProcess` property — it is `False` unless rotation is in progress. If `True`, poll until it returns `False`.
+You can also request the `PasswordChangeInProcess` property in the output — it is `False` unless rotation is in progress. Pair it with `FailRequestOnPasswordChange`:
+
+- `-p FailRequestOnPasswordChange=true` — the request fails while a change is under way; retry after the wait above.
+- `-p FailRequestOnPasswordChange=false` — the request returns the current value; check `PasswordChangeInProcess` and, if `True`, poll until it returns `False`.
 
 ---
 
@@ -290,7 +312,11 @@ CP supports the following application authentication methods for production envi
 
 - **OS User:** CP validates the requesting OS user matches the user specified for the Application ID
 - **Allowed Machines:** Restrict access to specific IPs, DNS names, hostnames, or CIDR subnets
-- **Certificate:** (CCP only — not available for agent-based CP)
+- **Path:** CP validates the full path of the calling application
+- **Hash:** CP validates a hash of the calling application's executable, so a replaced binary cannot retrieve the secret — see [Generate the application hash value](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/generating-application-hash-value.htm)
+- **Certificate:** CCP only — not available for agent-based CP
+
+Idira recommends configuring every method the application can satisfy; for an application on the same machine as CP, always configure OS User and Allowed Machines. See [Application authentication methods](https://docs.cyberark.com/credential-providers/latest/en/content/cp%20and%20ascp/application-authentication-methods-general.htm).
 
 Restart the CP service after any authentication mechanism change.
 
@@ -334,4 +360,5 @@ CP has **no REST API** (see §12) — retrieval goes through the SDK, so there i
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.2 | 2026-10-08 | **[Fixed]** Windows paths use the installed folder name `CyberArk` (`C:\Program Files\CyberArk\ApplicationPasswordProvider\…`, `C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\…`) — the folder is not renamed, and the previous paths did not exist. The Linux SDK path is lower-case `/opt/CARKaim/sdk/`. The application itself must be a Safe member with Retrieve Accounts, in addition to the provider user. **[Added]** Path and Hash authentication; `Folder` is PAM Self-Hosted only; `QueryFormat`, `RequiredProps`, `Reason`; the regular-expression fallback when `Safe` or `Object` is omitted; `FailRequestOnPasswordChange`. Scripts using the previous Windows paths must be updated | Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the fact the guide already states twice and an agent still misses — there is no REST API in this kit, so no endpoint, no base URL, no `Authorization` header and no token flow exist — and with the consequence for telemetry: check 3.7 grades the four field values, but they are submitted as wrapper/configuration metadata rather than sent as `x-cybr-telemetry`, so header-setting code here is wrong while reporting the requirement as inapplicable is also wrong. It also records the cross-kit auditing trap (CP audit logging **disabled** for production, the inverse of the EPM Ticketing/JIT kit's mandatory `Audit: true`), that certificate authentication is CCP-only and not available for agent-based CP, the same-machine constraint, the no-SDK-packaging rule, and that the Linux provisioning password is one-time and consumed by `appprovideruser.cred`. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |
