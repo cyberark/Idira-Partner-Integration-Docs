@@ -1,9 +1,9 @@
 # AGENTS.md — Machine Entry Point
 
 **Type:** Repository Manifest
-**Version:** 1.3
+**Version:** 1.4
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-14
 
 ---
 
@@ -73,7 +73,7 @@ Normative. Each step's output determines the next step's input.
 | 1 | `journey.md` | What is the whole path, what are the five stages, and what is graded? | Never skip on a first pass — it is the only file describing the gates |
 | 2 | `decision-guide.md` | Which option does the partner select on the integration request form, and which kit applies? | The kit is already known with certainty |
 | 3 | `<workflow>/decision-guide.md` | Which kit within this workflow — or, for `workload-identity/`, whether the integration belongs in this workflow at all? | The workflow has no decision guide — see §4 |
-| 4 | `<workflow>/<kit>/development-guide.md` | How is it built? | Never skip |
+| 4 | `<workflow>/<kit>/development-guide.md` | How is it built? | Never skip — unless the kit has no guide yet (`identity-access-management/identity-governance/`); then the checklist's `Source` cells are the build reference |
 | 5 | `<workflow>/<kit>/certification-checklist.md` | What will it be graded on? | Never skip — read it *during* the build, not at submission |
 | 6 | `telemetry-reference.md` | How is the mandatory `x-cybr-telemetry` header built, and what `it` value applies? | The kit is a PSM connection component, which has no telemetry requirement |
 | 7 | `marketplace-standards.md` | What does the Marketplace listing content have to look like? | Only before listing — but read it before writing listing copy, not after |
@@ -114,8 +114,11 @@ Workflows and kits:
 | `identity-response/` | no | `response-actions/` |
 | `psm-connectors/` | no | `web-connection-component/` |
 | `workload-identity/` | yes — inbound boundary, not kit choice | `swa-federation/` |
+| `identity-access-management/` | no | `identity-governance/` — checklist only, guide not yet published |
 
-Every kit directory holds exactly two files: `development-guide.md` and `certification-checklist.md`.
+Every kit directory holds exactly two files: `development-guide.md` and `certification-checklist.md`,
+with one exception: `identity-access-management/identity-governance/` is Preview and publishes its
+checklist ahead of its guide. Do not reconstruct the guide from the checklist — §5 applies.
 
 ---
 
@@ -180,6 +183,12 @@ field are all worth reporting; that is how the corpus gets fixed.
 
 ### Change Log
 
+- **[Added]** v1.4 — The `identity-access-management/` workflow and its `identity-governance/` kit
+  added to the graph in §4, taking the corpus to seventeen kits across nine workflows. The kit is
+  Preview and is the first to ship a checklist without its development guide, so the two-file rule
+  in §4 and read-order step 4 in §3 now state the exception rather than sending an agent to a file
+  that does not exist — which is exactly when an agent starts inventing one. No read order, stop rule
+  or requirement changed. — Idira Technical Alliances
 - **[Added]** v1.3 — The `workload-identity/` workflow and its `swa-federation/` kit added to the
   graph in §4, taking the corpus to sixteen kits across eight workflows. Its decision-guide cell is
   qualified rather than a bare `yes`, because that guide does something no other workflow decision

@@ -1,9 +1,9 @@
 # Telemetry Header — Reference Implementation and IntegrationType Registry
 
 **Type:** Cross-Cutting Reference
-**Version:** 1.2
+**Version:** 1.3
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-14
 
 ---
 
@@ -103,6 +103,7 @@ hyphens.
 | `epm/audit-events` | `EPMAudit` |
 | `epm/soc-response` | `SOCResponse` |
 | `epm/ticketing-jit` | `JIT` |
+| `identity-access-management/identity-governance` | `IdentityGovernance` |
 | `identity-response/response-actions` | `SOAR`, `SIEM`, or `XDR` — pick the one matching your platform category |
 | `psm-connectors/web-connection-component` | *Not applicable — no REST API, no telemetry requirement* |
 | `secrets-management/central-credential-provider` | `CCP` |
@@ -111,7 +112,7 @@ hyphens.
 | `secrets-management/secrets-manager-self-hosted` | `SecretsManagerSH` |
 | `workload-identity/swa-federation` | `WorkloadIdentity` |
 
-Fifteen assigned values across sixteen kits.
+Sixteen assigned values across seventeen kits.
 
 > **Why `WorkloadIdentity` and not `SWA`.** The acronym would have matched this registry's
 > acronym-style values, and it was deliberately not used: "SWA" also abbreviates the Secure Web
@@ -355,6 +356,12 @@ what you meant.
 
 ### Change Log
 
+- **[Added]** v1.3 — Registry row for the new `identity-access-management/identity-governance`
+  kit, with the assigned value `IdentityGovernance`, taking the registry to sixteen assigned values
+  across seventeen kits. Assigned in the same change as the kit, per §3.2. The value names the use
+  case rather than the Identity Governance product, so it cannot be read as attributing traffic to
+  that product. No existing value changed — they remain frozen by incumbency per §3.1. — Idira
+  Technical Alliances
 - **[Added]** v1.2 — Registry row for the new `workload-identity/swa-federation` kit, with the
   assigned value `WorkloadIdentity`, taking the registry to fifteen assigned values across sixteen
   kits. Per §3.2 a kit's value is assigned when the kit is authored and lands in this table in the

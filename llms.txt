@@ -1,8 +1,8 @@
 # Idira Partner Integration Development Kits
 
 > Development kits for building and certifying a technology integration with the Palo Alto Networks
-> Idira Identity Security Platform. Sixteen kits across eight workflows, each with a development
-> guide and the certification checklist the integration will be graded against. Published so a
+> Idira Identity Security Platform. Seventeen kits across nine workflows, each with a development
+> guide (one Preview kit's guide is not yet published) and the certification checklist the integration will be graded against. Published so a
 > partner — or a partner's AI agent — can drive the build without a review cycle per question.
 
 Read `journey.md` before anything else: it is the only file that states the five stages and the gates.
@@ -58,6 +58,10 @@ is explicitly permitted.
 
 - [Workload Identity decision guide](docs/workload-identity/decision-guide.md): One kit, so this guide tests whether the integration belongs in this workflow rather than in Secrets Management or Discovery — establishing an identity and using one to fetch a secret are different integrations. Also resolves the `SWA` acronym collision with the unrelated Secure Web Application Connectors Framework
 - [SWA Federation](docs/workload-identity/swa-federation/development-guide.md): Establish SPIFFE identity for workloads your platform runs, routes, or hosts, so they authenticate to Idira with a short-lived attested SVID instead of a distributed secret. **Preview** — not a certifiable path yet, and the step-level federation exchange is deliberately not published: confirm it rather than reconstructing it from SPIFFE or SPIRE material ([checklist](docs/workload-identity/swa-federation/certification-checklist.md))
+
+## Identity Access Management
+
+- [Identity Governance & Provisioning checklist](docs/identity-access-management/identity-governance/certification-checklist.md): Provision, reconcile, and certify identities and entitlements in Idira from a partner IGA platform — SCIM provisioning, entitlement read, role membership, PAM objects. **Preview** — not a certifiable path yet, and the development guide is not yet published: build from the Idira documentation each checklist row cites rather than reconstructing a guide
 
 ## Other workflows
 

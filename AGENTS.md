@@ -11,8 +11,10 @@ plus the two things you should not get wrong even if you read nothing else.
 ## What this repository is
 
 Development kits for building and certifying a technology integration with the **Palo Alto Networks
-Idira Identity Security Platform**. Sixteen kits across eight workflows. Each kit directory under
-`docs/` holds exactly two files: `development-guide.md` and `certification-checklist.md`.
+Idira Identity Security Platform**. Seventeen kits across nine workflows. Each kit directory under
+`docs/` holds exactly two files: `development-guide.md` and `certification-checklist.md` — except
+`identity-access-management/identity-governance/`, a Preview kit whose checklist is published ahead
+of its guide. Do not reconstruct the missing guide.
 
 ## Permitted use
 

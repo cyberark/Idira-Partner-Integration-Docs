@@ -1,9 +1,9 @@
 # Idira Marketplace Integration Contribution Standards
 
 **Type:** Reference Guide  
-**Version:** 1.9  
+**Version:** 1.10  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-05  
+**Last Updated:** 2026-10-14  
 **Source:** Idira_Marketplace_Standards_Guide.pdf
 
 ---
@@ -34,9 +34,11 @@ directory. NAME THE DESTINATION rather than saying "the Marketplace" — they ar
 different lifespans. The standards in this document apply to all three identically.
 
 THE §3 USE CASES ARE MARKETPLACE BUCKETS, NOT DEV KITS, AND THE TWO SETS DO NOT MAP ONE-TO-ONE. This is
-the most common mistake made from this file. There are ten listing buckets and sixteen kits:
-- Some buckets have NO dev kit at all — "Enable SSO or MFA for Users" and "Sync Identities Between
-  Systems" are listing categories with no corresponding kit in this repository.
+the most common mistake made from this file. There are ten listing buckets and seventeen kits:
+- Some buckets have NO dev kit at all — "Enable SSO or MFA for Users" is a listing category with no
+  corresponding kit in this repository. "Sync Identities Between Systems (Identity Governance)" is
+  the bucket for `identity-access-management/identity-governance`, but that kit is Preview, so
+  listing is not open on it yet.
 - Some buckets cover FOUR kits each — all four Secrets Management kits list under "Manage Secrets for
   Apps or Services"; all four Discovery kits list under "Discover Assets or Accounts".
 - AND THE INVERSE: one KIT has no bucket. `workload-identity/swa-federation` has no §3 use case —
@@ -87,7 +89,7 @@ for it, say it is not published and route the request to the Idira Technical All
 SIBLING TOP-LEVEL FILES:
 - AGENTS.md — the machine entry point: read order, file graph, and hard limits
 - journey.md — the five stages; §7 owns the submission sequence this file only summarises
-- index.md — the catalogue of all 16 kits
+- index.md — the catalogue of all 17 kits
 - jsb-standards.md — Joint Solution Brief standards, a separate asset from the Configuration guide
 - naming-crosswalk.md — authoritative product naming, including what is deliberately not rebranded
 
@@ -288,6 +290,7 @@ Ongoing for each development kit. Include configuration steps, diagrams, prerequ
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-14 | **[Updated]** v1.10 — The AI context block said "Sync Identities Between Systems" has no dev kit. The new `identity-access-management/identity-governance` kit is that bucket's integration, so the block now names it and notes it is Preview, leaving "Enable SSO or MFA for Users" as the one bucket with no kit. Kit counts moved from sixteen to seventeen. No standard, bucket or short description changed. | Idira Technical Alliances |
 | 2026-10-05 | **[Fixed]** v1.9 — The AI context block stated the corpus as fifteen kits and `index.md` as "the catalogue of all 15 kits". Both went stale when `workload-identity/swa-federation` was added in `3a6469c`, so this file — the last node in the routing chain and the one an agent reads at listing time — was contradicting the six files above it. Counts corrected to sixteen. Also added the case the §3 bucket-mapping note never covered: it enumerated buckets with no kit, but not the inverse, and there is now one — workload identity is not any of the ten use cases. The note says to route the bucket question to the Idira Technical Alliances contact rather than file under *Other / Not Sure* or map it to "Manage Secrets for Apps or Services", which describes the opposite operation, and records that the kit is Preview so listing is not open on it and no partner is blocked today. This mirrors what that kit's own certification checklist already tells the partner, which until now this file did not corroborate. No standard, string, bucket, product entry or submission route changed | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v1.8 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
 | 2026-10-02 | **[Updated]** v1.7 — Marked **Secure Browser** as discontinued in the §6 allowed-product vocabulary, following its permanent discontinuation on 2026-09-30 (service access disabled; migration to alternative secure access solutions). §6 is the enforced vocabulary for the `Idira Products` listing field — the AI context block states that a product not on that list cannot be named on a listing — so an unannotated entry authorised a partner to list against a product that no longer exists. The line is annotated rather than deleted on purpose: §6 is described as the Marketplace picker list, and whether the live picker has dropped the entry is unverified, so annotation is correct whether it has or not. No other product entry, standard, string or submission route was changed, and no listing already naming Secure Browser was edited — those route to the Idira Technical Alliances contact. Surfaced by the `/review-dev-kits` weekly run | Idira Technical Alliances |

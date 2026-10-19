@@ -26,6 +26,7 @@ Each kit gives a technology partner everything needed to build an integration: t
 | [Secrets Management](docs/secrets-management/) | Retrieve secrets from Idira instead of storing them locally |
 | [PSM Connectors](docs/psm-connectors/) | A connection component so Idira Privileged Session Manager can broker and record a privileged session into your web application. Idira PAM Self-Hosted only |
 | [Workload Identity](docs/workload-identity/) | SPIFFE identity for workloads your platform runs, routes, or hosts, so they authenticate to Idira with an attested SVID instead of a distributed secret — **Preview** |
+| [Identity Access Management](docs/identity-access-management/identity-governance/certification-checklist.md) | Provision, reconcile, and certify identities and entitlements in Idira from your IGA platform — **Preview**, certification checklist only; the development guide is not yet published |
 
 **Preview** means the kit is published for early review and is not yet a certifiable path: you can build against it, but its checklist is not a settled gate and we cannot promise a Marketplace listing on it. Talk to us before committing engineering time. Per-kit status is in the [Development Kits Index](docs/index.md).
 

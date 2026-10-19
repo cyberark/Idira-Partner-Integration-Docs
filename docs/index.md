@@ -2,8 +2,8 @@
 
 **Maintained by:** Idira Technical Alliances  
 **Contact:** `cybr-bizdevtech@paloaltonetworks.com`  
-**Last Updated:** 2026-10-05  
-**Version:** 1.4
+**Last Updated:** 2026-10-14  
+**Version:** 1.5
 
 ---
 
@@ -22,15 +22,18 @@ ANSWERS: "What kits exist, and where does each one live?"
 DOES NOT ANSWER: anything about how to build. Every build fact is in a kit.
 CONTACT: cybr-bizdevtech@paloaltonetworks.com
 
-THE INVENTORY IS 16 KITS ACROSS 8 WORKFLOWS: Discovery (4), Secrets Management (4), EPM (3),
+THE INVENTORY IS 17 KITS ACROSS 9 WORKFLOWS: Discovery (4), Secrets Management (4), EPM (3),
 Credential Rotation (1), Audit Service (1), Identity Response (1), PSM Connectors (1), Workload
-Identity (1). Every kit is a development-guide.md + certification-checklist.md pair in its own
-directory. If a partner names a product that is not in the table below, there is NO kit for it — say
+Identity (1), Identity Access Management (1). Every kit is a development-guide.md +
+certification-checklist.md pair in its own directory, with ONE exception:
+`identity-access-management/identity-governance` publishes its checklist ahead of its development
+guide. Do not reconstruct the missing guide — the Idira documentation named in each checklist row's
+`Source` cell is the build reference until it is published. If a partner names a product that is not in the table below, there is NO kit for it — say
 so rather than adapting the nearest one, and route the request to the Idira Technical Alliances contact.
 
-THE STATUS COLUMN IS LOAD-BEARING, NOT DECORATION. TWO kits carry a status other than Available —
-`identity-response/response-actions` and `workload-identity/swa-federation` — and neither is a
-certifiable path yet: a partner can build against them, but do not present their checklists as settled
+THE STATUS COLUMN IS LOAD-BEARING, NOT DECORATION. THREE kits carry a status other than Available —
+`identity-response/response-actions`, `workload-identity/swa-federation`, and
+`identity-access-management/identity-governance` — and none is a certifiable path yet: a partner can build against them, but do not present their checklists as settled
 gates or promise a Marketplace listing on them. The Workload Identity kit additionally has one
 deliberate documentation gap, the step-level federation exchange, which is confirmed per build rather
 than published — do not let an agent reconstruct it. Every other kit is Available. Read the status cell
@@ -128,6 +131,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | [PSM Connectors](psm-connectors/)           | Web Connection Component                     | [Development Guide](psm-connectors/web-connection-component/development-guide.md)        | [Checklist](psm-connectors/web-connection-component/certification-checklist.md)        | Available |
 | [Workload Identity](workload-identity/)     | —                                            | [Decision Guide](workload-identity/decision-guide.md)                                    | —                                                                                      | —         |
 | [Workload Identity](workload-identity/)     | SWA Federation                               | [Development Guide](workload-identity/swa-federation/development-guide.md)               | [Checklist](workload-identity/swa-federation/certification-checklist.md)               | Preview   |
+| Identity Access Management                  | Identity Governance & Provisioning           | *Not yet published*                                                                      | [Checklist](identity-access-management/identity-governance/certification-checklist.md) | Preview   |
 
 > **Status key:** *Available* — the kit is complete and open for development and certification.
 > *Preview* — the kit is published for early review and is not yet a certifiable path: you can build
@@ -163,6 +167,9 @@ Let a partner platform that runs, routes, or hosts workloads establish SPIFFE id
 
 ### Identity Response
 Let any partner XDR, SIEM, or SOAR platform trigger deterministic identity and privilege response actions in Idira in real time — lock or disable a user, force logout, expire a password, remove a privileged role, list/terminate/suspend privileged sessions, rotate or verify a credential, vault a flagged account, and disable a Secure Infrastructure Access policy. Idira acts as a stateless execution engine: the playbook resolves the target entity, runs the action, and reads back per-action status. Idira SaaS only. Applies to platforms such as Palo Alto Cortex (XSIAM / XSOAR), Google Security Operations, and Splunk.
+
+### Identity Access Management
+Let a partner identity governance and administration (IGA) platform provision, reconcile, and certify identities and entitlements held in Idira — users, groups, and membership through the Idira Identity SCIM server; entitlement reads for reconciliation and access certification; role membership; and, optionally, PAM objects (Safes and Safe permissions). The partner platform is the governance authority and Idira is a governed target. One kit, **Identity Governance & Provisioning**, whose certification checklist is published ahead of its development guide — until the guide is published, build from the Idira documentation named in each checklist row. Single sign-on and Workforce Password Management are Identity Access Management use cases with no kit yet. **Preview.**
 
 ---
 
@@ -203,6 +210,7 @@ PSM Web Connection Components are the one exception and carry no telemetry requi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.5 | 2026-10-14 | **[Added]** The **Identity Access Management** workflow and its first kit, **Identity Governance & Provisioning**, taking the inventory to 17 kits across 9 workflows. Identity Access Management was a form option with no kit behind it, so an IGA partner had nothing to be graded on. Listed as **Preview** — the third non-Available kit — and it is the first kit to break the guide-plus-checklist pair: the checklist is published ahead of its development guide, so the Development Guide cell reads *Not yet published* and the AI context block states the exception rather than letting an agent reconstruct the missing guide. No existing listing, status or requirement was changed. — Idira Technical Alliances |
 | 1.4 | 2026-10-05 | **[Added]** The **Workload Identity** workflow and its single kit, **SWA Federation**, taking the inventory to 16 kits across 8 workflows. It fills a gap this catalogue made visible: workload identity federation appeared only as the fourth authentication option inside the Secrets Manager SaaS guide, which serves a retrieval client that happens to hold an SVID and gave nothing to a partner whose platform *is* the identity surface — so gateways, agent runtimes and platforms that already issue SPIFFE identities had no kit to build against and no checklist to be graded on. Listed as **Preview**, which makes it the second non-Available kit, so the AI context block's status warning now names two rather than one. Two rows were added, not one: the kit plus a workflow decision guide, which takes the router count in this table from two to three. That decision guide is deliberately unlike the Discovery, EPM and Secrets Management ones — with a single kit there is no within-workflow choice, so it routes the inbound boundary instead, which is where this integration is most often misfiled. The Status key was also generalised: it described an unsettled API field name marked `[TBD]` as the only form a Preview gap takes, and the new kit's gap is an unsettled *procedure* stated as visible prose instead, so both forms are now described. No existing listing, status or requirement was changed. — Idira Technical Alliances |
 | 1.3 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.2 | 2026-10-01 | **[Added]** `security-baseline-reference.md` to the sibling-file list in the AI context block and to the reader-facing pointers, including why it matters to a partner: a requirement sourced to an Idira doc or an OWASP ASVS control is not ours to waive, and one sourced to a house rule is. No listing, status or requirement was changed. — Idira Technical Alliances |
