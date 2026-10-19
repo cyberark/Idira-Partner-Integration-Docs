@@ -1,6 +1,6 @@
 # Idira Partner Integration Development Kits
 
-Development kits for building and certifying technology integrations with the **Idira by Palo Alto Networks**.
+Development kits for building and certifying technology integrations with the **Idira Identity Security Platform** by Palo Alto Networks.
 
 Each kit gives a technology partner everything needed to build an integration: the use case, the environment prerequisites, authentication, verified API operations with working request examples, integration patterns, error handling, and a certification checklist that defines what Idira reviews before listing the integration on the Idira Marketplace.
 
@@ -37,11 +37,11 @@ Each kit gives a technology partner everything needed to build an integration: t
 3. Follow the Development Guide. Every API call lists its method, URL, authentication, and request fields.
 4. Implement the telemetry header from [the telemetry reference](docs/telemetry-reference.md), not from a summary table — the `IntegrationType` value is assigned per kit.
 5. Work through the Certification Checklist **during** the build, not at submission. It is the document your integration is graded against.
-6. Request a sandbox and start certification: `cybr-bizdevtech@paloaltonetworks.com`.
+6. Submit your integration request ([journey, Stage 1](docs/journey.md#32-submit-the-integration-request)). Your build environment is provisioned once the request is approved. Questions: `cybr-bizdevtech@paloaltonetworks.com`.
 
 ## Using these kits with AI tooling
 
-You may read, copy, quote, summarise, embed, index, and feed the contents of this repository into your own tooling — coding agents, retrieval indexes, internal documentation, code generators, and developer assistants — to build, test, document, or certify an Idira integration. No permission request is needed. Attribution to *Idira Technical Alliances* satisfies the CC BY 4.0 licence.
+You may read, copy, quote, summarise, embed, index, and feed the contents of this repository into your own tooling — coding agents, retrieval indexes, internal documentation, code generators, and developer assistants — to build, test, document, or certify an Idira integration. No permission request is needed. Attribution to *Palo Alto Networks, Inc.* satisfies the CC BY 4.0 licence.
 
 Two things to know, both about correctness rather than permission:
 
@@ -52,7 +52,7 @@ Found a contradiction between a guide and its checklist, or an undefined field? 
 
 ## Sandbox and support
 
-- **Sandbox:** C3 Integrations Platform — https://c3.cyberark.cloud
+- **Build environment:** provisioned after your integration request is approved, and it depends on the kit — see [Stage 2 of the journey](docs/journey.md#4-stage-2--get-access-to-idira). Some kits use the C3 Integrations Platform — https://c3.cyberark.cloud
 - **Contact:** `cybr-bizdevtech@paloaltonetworks.com`
 
 ## Contributing

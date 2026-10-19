@@ -1,9 +1,9 @@
 # Which Integration Do I Select?
 
 **Type:** Top-Level Decision Guide
-**Version:** 1.8
+**Version:** 1.9
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-14
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -77,7 +77,7 @@ Find the row that describes your integration. Read the linked guide before you s
 | **Streams endpoint privilege events** from Idira Endpoint Privilege Manager into your platform | Idira Endpoint Privilege Manager | [EPM decision guide](epm/decision-guide.md) → Audit Events |
 | **Gates admin elevation** on approval in your ticketing system | Idira Endpoint Privilege Manager | [EPM decision guide](epm/decision-guide.md) → Ticketing / JIT |
 | **Contains an endpoint** — removes local admin rights in real time from an XDR detection or SOAR playbook | Idira Endpoint Privilege Manager | [EPM decision guide](epm/decision-guide.md) → SOC Response |
-| **Triggers identity or privilege response actions** in Idira from your XDR, SIEM, or SOAR — lock a user, force logout, terminate a privileged session, expire a password | Idira Identity Security Platform | [Identity Response kit](identity-response/response-actions/development-guide.md) — **Draft**, see §4 |
+| **Triggers identity or privilege response actions** in Idira from your XDR, SIEM, or SOAR — lock a user, force logout, terminate a privileged session, expire a password | Idira Identity Security Platform | [Identity Response kit](identity-response/response-actions/development-guide.md) — **Preview**, see §4 |
 | **Establishes workload identity** — your platform runs, routes, hosts, or already issues identities for workloads, and attests what they are so they reach Idira without a distributed secret | Idira Secrets Management — *but see §4* | [Workload Identity decision guide](workload-identity/decision-guide.md) → SWA Federation — **Preview**, see §4 |
 | **Provisions, reconciles, or certifies identities and entitlements** held in Idira from your IGA platform — joiner/mover/leaver via SCIM, entitlement reads for access reviews, role membership | Idira Identity Access Management | [Identity Governance & Provisioning checklist](identity-access-management/identity-governance/certification-checklist.md) — **Preview**, no development guide yet, see §4 |
 | Lets **Idira broker and record a privileged session** into your web application, injecting vaulted credentials into its login form | *No exact form option — see §4* | [PSM Connectors kit](psm-connectors/web-connection-component/development-guide.md) |
@@ -165,6 +165,7 @@ Use current names in all documentation and certification submissions.
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.9 | 2026-10-19 | **[Fixed]** The §2 Identity Response row now gives the kit's status as **Preview**, the value `index.md` uses. No row, form option or kit mapping changed | Idira Technical Alliances |
 | 1.8 | 2026-10-14 | **[Added]** A §2 row and a §4 Preview note for the new Identity Access Management kit, Identity Governance & Provisioning. The §4 note that said Identity Access Management has no dev kit now names the one it has and narrows the no-kit list to SSO and WPM — SCIM provisioning is what the new kit covers. The Workload Identity note no longer says an Identity Access Management selection routes to a kit that does not exist; it now routes to the governance kit, which is still the wrong integration for workload identity. The §2 row links the checklist because the kit has no development guide yet. — Idira Technical Alliances |
 | 1.7 | 2026-10-05 | **[Added]** A §2 row and two §4 notes for the new Workload Identity workflow, whose kit establishes workload identity rather than consuming one. The §2 row is qualified rather than clean, because the form cannot express this integration: Secure Workload Access ships as part of Secrets Manager SaaS, so **Idira Secrets Management** is the closest accurate option while describing the opposite operation — retrieving a secret. §4 therefore gains a third known gap, taking it from two to three, telling a partner to select that option and say in the description that the integration establishes workload identity via SWA federation, and naming the two selections that waste a cycle: the platform umbrella, which routes nowhere, and an Identity Access Management option, which routes to a kit that does not exist. A second §4 note records the kit's Preview status and its one deliberate documentation gap. The AI context block now also carries the `SWA` acronym collision, since the form does not disambiguate Secure Workload Access from the Secure Web Application Connectors Framework and the two share no API, scope or certification path. No existing row, form option or kit mapping changed | Idira Technical Alliances |
 | 1.6 | 2026-10-05 | **[Fixed]** The Identity Response note said the kit is marked `Draft` in [`index.md`](index.md). That status value does not exist: the kit is marked **Preview**, and `index.md`'s status key defines only *Available* and *Preview*. A partner or agent following this file — read-order step 2 — was sent to look for a value it would never find, in the one place that tells it whether the kit is buildable. The note now says `Preview` and states what Preview means: not yet a certifiable path. The advice to talk to an Idira Technical Alliances contact before committing engineering time is unchanged | Idira Technical Alliances |

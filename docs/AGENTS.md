@@ -1,9 +1,9 @@
 # AGENTS.md — Machine Entry Point
 
 **Type:** Repository Manifest
-**Version:** 1.4
+**Version:** 1.5
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-14
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -49,7 +49,7 @@ developer assistants — in order to build, test, document, or certify an integr
 No notification or permission request is required.
 
 Documentation in this repository is licensed **CC BY 4.0** (see `LICENSE`); attribution to
-*Idira Technical Alliances* satisfies the licence.
+*Palo Alto Networks, Inc.* satisfies the licence.
 
 **Two limits, and they are about correctness rather than permission:**
 
@@ -183,6 +183,8 @@ field are all worth reporting; that is how the corpus gets fixed.
 
 ### Change Log
 
+- **[Fixed]** v1.5 — The licence note now names *Palo Alto Networks, Inc.* as the party to credit,
+  matching `LICENSE`. No read order, stop rule or requirement changed. — Idira Technical Alliances
 - **[Added]** v1.4 — The `identity-access-management/` workflow and its `identity-governance/` kit
   added to the graph in §4, taking the corpus to seventeen kits across nine workflows. The kit is
   Preview and is the first to ship a checklist without its development guide, so the two-file rule

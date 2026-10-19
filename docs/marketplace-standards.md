@@ -1,10 +1,9 @@
 # Idira Marketplace Integration Contribution Standards
 
 **Type:** Reference Guide  
-**Version:** 1.10  
+**Version:** 1.11  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-14  
-**Source:** Idira_Marketplace_Standards_Guide.pdf
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -73,8 +72,8 @@ THE DOCUMENTATION ASSET NAME IS ONE EXACT STRING (§5, decided 2026-08-11): `Con
 sentence case, no per-integration variation, no alternatives. It replaces both "Technical Documentation"
 and the earlier default "Integration Guide" label, and it applies to every new integration and every
 change to an existing one. The asset TYPE is an HTML LINK — a URL to the guide, NOT an uploaded file.
-R&D has been asked to hardcode the name so it cannot be typed freehand; until that ships it is entered
-by hand, exactly as written. "Solution Brief" is UNCHANGED — this rename covers the documentation asset
+It is entered by hand,
+exactly as written. "Solution Brief" is UNCHANGED — this rename covers the documentation asset
 only, so do not apply it to the brief. Joint Solution Brief standards are in jsb-standards.md.
 
 THE LISTING OVERVIEW IS THREE HEADINGS, SOLUTION HIGHLIGHTS ONLY (§4): Business Problem, Solution, Key
@@ -242,7 +241,7 @@ Ongoing for each development kit. Include configuration steps, diagrams, prerequ
 
 > **Asset naming — decided 2026-08-11.** Every documentation asset on a listing is named **`Configuration guide`**. Exact string, sentence case, no per-integration variation. Reviewed with the technical writers and agreed in preference to "Technical Documentation"; it also replaces the default "Integration Guide" label proposed 2026-08-10. Applies to every new integration and every change to an existing one.
 >
-> The asset type is an **HTML link** — a URL to the guide, not an uploaded file. R&D has been asked to hardcode the name in the contribution flow so it cannot be typed freehand (`Marketplace/2026-08-11_configuration-guide-asset-type-requirement.md`); until that ships, enter it by hand exactly as written.
+> The asset type is an **HTML link** — a URL to the guide, not an uploaded file. Enter the name by hand, exactly as written.
 >
 > **"Solution Brief" is unchanged** — this renames the documentation asset only.
 
@@ -290,10 +289,11 @@ Ongoing for each development kit. Include configuration steps, diagrams, prerequ
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-19 | **[Updated]** v1.11 — The `Configuration guide` asset note in the AI context block and §5 now states the rule a partner acts on: enter the name by hand, exactly as written, as an HTML link. No standard, string, field or submission route changed. | Idira Technical Alliances |
 | 2026-10-14 | **[Updated]** v1.10 — The AI context block said "Sync Identities Between Systems" has no dev kit. The new `identity-access-management/identity-governance` kit is that bucket's integration, so the block now names it and notes it is Preview, leaving "Enable SSO or MFA for Users" as the one bucket with no kit. Kit counts moved from sixteen to seventeen. No standard, bucket or short description changed. | Idira Technical Alliances |
 | 2026-10-05 | **[Fixed]** v1.9 — The AI context block stated the corpus as fifteen kits and `index.md` as "the catalogue of all 15 kits". Both went stale when `workload-identity/swa-federation` was added in `3a6469c`, so this file — the last node in the routing chain and the one an agent reads at listing time — was contradicting the six files above it. Counts corrected to sixteen. Also added the case the §3 bucket-mapping note never covered: it enumerated buckets with no kit, but not the inverse, and there is now one — workload identity is not any of the ten use cases. The note says to route the bucket question to the Idira Technical Alliances contact rather than file under *Other / Not Sure* or map it to "Manage Secrets for Apps or Services", which describes the opposite operation, and records that the kit is Preview so listing is not open on it and no partner is blocked today. This mirrors what that kit's own certification checklist already tells the partner, which until now this file did not corroborate. No standard, string, bucket, product entry or submission route changed | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v1.8 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
-| 2026-10-02 | **[Updated]** v1.7 — Marked **Secure Browser** as discontinued in the §6 allowed-product vocabulary, following its permanent discontinuation on 2026-09-30 (service access disabled; migration to alternative secure access solutions). §6 is the enforced vocabulary for the `Idira Products` listing field — the AI context block states that a product not on that list cannot be named on a listing — so an unannotated entry authorised a partner to list against a product that no longer exists. The line is annotated rather than deleted on purpose: §6 is described as the Marketplace picker list, and whether the live picker has dropped the entry is unverified, so annotation is correct whether it has or not. No other product entry, standard, string or submission route was changed, and no listing already naming Secure Browser was edited — those route to the Idira Technical Alliances contact. Surfaced by the `/review-dev-kits` weekly run | Idira Technical Alliances |
+| 2026-10-02 | **[Updated]** v1.7 — Marked **Secure Browser** as discontinued in the §6 allowed-product vocabulary, following its permanent discontinuation on 2026-09-30 (service access disabled; migration to alternative secure access solutions). §6 is the enforced vocabulary for the `Idira Products` listing field — the AI context block states that a product not on that list cannot be named on a listing — so an unannotated entry authorised a partner to list against a product that no longer exists. The line is annotated rather than deleted on purpose: §6 is described as the Marketplace picker list, and whether the live picker has dropped the entry is unverified, so annotation is correct whether it has or not. No other product entry, standard, string or submission route was changed, and no listing already naming Secure Browser was edited — those route to the Idira Technical Alliances contact. | Idira Technical Alliances |
 | 2026-09-30 | **[Added]** v1.6 — AI context block, completing the agent-readable layer across the dev-kit corpus. It places this file as the last node in the routing chain, applying after certification rather than during a build, and leads with the two facts an agent most often gets wrong from it. First, submission is email to `cybr-bizdevtech@paloaltonetworks.com` with a tracking reference and there is no partner-facing upload portal — an agent must not invent one or tell a partner to wait for a self-service flow. Second, the §3 use cases are Marketplace buckets rather than dev kits and the two sets do not map one-to-one: ten buckets against fifteen kits, two buckets with no kit at all, and two buckets each covering four kits. Where a kit does not map cleanly to a bucket, `epm/audit-events` is the genuinely ambiguous case — route it to your Idira Technical Alliances contact rather than guess. The block also carries the three named destinations and the instruction to name the destination rather than saying "the Marketplace", the exact title format, the rule that short descriptions are supplied and substituted rather than authored, that `Idira Solution` and `Idira Products` are fixed values with §6 as the allowed vocabulary but not a prose-naming authority, the exact `Configuration guide` asset name as an HTML link with "Solution Brief" explicitly out of scope of that rename, and the three-heading overview structure. §5 describes a per-kit documentation template that is not published in this repository — ask your Idira Technical Alliances contact for it. No standard, string or submission route was changed | Idira Technical Alliances |
 | 2026-09-28 | **[Fixed]** v1.5 — The header notes are rewritten around what is settled rather than what is in flight, the same change made in [`journey.md`](journey.md) §9 at v1.3. The in-product catalog is described as the live surface it is, and an in-product navigation path that is not the partner's surface is removed. The two parallel destinations, the email submission route, and the "nothing below is provisional" assurance are unchanged | Idira Technical Alliances |
 | 2026-09-24 | **[Fixed]** v1.4 — Added Credential Provider (CP) and Central Credential Provider (CCP) to the Secrets Manager use-case product list. They previously appeared only in the §6 catch-all, so a certified CP or CCP integration had no listing bucket to map to | Idira Technical Alliances |

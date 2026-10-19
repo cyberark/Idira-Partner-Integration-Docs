@@ -21,7 +21,7 @@ of its guide. Do not reconstruct the missing guide.
 You may read, copy, quote, summarise, embed, index, and feed this content into your own tooling —
 coding agents, retrieval indexes, code generators, developer assistants — to build, test, document,
 or certify an Idira integration. No permission request is required. Licensed
-[CC BY 4.0](LICENSE); attribution to *Idira Technical Alliances* satisfies it.
+[CC BY 4.0](LICENSE); attribution to *Palo Alto Networks, Inc.* satisfies it.
 
 Nothing you generate from this repository is Idira-approved. Certification is a human review.
 
@@ -46,7 +46,7 @@ an OpenAPI document, a GraphQL SDL, or an XSD. The most common failure of an age
 repository is inventing a field, type, or enum value the prose never defined and generating a client
 around it.
 
-Stop and ask the partner to confirm with their Idira TAM when a field's type is unstated, when a
+Stop and ask the partner to confirm with their Idira Technical Alliances contact when a field's type is unstated, when a
 "standard values" list is referenced but not published, when you need a filter or pagination
 parameter no example shows, or when a guide and its checklist disagree. A stated question is the
 correct output; an inferred answer fails at certification after the partner has built around it.
