@@ -3,9 +3,9 @@
 **Workflow:** EPM  
 **Dev Kit:** Audit Events  
 **Type:** Certification Checklist  
-**Version:** 2.3  
+**Version:** 2.4  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-08  
+**Last Updated:** 2026-10-19  
 **Converted from:** Idira_EPM_Certification_Checklist.docx
 
 ---
@@ -92,7 +92,7 @@ Items marked **Required** are gate criteria — a single failure blocks certific
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
 | 3.1 | Only documented and supported Idira Endpoint Privilege Manager audit and event APIs are used — event search calls are `POST` with a JSON body, and the deprecated set/account admin-audit APIs are not used | Required | [docs: EPM audit and event APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/auditseventsapis.htm) |
-| 3.2 | Authorization header uses the Bearer token correctly | Required | [docs: EPM API authentication using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-identity-administration.htm) |
+| 3.2 | Authorization header uses the Bearer token correctly | Required | [docs: EPM API authentication using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-tenant-url.htm) |
 | 3.3 | API filtering is used where available — no raw event dumping | Recommended | [docs: EPM query language](https://docs.cyberark.com/epm/latest/en/content/webservices/epmquerylanguage.htm) |
 
 ---
@@ -188,6 +188,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-19 | **[Fixed]** v2.4 — Check 3.2's Source links to the current EPM page, *Set up API authentication for EPM REST APIs using ISPSS*; the previous address no longer resolves. No check changed | Idira Technical Alliances |
 | 2026-10-08 | **[Added]** v2.3 — Check 5.4: pagination must be followed to completion. A `Source` on every check. **[Updated]** Check 3.1 now states that event search calls are `POST` and that the deprecated admin-audit APIs are out of scope; check 5.1 adds the per-category request limits; check 5.2 names `arrivalTime` as the deduplication anchor. An integration that reads only the first page of results, or calls event search with `GET`, no longer passes | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v2.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v2.1 — A `Source` column on §2 (Authentication & Identity) and §4 (Security Best Practices), naming the authority behind each of those 7 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira EPM Web Services SDK documentation where it is a product contract. Vocabulary and verbatim control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). §4's three checks are the clearest case for the column in the corpus — "least-privilege", "stored securely", "not exposed in logs" are stated so broadly that a partner could read each as advisory; they are now V13.3.2, V13.3.1 and V16.2.5, with verbatim text a reviewer can quote. Also renamed the header field `**Source:**` to `**Converted from:**`, which pointed at the original `.docx` and collided with the new column's meaning. No requirement, level or wording changed | Idira Technical Alliances |

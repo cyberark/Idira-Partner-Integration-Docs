@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_EPM_Audit_Self-Service_Guide.pdf  
-**Version:** 1.4  
-**Last Updated:** 2026-10-08
+**Version:** 1.5  
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -55,7 +55,7 @@ then sent as `Authorization: Bearer <ACCESS_TOKEN>`. The response (Section 7) ca
 than per call (check 2.4). Checks 2.1–2.3 grade the grant type, that the user is a dedicated
 non-interactive service account, and that the token comes from the `.id.` host.
 
-EVERY VALUE IN ANGLE BRACKETS IS A PLACEHOLDER. `AAX4917` in Section 4 is an example Identity
+EVERY VALUE IN ANGLE BRACKETS IS A PLACEHOLDER. `abc1234` in Section 4 is an example Identity
 sub-domain and `na101` an example EPM server name. Never hardcode the service user's password in
 code, a config file or a test fixture — check 4.2 grades that secrets are not hardcoded.
 
@@ -166,7 +166,7 @@ Then set up API authentication in Identity Administration:
 3. **Create the API web app** — Manage › Inventory › Targets › Applications › Add Application, search for **EPM**, and add **Idira EPM API Client**. Configure the Settings tab and save.
 4. **Set token lifetime and bind the user** — on the web app's **Tokens** tab choose the token expiration period; on **Permissions**, add the service user. Confirm the app shows **Deployed**.
 
-See [Set up API authentication for EPM REST APIs using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-identity-administration.htm).
+See [Set up API authentication for EPM REST APIs using ISPSS](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-tenant-url.htm).
 
 ---
 
@@ -174,7 +174,7 @@ See [Set up API authentication for EPM REST APIs using Identity](https://docs.cy
 
 You need two values:
 
-- **Identity sub-domain** — in Identity Administration, click your user name › **About**. It has the form `<sub-domain>.id.cyberark.cloud` (for example `AAX4917.id.cyberark.cloud`). This is the token host only.
+- **Identity sub-domain** — in Identity Administration, click your user name › **About**. It has the form `<sub-domain>.id.cyberark.cloud` (for example `abc1234.id.cyberark.cloud`). This is the token host only.
 - **EPM server name** — log in to the EPM management console and copy the subdomain before `.epm.cyberark.com` in the address bar. If the URL is `https://na101.epm.cyberark.com/management-options`, the server name is `na101`. Every API call goes to this host.
 
 ---
@@ -295,7 +295,7 @@ Budget each category separately — consuming one does not reduce another. Size 
 - [Audit and event APIs](https://docs.cyberark.com/epm/latest/en/content/webservices/auditseventsapis.htm) — index of the event search APIs, with full parameters, schemas and error codes
 - [Get sets list](https://docs.cyberark.com/epm/latest/en/content/webservices/getsetslist.htm)
 - [EPM query language](https://docs.cyberark.com/epm/latest/en/content/webservices/epmquerylanguage.htm)
-- [Set up API authentication for EPM REST APIs using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-identity-administration.htm)
+- [Set up API authentication for EPM REST APIs using ISPSS](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-tenant-url.htm)
 - [Automate tasks with EPM web services](https://docs.cyberark.com/epm/latest/en/content/webservices/webservicesintro.htm) — API limitations
 
 ---
@@ -304,7 +304,8 @@ Budget each category separately — consuming one does not reduce another. Size 
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.5 | 2026-10-19 | **[Fixed]** The authentication-setup links point to the current EPM page, *Set up API authentication for EPM REST APIs using ISPSS*; the previous address no longer resolves. **[Updated]** The example Identity sub-domain is `abc1234` — every credential and tenant value in this guide is a placeholder. No build step changed | Idira Technical Alliances |
 | 1.4 | 2026-10-08 | **[Fixed]** The event search call is `POST` with a JSON `filter` body, not `GET`; the example now shows the working request. **[Added]** The policy-audit, sign-in-audit, aggregated and file event search APIs; pagination with `limit` and `nextCursor` (default page 250, maximum 1,000) and windowing on `arrivalTime`; filter syntax; the `<Version>` format. **[Updated]** The API host is the EPM server name — the subdomain of your EPM console URL — rather than a "dispatcher"; Identity setup now names the Idira EPM API Client app, the EPM role and the service-user format; rate limits are three independent categories with a 5-per-second cap. Admin audit is routed to the Audit Service SIEM Integration kit, and the telemetry header is now documented in Section 8. A GET-based integration built to v1.3 must switch to POST | Idira Technical Alliances |
 | 1.3 | 2026-10-05 | **[Removed]** An author-to-author editorial comment addressed to Idira teams rather than to a partner. It was invisible on the rendered page and fully visible to a partner's AI agent, which reads the raw markdown. It restated a caveat the visible guidance already carries — resolve `SetId` at runtime behind one replaceable function, against the published set-management retirement dates — so nothing a partner acts on changed. The open product question it tracked is now tracked where it has an owner. A publish-guard check now fails the build on this class of comment | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
-| 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the three hosts and the two that are routinely confused — Identity for the token, the regional **dispatcher** for every API call, and `login.epm.cyberark.com` which is wrong for both and fails with an `invalid client` error that reads as a credential fault — and with the disambiguation against `audit-service/siem-integration`, which shares the Audit Service workflow but consumes platform-wide events from a different host under a different `it` value. It records that the Section 6 example credentials (`Cyberark1`, tenant `AAX4917`) are placeholders that check 4.2 would fail if committed, the two operations in dependency order, that `SetId` must be resolved at runtime behind one replaceable function against the published set-management retirement dates, and that the rate limits are **two independent budgets** rather than one. The set-management API question is carried through as explicitly open: the retirement dates are stated for the console and the endpoint management service, and whether the `Sets/<SetId>/…` REST paths change is not known, so an agent must not invent a replacement path or advise re-architecting. Three gaps are recorded rather than filled: telemetry in its entirety (`x-cybr-telemetry`, Base64url, `it=EPMAudit`), the unenumerated `<Version>` path segment, and the event schema and error tables that Section 9 defers to the EPM docs page. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed; the gaps are documented, not closed. — Idira Technical Alliances |
+| 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the three hosts and the two that are routinely confused — Identity for the token, the regional **dispatcher** for every API call, and `login.epm.cyberark.com` which is wrong for both and fails with an `invalid client` error that reads as a credential fault — and with the disambiguation against `audit-service/siem-integration`, which shares the Audit Service workflow but consumes platform-wide events from a different host under a different `it` value. It records that every credential and tenant value in the guide is a placeholder and that check 4.2 fails any secret committed to code, the two operations in dependency order, that `SetId` must be resolved at runtime behind one replaceable function against the published set-management retirement dates, and that the rate limits are **two independent budgets** rather than one. The set-management API question is carried through as explicitly open: the retirement dates are stated for the console and the endpoint management service, and whether the `Sets/<SetId>/…` REST paths change is not known, so an agent must not invent a replacement path or advise re-architecting. Three gaps are recorded rather than filled: telemetry in its entirety (`x-cybr-telemetry`, Base64url, `it=EPMAudit`), the unenumerated `<Version>` path segment, and the event schema and error tables that Section 9 defers to the EPM docs page. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed; the gaps are documented, not closed. — Idira Technical Alliances |

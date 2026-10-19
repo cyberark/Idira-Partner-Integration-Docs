@@ -5,8 +5,8 @@
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
 **Reference:** [Idira Docs — Secrets Manager Self-Hosted Developer](https://docs.cyberark.com/secrets-manager-sh/latest/en/content/hometileslps/lp-tile5.htm)  
-**Version:** 1.4  
-**Last Updated:** 2026-10-08
+**Version:** 1.5  
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -152,7 +152,7 @@ For SaaS-based workloads against the Idira-managed cloud, use [Secrets Manager S
 
 ## 4. Environment
 
-Idira provisions a **Skytap environment** for partners integrating with Secrets Manager Self-Hosted. Access details and a Skytap Instructions document are provided by your Business Development representative.
+Idira provisions a **Skytap environment** for partners integrating with Secrets Manager Self-Hosted. Access details and a Skytap Instructions document are provided by your Business Development representative. Environment credentials are never published in these docs — if you need them, email **cybr-bizdevtech@paloaltonetworks.com**.
 
 > **Building CP or CCP instead?** Those do **not** use Skytap. Credential Provider and Central Credential Provider are provisioned on the Idira shared ISP environment (`https://c3.cyberark.cloud`) — see the Prerequisites section of the [CP](../credential-provider/development-guide.md) or [CCP](../central-credential-provider/development-guide.md) guide.
 
@@ -344,6 +344,7 @@ Include the `x-cybr-telemetry` HTTP header on all Conjur REST requests, Base64 U
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.5 | 2026-10-19 | **[Added]** Section 4 states that environment credentials are never published in these docs; if you need them, email cybr-bizdevtech@paloaltonetworks.com | Idira Technical Alliances |
 | 1.4 | 2026-10-08 | **[Fixed]** The authenticate login is `host/<workload-id>`, URL-encoded — the `host/` prefix was missing. **[Added]** `Accept-Encoding: base64` for a pre-encoded token; the 8-minute token lifetime; client certificate authentication; that batch retrieval does not support dynamic secrets. **[Removed]** The unsourced 50-per-batch figure. An integration that authenticates without the `host/` prefix must add it | Idira Technical Alliances |
 | 1.3 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.2 | 2026-10-01 | **[Fixed]** All four "Use Cases at a Glance" section links were off by one, landing a partner on the section above the one named. The table was added in `2e49fc87` (2026-07-20), the same commit that inserted a new Section 2 and renumbered every heading +1 — the new table was written against the pre-renumber numbering and never caught up. Authentication is Section 5 (not 4), Retrieve Secrets 6 (not 5), Policy Management 7 (not 6), Write a Secret 8 (not 7); both the link labels and the anchors are corrected. The seven sibling guides renumbered by the same commit were checked and are correct. No guidance changed. — Idira Technical Alliances |

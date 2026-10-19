@@ -1,9 +1,9 @@
 # The Partner Integration Journey
 
 **Type:** Journey Overview
-**Version:** 1.7
+**Version:** 1.8
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -122,6 +122,8 @@ The environment you receive depends on what you are building:
 | PSM Connectors | PAM Self-Hosted on the C3 Integrations Platform — `https://c3.cyberark.cloud` |
 | Identity Response | Identity Security Platform SaaS on the C3 Integrations Platform — `https://c3.cyberark.cloud` |
 | Workload Identity (SWA Federation) | Confirmed per build with your Business Development representative. Secure Workload Access is delivered as part of Secrets Manager SaaS, but the environment also has to cover the platform your workloads attest from — EC2, Google Cloud, or Kubernetes — so tell us which one at provisioning rather than assuming the Secrets Management row applies |
+
+Environment credentials are never published in these docs. If you need credentials for your environment, email **cybr-bizdevtech@paloaltonetworks.com**.
 
 **Signed before access, not after.** A Partner Agreement must be in place before environment access is granted. It is handled by your Business Development representative in parallel with provisioning, but it is a real gate — if it is unsigned, an approved request still does not produce an environment. Ask where yours stands as soon as your request is approved.
 
@@ -262,6 +264,7 @@ Questions at any stage: **cybr-bizdevtech@paloaltonetworks.com**
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-19 | **[Added]** v1.8 — Stage 2 states that environment credentials are never published in these docs; if you need them, email cybr-bizdevtech@paloaltonetworks.com | Idira Technical Alliances |
 | 2026-10-05 | **[Added]** v1.7 — Three rows for the new Workload Identity workflow, whose kit establishes a workload's identity rather than consuming one. §3.1 gains a decision-guide row, and the note beneath it is amended: that workflow has a single kit and still has a decision guide, which breaks the pattern every other row sets, so the note now says why — with one kit there is nothing to choose between, and the guide instead tests whether the integration belongs in the workflow at all rather than in Secrets Management or Discovery. §4's environment row records provisioning as confirmed per build with the partner's Business Development representative, because Secure Workload Access ships as part of Secrets Manager SaaS and the tenant a partner needs is not the same for every attestation platform. §10's read-order row for workflow decision guides now lists Workload Identity alongside the three multi-path workflows, with the same qualification. No stage, gate or graded requirement changed | Idira Technical Alliances |
 | 2026-10-05 | **[Fixed]** v1.6 — The stage-4 demonstration row read "Mandatory" with no qualification, which contradicted [`security-baseline-reference.md`](security-baseline-reference.md) § 3 and [`AGENTS.md`](../AGENTS.md) § 6 — both of which record the demonstration as highly recommended and non-blocking, and both of which name this disagreement. Because this file is read first and is normative, a partner or agent starting here met the stricter claim and never reached the policy. The row now points to an expanded note stating how the demonstration is weighed, which authority governs, and what to do when it is the one deliverable a partner cannot produce. The guidance to deliver one is unchanged and strengthened — the demonstration is still expected and still the fastest route through review. **No checklist was changed:** the checklists continue to grade it as required, and reconciling them with the policy is a certification-programme decision, not an authoring one | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v1.5 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |

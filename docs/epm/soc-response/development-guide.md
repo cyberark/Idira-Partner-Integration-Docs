@@ -4,9 +4,9 @@
 **Use Case:** SOC Response — XDR/SOAR Endpoint Containment
 **Idira Product:** Endpoint Privilege Manager (EPM)
 **Type:** Development Guide
-**Version:** 1.6
+**Version:** 1.7
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-08
+**Last Updated:** 2026-10-19
 
 ---
 
@@ -126,7 +126,7 @@ The SOC analyst sees the endpoint in the `High_Risk_Endpoint` or `Medium_Risk_En
 
 ## 4. Authentication
 
-EPM uses an OAuth 2.0 client credentials flow configured through **Idira Identity Administration**. You need three things before making any API call: a service user, an OAuth web app bound to that user, and your EPM server name. Full reference: [Set up API authentication for EPM REST APIs using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-identity-administration.htm).
+EPM uses an OAuth 2.0 client credentials flow configured through **Idira Identity Administration**. You need three things before making any API call: a service user, an OAuth web app bound to that user, and your EPM server name. Full reference: [Set up API authentication for EPM REST APIs using ISPSS](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-tenant-url.htm).
 
 ### 4.1 One-time setup (8 steps)
 
@@ -464,7 +464,7 @@ Log the `ComputerId`, `GroupId`, alert ID, and timestamp at each step. This crea
 - [Extend SOC response options with EPM — Idira Docs](https://docs.cyberark.com/epm/latest/en/content/intro/extend-soc-response-options.htm) — prerequisites, policy package setup, static group creation, per-platform integration guides
 
 **Authentication**
-- [Set up API authentication for EPM REST APIs using Identity](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-identity-administration.htm) — full 8-step setup: service user, OAuth web app, token request, verification
+- [Set up API authentication for EPM REST APIs using ISPSS](https://docs.cyberark.com/epm/latest/en/content/webservices/authenticate-with-tenant-url.htm) — full 8-step setup: service user, OAuth web app, token request, verification
 - [Idira Identity API authentication](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/ispss/ispss-api-authentication.htm) — broader ISPSS authentication reference
 
 **API Reference**
@@ -489,6 +489,7 @@ Log the `ComputerId`, `GroupId`, alert ID, and timestamp at each step. This crea
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.7 | 2026-10-19 | **[Fixed]** The Section 4 and reference links point to the current EPM page, *Set up API authentication for EPM REST APIs using ISPSS*; the previous address no longer resolves. No build step changed | Idira Technical Alliances |
 | 1.6 | 2026-10-08 | **[Added]** The rate limits that shape a containment design: endpoint group APIs 10 calls per 2 minutes (the reason to cache group IDs), add/remove members 5 per second and 500 per 5 minutes, Get endpoints 1,000 per 5 minutes and 5 per second; and batching endpoints into one `membersIds` call during an incident | Idira Technical Alliances |
 | 1.5 | 2026-10-05 | **[Removed]** Two author-to-author editorial comments that were addressed to Idira teams rather than to a partner. They were invisible on the rendered page and fully visible to a partner's AI agent, which reads the raw markdown — so the audience this corpus is built for was reading notes written for us. Both restated a caveat the visible guidance already carries, and nothing a partner acts on changed: `SetId` is still resolved at runtime behind one replaceable function, and an ambiguous endpoint match must still fail the playbook step rather than contain an arbitrary host. The two open product questions they tracked are now tracked where they have an owner and a review trigger. A publish-guard check now fails the build on this class of comment | Idira Technical Alliances |
 | 1.4 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. Also added this change log — the file previously carried none, so no revision before this one is recorded. — Idira Technical Alliances |
