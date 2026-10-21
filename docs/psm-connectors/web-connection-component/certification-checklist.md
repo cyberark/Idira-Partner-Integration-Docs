@@ -4,9 +4,9 @@
 **Use Case:** Web Connection Component
 **Idira Product:** Idira Privileged Access Manager Self-Hosted
 **Type:** Certification Checklist
-**Version:** 2.3
+**Version:** 2.4
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-08
+**Last Updated:** 2026-10-20
 
 ---
 
@@ -44,7 +44,13 @@ KIT-SPECIFIC WARNINGS:
   bitness must match (Marketplace components default to the 32-bit dispatcher). A version-drifted
   driver is a silent connector failure.
 - Success must be verified, not assumed (check 2.2). A script that types credentials and proceeds
-  passes a happy-path test and fails certification.
+  passes a happy-path test and fails certification. A (Validation) line is not enough on its own:
+  RunValidations must be Yes, or PSM skips every validation and leaves the session open after a
+  failed login — where the operator can sign in by hand with a credential that is not vaulted.
+- EnforceCertificateValidation must stay Yes, its default (check 3.6). With No, PSM accepts any
+  certificate from the target and will inject the vaulted credential into an impersonated login
+  page. A self-signed target is handled by trusting its certificate on the PSM server (check 5.5),
+  never by switching validation off.
 - The operator never sees the injected password (check 3.5), and no credential may appear in the
   session recording (check 4.3) — the recording is a graded artifact, not just a log.
 
@@ -93,7 +99,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
 | 2.1 | Login flow recorded with the Plugin Generator Utility; the login control is clicked (Login / Next / Submit), not submitted with ENTER | Required | House rule — certification programme |
-| 2.2 | A validation or verification step confirms a successful login rather than assuming it | Required | House rule — certification programme |
+| 2.2 | A `(Validation)` or `(Verification)` step after the last `(Button)` confirms a successful login rather than assuming it, and `RunValidations` is `Yes` so a failed login ends the session | Required | Idira docs — PAM - Self-Hosted: Web applications messages (URL pending) |
 | 2.3 | Multi-step, SSO, and conditional login screens handled with `if`/`else` blocks using `Exists` / `Count` conditions | Required | House rule — certification programme |
 | 2.4 | Action timeout and Page load timeout tuned so the connector does not act before fields or pages are ready | Required | House rule — certification programme |
 | 2.5 | Connector tested against a live test account, end to end, before submission | Required | House rule — certification programme |
@@ -109,6 +115,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | 3.3 | LogonAccount capability added to Supported Capabilities when a separate logon account is required | Required | Idira docs — PAM - Self-Hosted: connection component supported capabilities (URL pending) |
 | 3.4 | No credential is written to logs, screenshots, or the recorded session stream | Required | OWASP ASVS 5.0.0 V16.2.5 |
 | 3.5 | The operator never sees or handles the injected password | Required | Idira docs — PAM - Self-Hosted: PSM credential injection (URL pending); OWASP ASVS 5.0.0 V13.3.2 |
+| 3.6 | `EnforceCertificateValidation` is `Yes` (the default), so PSM injects credentials only into a target whose certificate it trusts. An untrusted or self-signed target certificate is trusted on the PSM server (5.5), not bypassed | Required | Idira docs — PAM - Self-Hosted: Web applications messages (URL pending) |
 
 ---
 
@@ -199,6 +206,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 2.4 | 2026-10-20 | **[Updated]** Check 2.2 now also requires `RunValidations` to be `Yes`. With `No`, PSM skips every `(Validation)` line, so a component that contains one still never confirms the login, and a failed login leaves the session open for the operator to sign in by hand. The validation line must also follow the last `(Button)`. **[Added]** Check 3.6: `EnforceCertificateValidation` must be `Yes`, its default. With `No`, PSM accepts any target certificate and can inject the vaulted credential into an impersonated login page; trust a self-signed target certificate on the PSM server instead. Both are security requirements and are required regardless of when your component was built — review your component against them before submission | Idira Technical Alliances |
 | 2.3 | 2026-10-08 | **[Fixed]** Check 5.3 no longer requires a 32-bit browser — 32- and 64-bit browsers are supported when browser, driver and dispatcher bitness match. Check 5.4 states that Marketplace-downloaded components default to the 32-bit dispatcher. **[Added]** A `Source` on every check | Idira Technical Alliances |
 | 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |
 | 2.1 | 2026-10-01 | **[Added]** A `Source` column on §3 (Credential Handling), naming the authority behind each of its 5 checks. Vocabulary and verbatim ASVS 5.0.0 control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). This is the only kit in the corpus where the security property is delivered by the *platform* rather than by partner code: 3.1 and 3.5 are sourced to the PSM credential-injection contract first and the ASVS control second, because a partner satisfies them by binding the documented dynamic parameters and then doing nothing else — the vault, not their component, keeps the password away from the operator. Every `(URL pending)` cell is waiting on a verified deep link; the PAM - Self-Hosted connection-component pages are not yet in the vault's links index and guessing a doc URL is prohibited. Also **[Fixed]** the v1.1 change log row, which carried four cells under a three-column header (Rule 3). No requirement, level or wording changed. — Idira Technical Alliances | House rule — certification programme |

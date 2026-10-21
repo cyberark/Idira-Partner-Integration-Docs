@@ -4,9 +4,9 @@
 **Use Case:** Web Connection Component
 **Idira Product:** Idira Privileged Access Manager Self-Hosted
 **Type:** Development Guide
-**Version:** 1.3
+**Version:** 1.4
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-08
+**Last Updated:** 2026-10-20
 
 ---
 
@@ -48,6 +48,10 @@ KEY CONSTRAINTS:
 - Credentials are never handled by the partner. PSM injects {username}/{password} (or
   {logonaccount\username}/{logonaccount\password}) into WebFormFields at connect time.
 - The connector must click the login/submit button (Login, Next, Submit) — do not rely on pressing ENTER.
+- RunValidations must be Yes and a (Validation) line must follow the last (Button). With No, PSM
+  skips validation and a failed login leaves the session open for the operator to sign in by hand.
+- EnforceCertificateValidation must stay Yes (the default). Trust a self-signed target certificate
+  on the PSM server; never ship No, which lets PSM inject credentials into an impersonated page.
 - PSM must be hardened for web applications (PSMHardening.ps1 -SupportWebApplications) and AppLocker
   rules enabled before any web connector will run.
 
@@ -121,7 +125,7 @@ After the connector is deployed and linked to a platform, an operator selects th
 
 | Requirement | Detail |
 |:---|:---|
-| Target web application | A reachable login URL for the partner web application, over HTTPS with valid certificates if the application requires them. |
+| Target web application | A reachable login URL for the partner web application, over HTTPS, with a certificate the PSM server trusts. A self-signed certificate is supported by adding it to the PSM server's trusted certificates — not by turning certificate validation off (see [section 8](#8-confirm-login-and-record-the-session)). |
 | Login flow details | Knowledge of the login web form: the username and password fields, the submit control, and any multi-step, SSO, or conditional screens. |
 | Plugin Generator Utility | The PSM Plugin Generator Utility installed, used to record the login flow and emit the connector. |
 | Test account | A test account in the target application to validate auto-logon and recording end to end. |
@@ -195,7 +199,7 @@ When you adjust the field map directly, WebFormFields use this syntax:
 
 - **Input a value:** `Identifier > Value (SearchBy=Type) (SendSlow=Time)`
 - **Click a control:** `Identifier > (Button)`, `(Click)`, or `(ScriptClick)`
-- **Validate the result:** `Identifier > (Validation)` or `(Verification)` to confirm a successful login
+- **Validate the result:** `Identifier > (Validation)` or `(Verification)` to confirm a successful login. Validation lines run only when `RunValidations` is `Yes`, and must come after the last `(Button)`
 - **Navigate after login:** `(Navigate=URL)` to redirect after logon
 - **Conditional logic:** `if ()...end-if`, `else-if ()...end-else-if`, and `else...end-else` blocks, using `Exists` and `Count` conditions for multi-step or variable login screens
 - **Frames:** `Identifier > (iFrame) (SearchBy=Type)` to enter a frame before acting on elements inside it
@@ -211,10 +215,12 @@ Bind the username field to `{username}` and the password field to `{password}` (
 
 ## 8. Confirm Login and Record the Session
 
-1. Add a validation or verification step (`(Validation)` / `(Verification)`) on an element that only appears after a successful login, so PSM can confirm the logon succeeded rather than assuming it.
-2. For multi-step, SSO, or conditional login pages, wrap the variable steps in `if ()...end-if` / `else...end-else` blocks using `Exists` and `Count` conditions.
-3. Test the connector from the Plugin Generator Utility against the test account before packaging.
-4. Session recording is handled by the framework: PSM records the browser session through the automation process. Confirm the session appears in the PSM session list after a test connection.
+1. Add a validation or verification step (`(Validation)` / `(Verification)`) on an element that only appears after a successful login, so PSM can confirm the logon succeeded rather than assuming it. Place it after the last `(Button)` line. Do not validate on text that is already on the login page — that passes even when the login fails.
+2. Set `RunValidations` to `Yes`. With `Yes`, PSM runs the validations at the end of the login process and terminates the session if they fail. With `No`, PSM skips every validation line, and a failed login leaves the session open on the login page, where the operator can sign in by hand with a credential that did not come from the Vault. `RunValidations` set to `Yes` cannot be combined with the `SubmitButton` parameter; use a `(Button)` line in WebFormFields instead.
+3. Leave `EnforceCertificateValidation` at `Yes`, its default. PSM then connects only to a target whose certificate it trusts. With `No`, PSM accepts any certificate, so anyone able to intercept the connection can present a fake login page and receive the vaulted credential. If the target uses a self-signed certificate, add that certificate to the trusted certificates on the PSM server — that is the documented fix — and state the step in your configuration guide.
+4. For multi-step, SSO, or conditional login pages, wrap the variable steps in `if ()...end-if` / `else...end-else` blocks using `Exists` and `Count` conditions.
+5. Test the connector from the Plugin Generator Utility against the test account before packaging.
+6. Session recording is handled by the framework: PSM records the browser session through the automation process. Confirm the session appears in the PSM session list after a test connection.
 
 ---
 
@@ -236,6 +242,7 @@ Bind the username field to `{username}` and the password field to `{password}` (
 | Browser is blocked from running | AppLocker rules not enabled | Uncomment the browser sections in `PSMConfigureAppLocker.xml` and run `PSMConfigureAppLocker.ps1`. |
 | Web app connector not available at all | PSM not hardened for web applications | Run `PSMHardening.ps1 -SupportWebApplications` on the PSM server as an administrator. |
 | Login submits before fields are filled | ENTER used instead of a click, or timeouts too short | Record a click on the login control; increase Action timeout / Page load timeout. |
+| Connection fails with "Page certificate is untrusted" | The PSM server does not trust the target's certificate | Add the target's certificate to the PSM server's trusted certificates. Do not set `EnforceCertificateValidation` to `No`. |
 | Password appears not to inject | Dynamic parameter not mapped | Confirm the field is bound to `{password}` (or the logon-account parameter), not the recorded literal. |
 | Edge sessions fail | Wrong or missing WebAppDispatcher | Download the current WebAppDispatcher from the Idira Marketplace and copy it to the PSM Components folder. |
 
@@ -250,7 +257,9 @@ Bind the username field to `{username}` and the password field to `{password}` (
 - [ ] Login flow recorded with the Plugin Generator Utility (click the login control, do not press ENTER)
 - [ ] Username and password fields mapped to `{username}` / `{password}` (or logon-account parameters) as dynamic parameters
 - [ ] LogonAccount capability added to Supported Capabilities if a separate logon account is used
-- [ ] Validation / verification step added to confirm a successful login
+- [ ] Validation / verification step added after the last `(Button)` to confirm a successful login
+- [ ] `RunValidations` set to `Yes`
+- [ ] `EnforceCertificateValidation` left at `Yes`; any self-signed target certificate trusted on the PSM server
 - [ ] Conditional blocks added for any multi-step or SSO login screens
 - [ ] Connection component `Id` and `DisplayName` are unique and based on `PSM-WebAppSample`
 - [ ] Connector tested end to end (auto-logon + session recording) before packaging
@@ -274,5 +283,6 @@ Bind the username field to `{username}` and the password field to `{password}` (
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.4 | 2026-10-20 | **[Added]** Section 8 now states two settings a component must ship with: `RunValidations` set to `Yes` (otherwise PSM skips every validation line and a failed login leaves the session open for a manual sign-in), and `EnforceCertificateValidation` left at `Yes` (otherwise PSM accepts any target certificate). The partner-environment prerequisite now requires a certificate the PSM server trusts, with the self-signed case handled by trusting the certificate on the PSM server. Added a troubleshooting row for "Page certificate is untrusted" and matching pre-development checklist items. These pair with checklist checks 2.2 and 3.6 | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** Components downloaded from the Marketplace — including partner connectors — use the 32-bit dispatcher unless PVWA is configured to switch; the 64-bit default from PSM 14.6 applies to out-of-the-box components. The hardening parameter is `-SupportWebApplications`, and the driver tool is WebDriverUpgrader. Browsers may be 32- or 64-bit. **[Added]** Minimum browser versions; framework 14.6.0.244 or later for driver 133+; the x64 driver folder; HTTPS-First Mode in incognito; the iFrame, Failure and MFA WebFormFields commands and the timeout parameters; that the framework is also documented for Privilege Cloud | Idira Technical Alliances |
 | 1.2 | 2026-10-05 | **[Fixed]** The WebAppDispatcher prerequisite now states in visible prose that the PSM 15.0 release note does not settle whether WebAppDispatcher itself falls under the connection-component exclusion, and tells you to check what is actually in the Components folder and to ask your Idira Technical Alliances contact if you need it confirmed before planning a deployment. That qualification previously sat in an editorial comment — invisible on the rendered page, fully visible to a partner's AI agent, which reads the raw markdown. The underlying instruction is unchanged: do not assume any baseline component is present on a fresh 15.0 server. Also added this change log — the file previously carried none, so no revision before this one is recorded | Idira Technical Alliances |
