@@ -8,21 +8,6 @@
 **Author:** Idira Technical Alliances
 **Last Updated:** 2026-10-05
 
-### Change Log
-
-- **[Fixed]** v1.7 — Section 7.2's `tag-associations` request body is now marked, in visible prose, as **inferred rather than confirmed**. The endpoint, method and path are correct; the body shape follows the release note's key-value description and this API's existing conventions and has not been verified against the Privilege Cloud API reference. This needed saying in the open because `AGENTS.md` instructs agents that anything quoted verbatim in a guide is exact and must be copied character for character — so an unmarked example would have been generated into a partner's client as settled fact. The qualification previously sat in an editorial comment: invisible to a human reviewing the page, fully visible to the agent. Also removed a Section 7.10 editorial comment whose substance the visible text and the v1.4 entry already state. No endpoint, requirement or procedure changed. — Idira Technical Alliances
-- **[Fixed]** v1.6 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances
-- **[Fixed]** v1.5 — Corrected the relative path on the v1.3 row's `naming-crosswalk.md` link. It was written as a bare filename from a kit subdirectory two levels below the file it targets, so it resolved to a non-existent sibling and 404'd for any partner who followed it. — Idira Technical Alliances
-- **[Added]** v1.4 — Section 7.10 now flags that SCA also brokers Zero Standing Privileges access to Kubernetes clusters (EKS, AKS) via a native CLI as of 2026-09-14, and that whether those CLI sessions are enumerable and revocable through the Access API is unconfirmed. Partners must confirm Kubernetes session coverage during the live-tenant check they are already gated on, rather than assuming console-session revocation ends CLI-brokered cluster access. — Idira Technical Alliances
-- **[Fixed]** v1.3 — Renamed Privilege Cloud to Idira Privileged Access Manager SaaS in prose, per the current product naming. Documented API names, role and persona names, and hostnames are deliberately unchanged and are explained in [`naming-crosswalk.md`](../../naming-crosswalk.md) §3. — Idira Technical Alliances
-- **[Added]** Secrets Manager SaaS (Conjur Cloud) machine-identity containment actions — delete workload, delete authenticator (Section 7.11) — confirmed live via the `cyberark-docs-kb-v1` Bedrock KB mirror. — Idira Technical Alliances
-- **[Added]** Secure Cloud Access (SCA) session-revocation operations named and scoped (Section 7.10) — get sessions, get sessions by user, revoke session by ID, revoke all sessions for a user — from operation IDs on the `api-docs.cyberark.com/sca-api` reference. Request/response body fields remain unconfirmed pending an authenticated portal session or live test call. — Idira Technical Alliances
-- **[Added]** "Add to discovered accounts list" (Section 7.2) as a lighter-weight alternative to fully vaulting a flagged account — flags an account into the Discovery Service inventory without bringing it under full CPM management. — Idira Technical Alliances
-- **[Added]** "Get account details" by ID (Section 7.2) as a direct-resolve alternative to the search-based Get Accounts call. — Idira Technical Alliances
-- **[Fixed]** SIA/SSH session termination corrected from "no API surface confirmed" to a sourced finding: the feature exists (ITDR Suspicious Activities Rules) but is automatic/rule-triggered only — there is no partner-callable REST endpoint to invoke it externally, by design (Section 7.8). — Idira Technical Alliances
-
----
-
 > **Not sure this is the right guide?** This is currently the only use case in the Identity Response workflow. A decision guide will be added when the workflow gains a second use case.
 > Use this guide if: you are an XDR, SIEM, or SOAR platform (for example, Palo Alto Cortex XSIAM/XSOAR, Google Security Operations, or Splunk) and you want to trigger identity, privileged-session, credential, access-policy, or machine-identity response actions in Idira from a detection or playbook.
 
