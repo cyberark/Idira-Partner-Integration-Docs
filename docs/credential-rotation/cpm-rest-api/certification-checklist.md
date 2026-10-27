@@ -3,9 +3,9 @@
 **Workflow:** Credential Rotation  
 **Dev Kit:** CPM REST API Plugin  
 **Type:** Certification Checklist  
-**Version:** 2.4  
+**Version:** 2.5  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-21  
+**Last Updated:** 2026-10-27  
 **Converted from:** Idira_Credential_Rotation_Certification_Checklist.doc
 
 ---
@@ -32,9 +32,9 @@ KIT-SPECIFIC WARNINGS:
 - The plugin extends CyberArk.Extensions.Generic.Plugin.RestAPI.dll and
   CyberArk.Extensions.Generic.Infra.RestAPI.dll (checks 2.1, 2.2). Those file names are exact and
   keep `CyberArk` — they are not rebranded.
-- A plugin on the retired WSChains framework (Cyberark.Extensions.Plugin.WSChains.dll run by
-  CANetPluginInvoker.exe, <WSChains> root element) fails 2.1 and 2.2. It is not certified, even
-  though some older Marketplace plugins still use it.
+- New CPM plugins built on the retired WSChains framework (Cyberark.Extensions.Plugin.WSChains.dll
+  run by CANetPluginInvoker.exe, <WSChains> root element) fail 2.1 and 2.2 and are not accepted for
+  certification. Existing listings are unaffected.
 - The XML needs all four sections — <Parameters>, <ErrorMessages>, <APICalls>, <Chains> — and
   each has its own minimum-content rule (section 3). A configuration that omits one does not
   partially pass; it fails schema validity.
@@ -191,6 +191,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 2.5 | 2026-10-27 | **[Fixed]** The WSChains statement in the AI context block now covers new plugins: a new CPM plugin built on WSChains fails 2.1 and 2.2 and is not accepted for certification, and existing listings are unaffected. No check was added or re-levelled | Idira Technical Alliances |
 | 2.4 | 2026-10-21 | **[Added]** A plugin on the retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, `CANetPluginInvoker.exe`) fails 2.1 and 2.2 and is not certified, stated in the AI context block. Some older Marketplace plugins still use it. No check was added or re-levelled | Idira Technical Alliances |
 | 2.3 | 2026-10-08 | **[Fixed]** Checks 2.1 and 2.2 name the framework assemblies by their real file names, `CyberArk.Extensions.Generic.Plugin.RestAPI.dll` and `CyberArk.Extensions.Generic.Infra.RestAPI.dll`. Check 5.1 no longer requires every HTTP verb — a plugin uses the methods its target API documents. Check 5.5 names the chains in their documented lowercase form. **[Added]** A `Source` on every check. A plugin built on the correct assemblies previously could not satisfy 2.1–2.2 as written | Idira Technical Alliances |
 | 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |

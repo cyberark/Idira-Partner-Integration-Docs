@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Credential_Rotation_Self-Service_Guide.pdf  
-**Version:** 1.4  
-**Last Updated:** 2026-10-21
+**Version:** 1.5  
+**Last Updated:** 2026-10-27
 
 ---
 
@@ -100,10 +100,11 @@ paths; on Privilege Cloud the CPM runs on the customer's connector server.
 THE FRAMEWORK FILES (Section 3), ALL GRADED: `CyberArk.Extensions.Generic.Plugin.RestAPI.dll` and
 `CyberArk.Extensions.Generic.Infra.RestAPI.dll` (checks 2.1, 2.2), plus
 `CyberArk.Extensions.Plugin.RestAPI.dll`. These are real file names — they keep `CyberArk`.
-NOT WSCHAINS: the older WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll` run by
-`CANetPluginInvoker.exe`, root element `<WSChains>` with `<Requests>`, `<Fails>` and `<Chains>`) is
-retired and is not certified, even though some older Marketplace plugins still use it. Do not copy
-an existing WSChains plugin as a template; start from the framework sample (Section 3).
+NOT WSCHAINS: new CPM plugins built on the retired WSChains framework
+(`Cyberark.Extensions.Plugin.WSChains.dll` run by `CANetPluginInvoker.exe`, root element `<WSChains>`
+with `<Requests>`, `<Fails>` and `<Chains>`) fail certification checks 2.1 and 2.2 and are not
+accepted for certification. Existing listings are unaffected. Do not copy an existing WSChains
+plugin as a template; start from the framework sample (Section 3).
 `validationPattern` is a `<Parameter>` attribute in the `<Parameters>` section: a regex applied to the
 parameter's final value, failing the plugin at runtime if it does not match (check 6.2).
 `ManagementType` decides who generates the new credential: `Password` (CPM generates it) or
@@ -156,7 +157,7 @@ Developing a CPM plugin with the REST API framework typically follows a structur
 3. **Create and Test Configuration File:** Create the configuration file in XML format. This file defines how the CPM interacts with the target application's API. Partners can optionally test this XML configuration file during development.
 4. **Package and Test:** Package the XML configuration file along with relevant platform files (INI and XML) into a zip file. This package is then imported into the Idira Password Vault Web Access (PVWA) for comprehensive testing.
 
-> **Not WSChains.** The older WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, run by `CANetPluginInvoker.exe`, with a `<WSChains>` root element) is retired and is not certified. Some older Marketplace plugins still use it, so do not copy one as a template. Start from the REST API framework sample below.
+> **Not WSChains.** New CPM plugins built on the retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, run by `CANetPluginInvoker.exe`, with a `<WSChains>` root element) fail certification checks 2.1 and 2.2 and are not accepted for certification. Existing listings are unaffected. Some older Marketplace plugins still use it, so do not copy one as a template. Start from the REST API framework sample below.
 
 ---
 
@@ -515,6 +516,7 @@ Expected Result: `The plugin ended successfully (RC=0)`. If it fails, check the 
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.5 | 2026-10-27 | **[Fixed]** The WSChains statement in the AI context block and Section 3 now covers new plugins: a new CPM plugin built on WSChains fails certification checks 2.1 and 2.2 and is not accepted for certification, and existing listings are unaffected. No requirement changed | Idira Technical Alliances |
 | 1.4 | 2026-10-21 | **[Added]** The retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, `CANetPluginInvoker.exe`, `<WSChains>` root) is not certified, stated in the AI context block and Section 3. Some older Marketplace plugins still use it, and a partner who copied one as a template had nothing here telling them otherwise. No requirement changed: checks 2.1 and 2.2 already fail a WSChains plugin | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** Placeholder syntax is `{{Name}}` (double braces) throughout; every example used `((Name))`, which the framework does not resolve. **[Added]** Prerequisites and deployment (Section 3) for both Privilege Cloud and Self-Hosted, including the framework files by their real names (`CyberArk.Extensions.Generic.Plugin.RestAPI.dll`, `CyberArk.Extensions.Generic.Infra.RestAPI.dll`); `ManagementType`; all seven chain actions including `deletepass` and `deletepassafterreconcile`; parameter attributes including `secure` and `validationPattern`; placeholder scopes and modifiers; that `<Headers>` is mandatory in every request; working reference links. **[Updated]** Authentication guidance states what the framework supports and what check 4.2 accepts. A plugin written with `((…))` placeholders must be updated | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
