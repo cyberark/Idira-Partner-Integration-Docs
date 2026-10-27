@@ -808,6 +808,11 @@ def check_links(corpus: Path) -> list[Finding]:
         for label, path, frag, line in links_of(text):
             if re.match(r"^(?:https?:|mailto:)", path):
                 continue
+            # A template's link slot, e.g. `({DiagramFile})`, is a placeholder the partner
+            # fills, not a path. Only a whole-target {PascalCase} word is skipped, so a real
+            # path with a typo still fails.
+            if re.fullmatch(r"\{[A-Z][A-Za-z0-9]+\}", path):
+                continue
 
             # R8 -- the path half. An empty path means a same-file anchor.
             if path:

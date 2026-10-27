@@ -53,6 +53,8 @@ is explicitly permitted.
 - [Credential Provider](docs/secrets-management/credential-provider/development-guide.md): Agent-based local secret retrieval ([checklist](docs/secrets-management/credential-provider/certification-checklist.md))
 - [Central Credential Provider](docs/secrets-management/central-credential-provider/development-guide.md): Agentless REST secret retrieval ([checklist](docs/secrets-management/central-credential-provider/certification-checklist.md))
 - [Secrets Manager Self-Hosted](docs/secrets-management/secrets-manager-self-hosted/development-guide.md): Retrieve secrets from a self-hosted deployment ([checklist](docs/secrets-management/secrets-manager-self-hosted/certification-checklist.md))
+- [Secrets Manager integration-guide template](docs/secrets-management/integration-guide-templates/secrets-manager.md): Draft template for the integration guide a certified Secrets Manager integration publishes
+- [Credential Provider integration-guide template](docs/secrets-management/integration-guide-templates/credential-provider.md): Draft template for the integration guide a certified CP or CCP integration publishes
 
 ## Workload Identity
 

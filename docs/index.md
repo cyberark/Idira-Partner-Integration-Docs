@@ -2,8 +2,8 @@
 
 **Maintained by:** Idira Technical Alliances  
 **Contact:** `cybr-bizdevtech@paloaltonetworks.com`  
-**Last Updated:** 2026-10-14  
-**Version:** 1.5
+**Last Updated:** 2026-10-27  
+**Version:** 1.6
 
 ---
 
@@ -159,6 +159,8 @@ Three use cases: stream EPM audit events into a partner security platform (SIEM,
 ### Secrets Management
 Enable a partner application, service, or tool to securely retrieve secrets from Idira instead of storing them locally. Covers four integration paths — Secrets Manager SaaS, CP (agent-based), CCP (agentless REST), and Secrets Manager Self-Hosted. Start with the [Decision Guide](secrets-management/decision-guide.md) to choose the right path.
 
+Once certified, write your integration guide from the matching template: [Secrets Manager](secrets-management/integration-guide-templates/secrets-manager.md) (Self-Hosted and SaaS) or [Credential Provider](secrets-management/integration-guide-templates/credential-provider.md) (CP and CCP). Both templates are drafts open for feedback.
+
 ### PSM Connectors
 Package a connection component that lets Idira Privileged Session Manager (PSM) broker a privileged session to a partner web application: PSM launches a controlled browser on the customer's PSM server, injects vaulted credentials into the application's login web form, and records the session. This is a browser-automation integration built with the PSM Plugin Generator Utility, not a REST/API integration, so the telemetry-header requirement below does not apply to it. Idira PAM Self-Hosted only.
 
@@ -210,6 +212,7 @@ PSM Web Connection Components are the one exception and carry no telemetry requi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.6 | 2026-10-27 | **[Added]** Draft integration-guide templates for Secrets Management: Secrets Manager (Self-Hosted and SaaS) and Credential Provider (CP and CCP), linked from the Secrets Management section. No kit, status or requirement was changed. — Idira Technical Alliances |
 | 1.5 | 2026-10-14 | **[Added]** The **Identity Access Management** workflow and its first kit, **Identity Governance & Provisioning**, taking the inventory to 17 kits across 9 workflows. Identity Access Management was a form option with no kit behind it, so an IGA partner had nothing to be graded on. Listed as **Preview** — the third non-Available kit — and it is the first kit to break the guide-plus-checklist pair: the checklist is published ahead of its development guide, so the Development Guide cell reads *Not yet published* and the AI context block states the exception rather than letting an agent reconstruct the missing guide. No existing listing, status or requirement was changed. — Idira Technical Alliances |
 | 1.4 | 2026-10-05 | **[Added]** The **Workload Identity** workflow and its single kit, **SWA Federation**, taking the inventory to 16 kits across 8 workflows. It fills a gap this catalogue made visible: workload identity federation appeared only as the fourth authentication option inside the Secrets Manager SaaS guide, which serves a retrieval client that happens to hold an SVID and gave nothing to a partner whose platform *is* the identity surface — so gateways, agent runtimes and platforms that already issue SPIFFE identities had no kit to build against and no checklist to be graded on. Listed as **Preview**, which makes it the second non-Available kit, so the AI context block's status warning now names two rather than one. Two rows were added, not one: the kit plus a workflow decision guide, which takes the router count in this table from two to three. That decision guide is deliberately unlike the Discovery, EPM and Secrets Management ones — with a single kit there is no within-workflow choice, so it routes the inbound boundary instead, which is where this integration is most often misfiled. The Status key was also generalised: it described an unsettled API field name marked `[TBD]` as the only form a Preview gap takes, and the new kit's gap is an unsettled *procedure* stated as visible prose instead, so both forms are now described. No existing listing, status or requirement was changed. — Idira Technical Alliances |
 | 1.3 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
