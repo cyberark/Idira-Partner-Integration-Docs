@@ -4,9 +4,9 @@
 **Use Case:** Identity Response Actions — XDR / SIEM / SOAR partner integration
 **Idira Product:** Idira Identity Security Platform (Identity, Privileged Access Manager SaaS, Secure Infrastructure Access, Secure Cloud Access, Secrets Manager, Endpoint Privilege Manager)
 **Type:** Development Guide
-**Version:** 1.7
+**Version:** 1.8
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-27
 
 > **Not sure this is the right guide?** This is currently the only use case in the Identity Response workflow. A decision guide will be added when the workflow gains a second use case.
 > Use this guide if: you are an XDR, SIEM, or SOAR platform (for example, Palo Alto Cortex XSIAM/XSOAR, Google Security Operations, or Splunk) and you want to trigger identity, privileged-session, credential, access-policy, or machine-identity response actions in Idira from a detection or playbook.
@@ -43,13 +43,14 @@ CONTACT: cybr-bizdevtech@paloaltonetworks.com
 
 VERIFIED API CALLS (method + literal path read from live Idira Docs / OpenAPI spec):
   CONTEXT
-  - Get user by name → unique ID: POST https://<tenant>.id.cyberark.cloud/CDirectoryService/GetUserByName  (body: username string; key casing [TBD confirm against tenant Swagger])
+  - Get user by name → unique ID: POST https://<tenant>.id.cyberark.cloud/CDirectoryService/GetUserByName  (body: {"username": "<user@suffix>"} — key is exactly `username`. ANY OTHER KEY RETURNS THE CALLER'S OWN RECORD WITH success:true, NOT AN ERROR. Always check the returned Uuid is not the integration's own service account — verified live 2026-10-22)
   - Get accounts → account id:    GET  /PasswordVault/API/Accounts?search=<term>&safeName=<safe>
   - List active sessions:         GET  /PasswordVault/API/LiveSessions?Search=<user>  (returns SessionGuid, CanTerminate, CanSuspend)
   IDENTITY (WORKFORCE)
-  - Lock / disable user:          POST /CDirectoryService/SetUserState  (body: ID string, State "Locked"|"Disabled"|"Expired"|"None")
-  - Force logout all sessions:    POST /UserMgmt/SignOutEverywhere  (body: user unique ID; key name [TBD])
-  - Expire / force password reset: POST /CDirectoryService/ChangeUser (ForcePasswordChangeNext=true) OR SetUserState State="Expired"
+  - Lock / disable user:          POST /CDirectoryService/SetUserState  (body: {"ID": "<uuid>", "state": "Locked"|"Disabled"|"Expired"|"None"} — lowercase `state`; "State" fails with success:false)
+  - Force logout all sessions:    POST /UserMgmt/SignOutEverywhere?id=<uuid>  (documented query parameter `id`; a body {"ID": "<uuid>"} is also accepted)
+  - Expire / force password reset: POST /CDirectoryService/ChangeUser ({"ID": "<uuid>", "ForcePasswordChangeNext": true} — by ID; by Name is refused) OR SetUserState state="Expired"
+  - EVERY Identity call returns HTTP 200 on failure too — check "success" in the body, never the status code alone.
   - Remove privileged role:       POST /SaasManage/RemoveUsersAndGroupsFromRole  (body: Name=roleId, Users=[userId])
   - Enforce MFA step-up:          Policy-based via Auth Profile API / authentication profile assignment — no single "require MFA now for user X" endpoint confirmed [TBD]
   PRIVILEGED SESSION (Privileged Access Manager SaaS)
@@ -159,7 +160,7 @@ When a partner playbook triggers an identity response action, the SOC analyst se
 
 | What the analyst sees | Source field / API |
 |:---|:---|
-| Account state (Locked / Disabled) | `State` set via `SetUserState` |
+| Account state (Locked / Disabled) | `state` set via `SetUserState`; read back as `Result.State` from `GetUser` |
 | No active privileged sessions | `LiveSessions` list returns none for the user after `Terminate` |
 | Credential last rotated timestamp | `lastModifiedDateTime` / `lastVerifiedDateTime` on the account object |
 | Standing access removed | Secure Infrastructure Access policy `status` = `Disabled`, or role membership removed |
@@ -295,14 +296,21 @@ curl -X POST \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -H "x-cybr-telemetry: <telemetry>" \
-  -d '{"name": "<username@suffix>"}'
+  -d '{"username": "<username@suffix>"}'
 ```
 
 | Field | Required | Description |
 |:---|:---:|:---|
-| username | Yes | User name of the cloud user to fetch. Format: `username@suffix` if a suffix is required, else `username`. |
+| `username` | Yes | User name of the cloud user to fetch. Format: `username@suffix` if a suffix is required, else `username`. The key is exactly `username`, lowercase. |
 
-> **Note:** The exact JSON key casing for the username field is `[TBD — confirm against your tenant Swagger at /identity-docs-api]`; the input is the username string. The response is a user detail object; read the unique ID from it and use it in the state, logout, role, and password actions below. Use `POST /CDirectoryService/GetUser` to fetch by ID directly.
+The response is a user detail object. Read the unique ID from `Result.Uuid` and use it in the state, logout, role, and password actions below. Use `POST /CDirectoryService/GetUser` with `{"ID": "<uuid>"}` to fetch by ID directly.
+
+> **Guard against resolving your own account.** If the body key is anything other than `username` — `name`, `Name`,
+> `Username`, `userName`, or the username as a query parameter — the call does **not** fail. It returns
+> `success: true` with the record of the **calling service account**. A playbook that then acts on that ID locks,
+> signs out, or removes roles from its own integration account, and reports the containment as successful.
+> Before every action, check that the resolved `Uuid` is not your integration's own service account, and that
+> the returned `Name` matches the user you asked for. Verified live, 2026-10-22.
 
 ### 7.2 Get Accounts (resolve account ID)
 
@@ -403,7 +411,7 @@ curl -X GET \
 
 ### 7.4 Identity (Workforce) Actions
 
-**Lock or disable a user** — sets the account state. `State` accepts `None`, `Locked`, `Disabled`, or `Expired`.
+**Lock or disable a user** — sets the account state. `state` accepts `None`, `Locked`, `Disabled`, or `Expired`.
 
 ```bash
 curl -X POST \
@@ -411,28 +419,30 @@ curl -X POST \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -H "x-cybr-telemetry: <telemetry>" \
-  -d '{"ID": "<user-unique-id>", "State": "Locked"}'
+  -d '{"ID": "<user-unique-id>", "state": "Locked"}'
 ```
 
 | Field | Required | Description |
 |:---|:---:|:---|
 | `ID` | Yes | Unique ID of the cloud user to change the state for |
-| `State` | Yes | `None`, `Locked`, `Disabled`, or `Expired` |
+| `state` | Yes | `None`, `Locked`, `Disabled`, or `Expired`. The key is lowercase: with `State`, the call returns `success: false` and the user is unchanged |
 
-Requires system-administrator or user-management rights. An equivalent path is `POST /UserMgmt/SetCloudLock` with body `{"lockUser": true}` (the user-ID key on that endpoint is `[TBD — confirm against tenant Swagger]`); `SetUserState` is preferred because its fields are fully documented.
+Requires system-administrator or user-management rights. Set `state` back to `None` to reverse any of the three. To confirm the action took effect, read `Result.State` from `POST /CDirectoryService/GetUser`. Repeating the call on a user already in that state returns `success: true` — it does not return `409`. Verified live, 2026-10-22.
+
+`POST /UserMgmt/SetCloudLock` with `{"user": "<user-unique-id>", "lockUser": true}` is also accepted and returns `Result: true`, but its effect is not visible in the user's `State`, so this guide does not use it. Use `SetUserState`.
 
 **Force logout of all sessions** — deletes all sessions and cookies for the user; the user must sign in again.
 
 ```bash
 curl -X POST \
-  "https://<tenant>.id.cyberark.cloud/UserMgmt/SignOutEverywhere" \
+  "https://<tenant>.id.cyberark.cloud/UserMgmt/SignOutEverywhere?id=<user-unique-id>" \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -H "x-cybr-telemetry: <telemetry>" \
-  -d '{"<userIdKey>": "<user-unique-id>"}'
+  -d '{}'
 ```
 
-The body carries the target user's unique ID. The exact JSON key is `[TBD — confirm against tenant Swagger]`. This endpoint requires system-administrator or user-management rights (or the user acting on themselves). Do not use `POST /Security/Logout` for this: that endpoint only logs out the caller's own token (its body field is `redirectUrl`), not a target user.
+The target user's unique ID goes in the query parameter `id`, as the User Management API reference documents. A body of `{"ID": "<user-unique-id>"}` is also accepted. This endpoint requires system-administrator or user-management rights (or the user acting on themselves), and user-management rights are not enough when the target is an administrator: the call is refused with `success: false` and `_I18N_ServiceUnauthorizedAccess`. Both forms have been confirmed to be accepted for a non-administrator target user (2026-10-27). That it actually ends a target's live sessions has not yet been observed, so confirm it on your tenant with a signed-in test user before you rely on it in a containment flow. Do not use `POST /Security/Logout` for this: that endpoint only logs out the caller's own token (its body field is `redirectUrl`), not a target user.
 
 **Expire password / require reset** — force the user to set a new password.
 
@@ -442,10 +452,10 @@ curl -X POST \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -H "x-cybr-telemetry: <telemetry>" \
-  -d '{"Name": "<username>", "ForcePasswordChangeNext": true}'
+  -d '{"ID": "<user-unique-id>", "ForcePasswordChangeNext": true}'
 ```
 
-`ForcePasswordChangeNext` requires the user to change password on next login. Alternatively, `SetUserState` with `State: "Expired"` expires the account.
+`ForcePasswordChangeNext` requires the user to change password on next login, and reads back as `true` from `POST /UserMgmt/GetUserAttributes`. Identify the user by `ID`. By `Name`, the call is refused ("You are not authorized to perform this operation") even with user-management rights. Alternatively, `SetUserState` with `state: "Expired"` expires the account.
 
 **Remove a privileged role** — strip standing privilege by removing the user from a role.
 
@@ -702,14 +712,21 @@ Because v1 is stateless execution, the partner playbook owns sequencing, rollbac
 
 ## 10. Error Handling
 
+> **Identity calls report failure in the body, not the status code.** The Identity workforce APIs (`/CDirectoryService/*`,
+> `/UserMgmt/*`, `/SaasManage/*`) return HTTP `200` for failed calls too, with `"success": false` and a `Message`.
+> A wrong field name, a refused permission, and an unknown user all arrived this way in live testing. Check `success`
+> on every Identity response; a playbook that checks only the status code will report containment that never
+> happened. Repeating an action on a target already in that state also returns `success: true`, not `409`.
+
 | HTTP status | Meaning | Action |
 |:---|:---|:---|
+| `200` + `"success": false` | Identity call failed (bad field, permission refused, unknown user) | Treat as a failure. Log the `Message` and surface it to the incident timeline. Do not retry a field-name or permission failure |
 | `200` | Success | Log the target ID, action, and alert ID; verify state change where relevant |
 | `400` | Validation error | Parse the error body; check for a malformed ID or wrong field name (for example, `ChangeCredsForGroup`) |
 | `401` | Token invalid or wrong auth model | Confirm the correct model for the target: `Bearer` for ISPSS services, `basic` for EPM, `Token token="<jwt>"` for Secrets Manager SaaS. Re-authenticate and retry once |
 | `403` | Insufficient permissions | Verify the required role/rights (system-admin or user-management for Identity, `DpaAdmin` for SIA, Safe permissions for Privileged Access Manager SaaS, `Authn_Admins`/`Conjur_Cloud_Admins` for Secrets Manager authenticator deletion) |
 | `404` | Target not found | User, account, session GUID, policy ID, workload, or authenticator not resolved; re-run the resolve step |
-| `409` | Conflict | Target already in the requested state (for example, already locked); treat as idempotent, log and continue |
+| `409` | Conflict | Where a service returns it, target already in the requested state; treat as idempotent, log and continue. Identity does not return it — see the note above |
 | `429` | Rate limited | Exponential backoff; do not retry in a tight loop |
 | `500` | Server error | Log the full response, retry after backoff, alert if persistent |
 
@@ -727,17 +744,18 @@ Because v1 is stateless execution, the partner playbook owns sequencing, rollbac
 
 **Target resolution**
 - [ ] Alert payload confirmed to carry username, account identifier, hostname, and/or workload/authenticator identifier as needed
-- [ ] `GetUserByName` returns the user unique ID
+- [ ] `GetUserByName` called with `{"username": …}` returns the target's unique ID — and the resolved ID is checked against the integration's own service account before any action
 - [ ] `Get Accounts` resolves the account ID for rotate/verify
 - [ ] `LiveSessions` returns `SessionGuid` and the `CanTerminate`/`CanSuspend` flags
 - [ ] Workload/authenticator identifier resolution confirmed (policy-branch path, URL-encoded correctly) — if machine-identity actions in scope
 
 **Action logic**
 - [ ] Each action returns per-action status; partial-success handling implemented
+- [ ] Every Identity response checked for `"success": false`, not only the HTTP status
 - [ ] `ChangeCredsForGroup` field name validated against the target tenant
-- [ ] `[TBD]` field-name items confirmed against your tenant Swagger: `SignOutEverywhere` body key, `GetUserByName` key casing, Privileged Access Manager SaaS session-termination permission model
+- [ ] Remaining `[TBD]` items confirmed: Privileged Access Manager SaaS session-termination permission model, MFA step-up mechanism, Secrets Manager SaaS authenticate request shape
 - [ ] Reversible actions (unlock, resume, re-add role) tested where the playbook offers rollback
-- [ ] Idempotency handled (409 on already-locked / already-member; 404 treated as already-deleted for workload/authenticator delete)
+- [ ] Idempotency handled (an Identity action repeated on a target already in that state returns `success: true`; 404 treated as already-deleted for workload/authenticator delete)
 - [ ] Delete-workload / delete-authenticator calls gated behind a confirmed-compromise check — these are not reversible; do not include them in a default/low-severity response path
 - [ ] Telemetry header values (`in`, `it`, `vn`) set to describe the partner platform and agreed with the Idira Technical Alliances contact
 - [ ] Logging captures target ID, action, alert ID, and API response per step
@@ -786,3 +804,11 @@ Because v1 is stateless execution, the partner playbook owns sequencing, rollbac
 **Sandbox and contact**
 - [C3 Integrations Platform](https://c3.cyberark.cloud)
 - Contact: `cybr-bizdevtech@paloaltonetworks.com`
+
+---
+
+## Change Log
+
+| Version | Date | Change |
+|:---|:---|:---|
+| 1.8 | 2026-10-27 | **[Fixed]** Corrected the Identity workforce calls after live testing on an Idira Identity Security Platform tenant (2026-10-22). **`GetUserByName` takes `username`.** The example used `name`, and any key other than `username` makes the call return the **calling service account's own record** with `success: true` instead of an error, so a playbook following the old example would have locked, signed out, or stripped roles from its own integration account and reported success. Section 7.1 now states the key, the failure mode, and a guard. **`SetUserState` takes lowercase `state`.** With `State`, the call returns `success: false` and the user is unchanged. **`SignOutEverywhere` takes the target's ID in the documented query parameter `id`; a body `ID` is also accepted. User-management rights cannot sign out an administrator.** **`ChangeUser` identifies the user by `ID`.** By `Name` it is refused even with user-management rights. **Errors arrive as HTTP 200 with `success: false`, and re-locking a locked user also returns success, not `409`.** Section 10 now says to check `success` on every call. The `GetUserByName`, `SignOutEverywhere`, and `SetCloudLock` `[TBD]` keys are resolved. — Idira Technical Alliances |

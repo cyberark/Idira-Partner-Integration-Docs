@@ -4,11 +4,13 @@
 **Use Case:** Identity Response Actions — XDR / SIEM / SOAR partner integration
 **Idira Product:** Idira Identity Security Platform
 **Type:** Certification Checklist
-**Version:** 2.3
+**Version:** 2.4
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-08
+**Last Updated:** 2026-10-27
 
 ### Change Log
+
+- **[Updated]** v2.4 — Brought in line with live testing of the Identity workforce calls (2026-10-22, development guide v1.8). **[Added]** check 3.18: the resolved target is never the integration's own service account, because a `GetUserByName` call with the wrong body key returns the caller's own record with `success: true`. **[Added]** check 3.19: every Identity response is checked for `success: false`, because Identity returns HTTP 200 on failure. **[Updated]** check 3.15 drops the `409` premise, since Identity returns `success: true` on a repeated action. **[Updated]** check 3.11 drops the two now-confirmed keys (`GetUserByName` and `SignOutEverywhere`) and keeps the three still open. — Idira Technical Alliances
 
 - **[Added]** v2.3 — A `Source` on every check: the Idira documentation page behind each API check in §3, and the certification programme for the rest. No requirement, level or wording changed. — Idira Technical Alliances
 - **[Fixed]** v2.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances
@@ -57,10 +59,16 @@ KIT-SPECIFIC WARNINGS:
   submitter verified the request/response schema against a live tenant, because the public
   reference is gated and was never independently verified during dev-kit authoring
   (checks 1.7, 3.10). Do not generate code for either from the operation name alone.
-- THIS CHECKLIST HAS UNRESOLVED [TBD] FIELDS AND RESOLVING THEM IS A GATE (check 3.11):
-  `SignOutEverywhere` body key, `GetUserByName` key casing, the MFA step-up mechanism, the PAM
-  SaaS session-termination permission model, and the Secrets Manager SaaS authenticate request
-  shape. If you are asked for any of these, say they are unconfirmed — do not fill them in.
+- THIS CHECKLIST STILL HAS UNRESOLVED [TBD] ITEMS AND RESOLVING THEM IS A GATE (check 3.11):
+  the MFA step-up mechanism, the PAM SaaS session-termination permission model, and the Secrets
+  Manager SaaS authenticate request shape. If you are asked for any of these, say they are
+  unconfirmed — do not fill them in. The Identity body keys are CONFIRMED (guide v1.8):
+  GetUserByName {"username"}, SetUserState {"ID","state"} (lowercase), SignOutEverywhere ?id= (body {"ID"} also accepted),
+  ChangeUser by "ID".
+- A WRONG GetUserByName KEY RETURNS THE CALLER'S OWN RECORD, NOT AN ERROR (check 3.18). Code that
+  resolves a target must reject a result whose Uuid is the integration's own service account.
+- IDENTITY RETURNS HTTP 200 ON FAILURE (check 3.19). Grade on the body's "success" flag, never on
+  the status code alone. A repeated action returns success:true, not 409 (check 3.15).
 - Session actions use `SessionGuid`, never the numeric `SessionID` (check 3.2), and
   `CanTerminate` / `CanSuspend` must be checked first, with SSH/OPM excluded from suspend
   (check 3.3).
@@ -139,13 +147,15 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | 3.8 | Secrets Manager SaaS calls use `Authorization: Token token="<jwt>"` from its own authenticate endpoint — never the ISPSS Bearer token | Required | [docs: API key authentication](https://docs.cyberark.com/secrets-manager-saas/latest/en/content/developer/conjur_api_api-key-authn.htm) |
 | 3.9 | "Add to discovered accounts" (`PUT /api/discovered-accounts/`) requires the "Privilege Cloud Discovery Source" role and includes the required `type`/`subType`/`identifiers`/`source` fields | Required | [docs: Add a discovered account](https://docs.cyberark.com/manage/latest/en/content/discovery/discovery-discoveredaccountsservice-add.htm) |
 | 3.10 | If SCA session revocation is implemented, the exact request body (session ID field name, single vs. bulk) was confirmed against a live tenant call, not assumed from the operation name | Required | [docs: SCA APIs overview](https://docs.cyberark.com/manage/latest/en/content/sca/automation/apis.htm) |
-| 3.11 | `[TBD]` items resolved before submission: `SignOutEverywhere` body key, `GetUserByName` key casing, MFA step-up mechanism, Idira Privileged Access Manager SaaS session-termination permission model, Secrets Manager SaaS authenticate request shape (workload vs. user principal) | Required | House rule — certification programme |
+| 3.11 | Remaining `[TBD]` items resolved before submission: MFA step-up mechanism, Idira Privileged Access Manager SaaS session-termination permission model, Secrets Manager SaaS authenticate request shape (workload vs. user principal) | Required | House rule — certification programme |
 | 3.12 | `ExemptUserFromMfa` is never called as part of a response action | Required | House rule — certification programme |
 | 3.13 | Every action returns a per-action status surfaced to the partner incident timeline | Required | House rule — certification programme |
 | 3.14 | Reversible actions (unlock, resume session, re-add role) implemented and tested where the playbook offers rollback | Recommended | House rule — certification programme |
-| 3.15 | Idempotency handled: a 409 (already locked / already a member) does not fail the playbook | Required | House rule — certification programme |
+| 3.15 | Idempotency handled: repeating an action on a target already in that state (already locked, already removed) does not fail the playbook. Identity returns `success: true` for a repeat, not `409` | Required | House rule — certification programme |
 | 3.16 | Destructive actions (delete SIA policy, remove role) are scoped to the target entity — no unfiltered calls | Required | House rule — certification programme |
 | 3.17 | Rate-limit (429) backoff implemented; no tight retry loops | Required | House rule — certification programme |
+| 3.18 | Target resolution uses `GetUserByName` with the body key `username`, and the integration refuses to act when the resolved `Uuid` is its own service account or the returned `Name` does not match the requested user — a wrong body key returns the caller's own record with `success: true` | Required | House rule — certification programme (verified live, 2026-10-22) |
+| 3.19 | Every Identity API response is checked for `"success": false`; an HTTP 200 alone is never treated as a completed action | Required | House rule — certification programme |
 
 ---
 

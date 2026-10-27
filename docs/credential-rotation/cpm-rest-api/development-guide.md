@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Credential_Rotation_Self-Service_Guide.pdf  
-**Version:** 1.3  
-**Last Updated:** 2026-10-08
+**Version:** 1.4  
+**Last Updated:** 2026-10-21
 
 ---
 
@@ -100,6 +100,10 @@ paths; on Privilege Cloud the CPM runs on the customer's connector server.
 THE FRAMEWORK FILES (Section 3), ALL GRADED: `CyberArk.Extensions.Generic.Plugin.RestAPI.dll` and
 `CyberArk.Extensions.Generic.Infra.RestAPI.dll` (checks 2.1, 2.2), plus
 `CyberArk.Extensions.Plugin.RestAPI.dll`. These are real file names — they keep `CyberArk`.
+NOT WSCHAINS: the older WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll` run by
+`CANetPluginInvoker.exe`, root element `<WSChains>` with `<Requests>`, `<Fails>` and `<Chains>`) is
+retired and is not certified, even though some older Marketplace plugins still use it. Do not copy
+an existing WSChains plugin as a template; start from the framework sample (Section 3).
 `validationPattern` is a `<Parameter>` attribute in the `<Parameters>` section: a regex applied to the
 parameter's final value, failing the plugin at runtime if it does not match (check 6.2).
 `ManagementType` decides who generates the new credential: `Password` (CPM generates it) or
@@ -151,6 +155,8 @@ Developing a CPM plugin with the REST API framework typically follows a structur
 2. **Document API Calls:** Meticulously document all necessary API calls for each CPM action (verify, change, and reconcile). This documentation should cover requests, expected responses, and any runtime data such as authentication tokens, account details, and API endpoint addresses.
 3. **Create and Test Configuration File:** Create the configuration file in XML format. This file defines how the CPM interacts with the target application's API. Partners can optionally test this XML configuration file during development.
 4. **Package and Test:** Package the XML configuration file along with relevant platform files (INI and XML) into a zip file. This package is then imported into the Idira Password Vault Web Access (PVWA) for comprehensive testing.
+
+> **Not WSChains.** The older WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, run by `CANetPluginInvoker.exe`, with a `<WSChains>` root element) is retired and is not certified. Some older Marketplace plugins still use it, so do not copy one as a template. Start from the REST API framework sample below.
 
 ---
 
@@ -509,6 +515,7 @@ Expected Result: `The plugin ended successfully (RC=0)`. If it fails, check the 
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.4 | 2026-10-21 | **[Added]** The retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, `CANetPluginInvoker.exe`, `<WSChains>` root) is not certified, stated in the AI context block and Section 3. Some older Marketplace plugins still use it, and a partner who copied one as a template had nothing here telling them otherwise. No requirement changed: checks 2.1 and 2.2 already fail a WSChains plugin | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** Placeholder syntax is `{{Name}}` (double braces) throughout; every example used `((Name))`, which the framework does not resolve. **[Added]** Prerequisites and deployment (Section 3) for both Privilege Cloud and Self-Hosted, including the framework files by their real names (`CyberArk.Extensions.Generic.Plugin.RestAPI.dll`, `CyberArk.Extensions.Generic.Infra.RestAPI.dll`); `ManagementType`; all seven chain actions including `deletepass` and `deletepassafterreconcile`; parameter attributes including `secure` and `validationPattern`; placeholder scopes and modifiers; that `<Headers>` is mandatory in every request; working reference links. **[Updated]** Authentication guidance states what the framework supports and what check 4.2 accepts. A plugin written with `((…))` placeholders must be updated | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the misread that makes every other detail moot: this kit ships **no partner code** — the deliverable is an XML configuration file the CPM framework executes, so generated client code in any language is the wrong artefact — and the direction is outbound, with Idira calling the partner, the inverse of the Secrets Management kits. It records the four mandatory XML sections against the checks that grade each, that chain names are fixed lowercase CPM verbs (`verifypass` / `changepass` / `reconcilepass`), the `((Name))` placeholder syntax with its `|JsonEscape` modifier, the easily-omitted `secure="true"` attribute, the local `run_NETInvoker_API.cmd` harness with its `[extrapass3]` reconciliation section, three-file packaging, and that the literal `CyberArk` in the installed filesystem paths must not be rebranded or every command in Sections 8–10 breaks. Three things are recorded rather than resolved: a **discrepancy** — Section 8's `SearchURL` uses `{{Username}}` in braces where every other example uses `((…))`; a **contradiction** — Section 5 permits `Token` and `X-API-Key` header formats while check 4.2 restricts certified plugins to Basic or Bearer, and the checklist governs; and the **deployment-scope** question, since every procedure here is on-box Windows Self-Hosted while the checklist certifies Privilege Cloud. Five graded identifiers are recorded as gaps with no implementation path in this guide: both `Idira.Extensions.Generic.*.RestAPI.dll` assemblies, `Deletepass` / `Deletepassafterreconcile`, `validationPattern`, and telemetry in its entirety. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed; the gaps and conflicts are documented, not closed. — Idira Technical Alliances |
