@@ -4,9 +4,9 @@
 **Use Case:** SIEM Integration — streaming Idira audit events into a partner security platform
 **Idira Products:** Idira Identity Security Platform, Audit Service
 **Type:** Certification Checklist
-**Version:** 2.3
+**Version:** 2.4
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-08
+**Last Updated:** 2026-10-30
 
 ---
 
@@ -57,9 +57,12 @@ KIT-SPECIFIC WARNINGS:
 - Timestamps are preserved as Idira emitted them, in UTC (check 5.2). Re-stamping to ingestion
   time fails, and it is invisible unless a reviewer looks at a specific event.
 - An unmapped field or event type is logged, never silently discarded (check 5.4).
-- SECTION 8 CANNOT BE SATISFIED WITH SYNTHETIC PAYLOADS. It requires three real events generated
-  in a live Idira tenant: a failed login, a credential retrieval (Show/Copy on a test account in
-  PAM SaaS), and a session initiation. Fixtures do not count.
+- SECTION 8 CANNOT BE SATISFIED WITH SYNTHETIC PAYLOADS. Every applicable check needs a real event
+  generated in a live Idira tenant; fixtures do not count. A failed login (8.1) applies to every
+  integration. Credential retrieval (8.2) and session initiation (8.3) apply only when the scope
+  declared under check 2.4 includes Idira Privileged Access Manager SaaS. An integration scoped to
+  Identity Security Platform events certifies on Identity events alone — do not tell a partner it
+  needs a PAM SaaS tenant unless PAM SaaS is in its declared scope.
 
 HOW TO READ THIS FILE:
 - Every check is a row in a numbered table: | # | Check | Requirement |
@@ -68,6 +71,8 @@ HOW TO READ THIS FILE:
     Required        — gate. A single failure blocks certification.
     Recommended     — reviewers note it; it does not block.
     One of X / Y    — either item satisfies the requirement; both are not needed.
+    Required if in scope — gate only when the scope declared under check 2.4 includes the
+                      service the check names; otherwise not applicable.
 - Recommended is optional to pass, not optional to read.
 
 PRECEDENCE: where this checklist and development-guide.md disagree, this file governs what
@@ -87,7 +92,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 
 This checklist is the document your Audit Service SIEM integration is graded against. Read it during the build, not at submission — it is published alongside the [Development Guide](development-guide.md) deliberately so you know the criteria while you can still act on them.
 
-Items are the minimum best-practice requirements for a partner platform that polls the Idira Audit Service and surfaces the events to security analysts. Items marked **Required** are gate criteria — a single failure blocks certification, unless explicitly waived in writing by your Idira Technical Alliances contact. Items marked **Recommended** are best-practice validations that reviewers will note but will not block on. Where two items share a **One of** requirement, satisfying either one is enough.
+Items are the minimum best-practice requirements for a partner platform that polls the Idira Audit Service and surfaces the events to security analysts. Items marked **Required** are gate criteria — a single failure blocks certification, unless explicitly waived in writing by your Idira Technical Alliances contact. Items marked **Recommended** are best-practice validations that reviewers will note but will not block on. Where two items share a **One of** requirement, satisfying either one is enough. Items marked **Required if in scope** are gate criteria only when the scope you declare under check 2.4 includes the Idira service the item names; otherwise they do not apply.
 
 ---
 
@@ -176,13 +181,13 @@ All certified integrations must include the `x-cybr-telemetry` HTTP header on ev
 
 ## 8. Functional Validation
 
-Generate real events in the Idira tenant and confirm each arrives and displays correctly in the partner platform. Synthetic payloads do not satisfy this section.
+Generate real events in the Idira tenant and confirm each arrives and displays correctly in the partner platform. Synthetic payloads do not satisfy this section. Checks 8.2 and 8.3 apply only if the scope you declare under check 2.4 includes Idira Privileged Access Manager SaaS — an integration scoped to Identity Security Platform events does not need a Privileged Access Manager SaaS tenant to certify.
 
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
 | 8.1 | **Failed login** — attempt a login with an incorrect password; the security-monitoring event arrives | Required | House rule — certification programme |
-| 8.2 | **Credential retrieval** — click Show or Copy on a test account in Idira Privileged Access Manager SaaS; the high-priority "Fetch credential" event arrives | Required | House rule — certification programme |
-| 8.3 | **Session initiation** — launch a secure session; the session-initiation event arrives | Required | House rule — certification programme |
+| 8.2 | **Credential retrieval** — click Show or Copy on a test account in Idira Privileged Access Manager SaaS; the high-priority "Fetch credential" event arrives | Required if in scope (Idira Privileged Access Manager SaaS) | House rule — certification programme |
+| 8.3 | **Session initiation** — launch a secure session in Idira Privileged Access Manager SaaS; the session-initiation event arrives | Required if in scope (Idira Privileged Access Manager SaaS) | House rule — certification programme |
 | 8.4 | Events are searchable in the partner platform by timestamp, user, and event type | Required | House rule — certification programme |
 | 8.5 | Polling recovers cleanly after a deliberate interruption (stop the integration, generate events, restart) with no gap and no duplicates | Required | House rule — certification programme |
 
@@ -253,6 +258,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-10-30 | **[Updated]** v2.4 — Checks 8.2 (credential retrieval) and 8.3 (session initiation) are now **Required if in scope**: they apply only when the scope declared under check 2.4 includes Idira Privileged Access Manager SaaS. An integration scoped to Identity Security Platform events certifies on Identity events and no longer needs a Privileged Access Manager SaaS tenant. Check 8.1 and the rest of §8 are unchanged and still require real events. If your integration ingests Privileged Access Manager SaaS events, nothing changes for you | Idira Technical Alliances |
 | 2026-10-08 | **[Fixed]** v2.3 — Check 3.4 now requires the Read Only System Administration role right, without which the API returns no events; the Auditor roles it previously named do not grant audit data access. Check 3.7 names the Setup space as where the SIEM API Key is created. **[Updated]** Check 4.3 grades both the Bearer and `x-api-key` headers; 4.5 adds the once-a-minute floor; 4.6 names `cursorRef` paging; 4.9 adds the 7-day retention note; 9.3 lists the full customer configuration. A `Source` on every check | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v2.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. The `TAM waiver` label is now `Idira Technical Alliances waiver`. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v2.1 — A `Source` column on §3 (Authentication & Identity) and §6 (Security Best Practices), naming the authority behind each of those 13 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira documentation where it is a product contract, and `House rule` where it is our own programme policy (6.4, security-scan review). Until now no check in this repository recorded where it came from, so a security control and an internal preference were indistinguishable on the page and a partner pushing back on either got the same unsourced answer. The vocabulary and the verbatim control text are in [`security-baseline-reference.md`](../../security-baseline-reference.md). Three §3 cells read `(URL pending)` rather than carrying a link — the Audit Service API has no entry in the vault's verified deep-links index, and guessing a plausible doc URL is prohibited precisely because nothing downstream would catch it. No requirement, level or wording changed | Idira Technical Alliances |

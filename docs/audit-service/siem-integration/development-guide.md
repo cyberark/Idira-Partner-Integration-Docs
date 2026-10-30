@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Audit_Self_Service_Guide.pdf  
-**Version:** 1.3  
-**Last Updated:** 2026-10-08
+**Version:** 1.4  
+**Last Updated:** 2026-10-30
 
 ---
 
@@ -75,9 +75,10 @@ EVENT SCHEMA (Section 4): each event carries `uuid` (use it to deduplicate — c
 in the Audit docs. The docs describe `timestamp` as Unix seconds while their example value is in
 milliseconds — detect the unit rather than assuming it, and preserve it as emitted (check 5.2).
 
-FUNCTIONAL VALIDATION IS THREE CONCRETE ACTIONS (Section 5, graded as checks 8.1–8.3): a failed
-login, a Show/Copy on a test account (produces the high-priority "Fetch credential" event), and a
-secure-session launch. Check 8.5 adds a fourth an agent will not infer — stop the integration,
+FUNCTIONAL VALIDATION IS REAL EVENTS, SCOPED TO WHAT THE INTEGRATION INGESTS (Section 5, graded as
+checks 8.1–8.3): a failed login always; a Show/Copy on a test account (the high-priority "Fetch
+credential" event) and a secure-session launch only when the declared scope (check 2.4) includes
+Idira Privileged Access Manager SaaS. An Identity-scoped integration needs no PAM SaaS tenant. Check 8.5 adds a fourth an agent will not infer — stop the integration,
 generate events, restart, and prove no gap and no duplicates.
 
 FILES IN THIS DIRECTORY:
@@ -232,8 +233,10 @@ Send `x-cybr-telemetry` with `it=SIEM` on every request — see the [Telemetry H
 To validate the integration, perform the following actions in the Idira tenant to generate audit events:
 
 - **Failed Login:** Attempt to log in with an incorrect password to trigger a security monitoring event.
-- **Retrieve Credential:** In Idira Privileged Access Manager SaaS, click "Show" or "Copy" on a test account to generate a high-priority "Fetch credential" event.
-- **Session Initiation:** Launch a secure session to verify session initiation events.
+- **Retrieve Credential** (only if your integration's scope includes Idira Privileged Access Manager SaaS): In Idira Privileged Access Manager SaaS, click "Show" or "Copy" on a test account to generate a high-priority "Fetch credential" event.
+- **Session Initiation** (only if your integration's scope includes Idira Privileged Access Manager SaaS): Launch a secure session to verify session initiation events.
+
+If your integration is scoped to Identity Security Platform events, an Identity Administration tenant is enough to build, test, and certify — you do not need a Privileged Access Manager SaaS tenant.
 
 ---
 
@@ -247,6 +250,7 @@ For issues regarding the Idira Audit Service or platform configuration, please c
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.4 | 2026-10-30 | **[Updated]** The credential-retrieval and session-initiation tests in Section 5 apply only when your integration's scope includes Idira Privileged Access Manager SaaS, matching checklist v2.4 checks 8.2 and 8.3. An integration scoped to Identity Security Platform events can be built, tested, and certified on an Identity Administration tenant alone | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** The service user must hold the **Read Only System Administration** right — without it every query returns zero events with no error. The SIEM API key is created in the Setup space under Integrations › Export to SIEM. The token request is a `POST` with the `client_credentials` grant. **[Added]** OAuth2 web app configuration (token type `jwtRS256`, the Advanced-tab claim script, app permissions); both request headers (`Authorization: Bearer` and `x-api-key`); the `createQuery` and `results` request and response bodies with paging by `cursorRef`; server-side filters; the event fields and audit-code reference; limits (once a minute, 500 per page, 7-day retention, two SIEM integrations per tenant); telemetry. An integration whose service user has only Auditor roles must add Read Only System Administration | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with direction — this kit **consumes** Idira audit events and never acts on them inside Idira, which check 2.2 grades explicitly against the Identity Response kit — and with the two-credential trap an agent reliably collapses into one: the OAuth2 Client ID/Secret from the Identity Administration portal and the separate SIEM API Key from SIEM Management, which is shown once. It records the graded shape of the service user (dedicated API user, "Is OAuth Confidential client" checked, exactly the Global Auditor plus per-service Auditor roles), that the `cyberark.cloud` domain on both hosts is deliberate and must not be "corrected" to an `idira` domain, and that every behavioural requirement — pagination, `429` exponential backoff, resume-from-position, deduplication on a stable event id, UTC timestamps, unmapped fields logged rather than dropped — lives in the checklist's §4/§5 rather than in this guide. Three graded requirements are recorded as gaps rather than invented: the `client_credentials` grant type, the `Authorization: Bearer <token>` header format, and telemetry (`x-cybr-telemetry`, Base64url, `it=SIEM`), none of which this guide states. There is also no published event schema despite check 5.3 grading a field mapping. **[Fixed]** The `**Dev Kit:**` header field had literal escaped asterisks (`\*\*Dev Kit:\*\*`) surviving the PDF conversion, so it rendered as visible asterisks rather than bold. **[Added]** the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed; the gaps are documented, not closed. — Idira Technical Alliances |
