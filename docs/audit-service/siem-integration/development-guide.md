@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Audit_Self_Service_Guide.pdf  
-**Version:** 1.4  
-**Last Updated:** 2026-10-30
+**Version:** 1.5  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -246,10 +246,19 @@ For issues regarding the Idira Audit Service or platform configuration, please c
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.5 | 2026-11-02 | **[Added]** A closing *Next Steps* section linking the certification checklist, `marketplace-standards.md` and the partner journey. Those links previously appeared only in the AI context block, which does not render for a human reader. |
 | 1.4 | 2026-10-30 | **[Updated]** The credential-retrieval and session-initiation tests in Section 5 apply only when your integration's scope includes Idira Privileged Access Manager SaaS, matching checklist v2.4 checks 8.2 and 8.3. An integration scoped to Identity Security Platform events can be built, tested, and certified on an Identity Administration tenant alone | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** The service user must hold the **Read Only System Administration** right — without it every query returns zero events with no error. The SIEM API key is created in the Setup space under Integrations › Export to SIEM. The token request is a `POST` with the `client_credentials` grant. **[Added]** OAuth2 web app configuration (token type `jwtRS256`, the Advanced-tab claim script, app permissions); both request headers (`Authorization: Bearer` and `x-api-key`); the `createQuery` and `results` request and response bodies with paging by `cursorRef`; server-side filters; the event fields and audit-code reference; limits (once a minute, 500 per page, 7-day retention, two SIEM integrations per tenant); telemetry. An integration whose service user has only Auditor roles must add Read Only System Administration | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |

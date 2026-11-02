@@ -4,8 +4,8 @@
 **Integration:** Credential Provider (CP)  
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-08
+**Version:** 1.3  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -356,9 +356,18 @@ CP has **no REST API** (see §12) — retrieval goes through the SDK, so there i
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-11-02 | **[Added]** A closing *Next Steps* section linking this kit's certification checklist, `marketplace-standards.md` and the partner journey, matching the Secrets Manager SaaS and Self-Hosted guides. |
 | 1.2 | 2026-10-08 | **[Fixed]** Windows paths use the installed folder name `CyberArk` (`C:\Program Files\CyberArk\ApplicationPasswordProvider\…`, `C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\…`) — the folder is not renamed, and the previous paths did not exist. The Linux SDK path is lower-case `/opt/CARKaim/sdk/`. The application itself must be a Safe member with Retrieve Accounts, in addition to the provider user. **[Added]** Path and Hash authentication; `Folder` is PAM Self-Hosted only; `QueryFormat`, `RequiredProps`, `Reason`; the regular-expression fallback when `Safe` or `Object` is omitted; `FailRequestOnPasswordChange`. Scripts using the previous Windows paths must be updated | Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the fact the guide already states twice and an agent still misses — there is no REST API in this kit, so no endpoint, no base URL, no `Authorization` header and no token flow exist — and with the consequence for telemetry: check 3.7 grades the four field values, but they are submitted as wrapper/configuration metadata rather than sent as `x-cybr-telemetry`, so header-setting code here is wrong while reporting the requirement as inapplicable is also wrong. It also records the cross-kit auditing trap (CP audit logging **disabled** for production, the inverse of the EPM Ticketing/JIT kit's mandatory `Audit: true`), that certificate authentication is CCP-only and not available for agent-based CP, the same-machine constraint, the no-SDK-packaging rule, and that the Linux provisioning password is one-time and consumed by `appprovideruser.cred`. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

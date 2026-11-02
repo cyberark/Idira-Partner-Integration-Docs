@@ -3,9 +3,9 @@
 **Workflow:** Discovery  
 **Dev Kit:** Privileged Accounts  
 **Type:** Certification Checklist  
-**Version:** 1.3  
+**Version:** 1.4  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-08  
+**Last Updated:** 2026-11-02  
 **Converted from:** Idira_Discovery_Service_Certification_Checklist.docx
 
 ---
@@ -168,7 +168,19 @@ To achieve Idira certification for a Privileged Accounts Discovery integration, 
 
 ---
 
-## 11. Attestation
+## 11. Yearly Recertification
+
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 11.1 | Best practices reviewed and reflected in the solution | Required | House rule — recertification |
+| 11.2 | Solution tested with the latest version of Idira Privileged Access Manager SaaS | Required | House rule — recertification |
+| 11.3 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 11.4 | Documentation updated (version numbers, API paths, flow diagrams) | Required | House rule — recertification |
+| 11.5 | New functionality reviewed, tested, and supported where appropriate | Recommended | House rule — recertification |
+
+---
+
+## 12. Attestation
 
 I confirm that the integration meets the requirements above and is ready for Idira certification review.
 
@@ -199,6 +211,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-11-02 | **[Added]** v1.4 — Section 11, Yearly Recertification, with the same five checks the other kits' checklists carry; Attestation is renumbered to Section 12. The partner journey states that every checklist lists what is re-reviewed at yearly recertification, and this one did not. | Idira Technical Alliances |
 | 2026-10-08 | **[Fixed]** v1.3 — Check 2.3 no longer requires Discovery Source alone: that role permits add only, and check existence, get and onboard need a Privilege Cloud administrator role, so the check now requires both at least privilege. **[Updated]** Checks 4.1, 4.2, 5.1 and 6.1 name the documented fields, the account-type reference, the 1,000-account check-existence cap and paging; 9.1 names all four operations. A `Source` on every check | Idira Technical Alliances |
 | 2026-10-02 | **[Fixed]** v1.2 — Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. | Idira Technical Alliances |
 | 2026-10-01 | **[Added]** v1.1 — A `Source` column on §2 (Authentication & Security) and §7 (Logging & Observability), naming the authority behind each of those 11 checks: the OWASP ASVS 5.0.0 control where the requirement is a security control, the Idira documentation where it is a product contract, and `House rule` where it is our own programme policy. Until now no check in this repository recorded where it came from, so a security control and an internal preference were indistinguishable on the page. Vocabulary and verbatim control text: [`security-baseline-reference.md`](../../security-baseline-reference.md). Cells reading `(URL pending)` carry no link because the Privilege Cloud discovery API has no entry in the vault's verified deep-links index, and guessing a doc URL is prohibited. Three supporting changes: the header field `**Source:**` is renamed `**Converted from:**`, because in a file that now has a `Source` *column* about a requirement's authority, a header field of the same name pointing at the original `.docx` is a collision between two different meanings; §2's table is re-laid out in the compact pipe style the other fourteen checklists use (it was the only padded-alignment table in the corpus, and adding a column meant re-padding every row regardless); and the `Version` / `Last Updated` header fields and this Change Log are added, which this checklist had never carried — a Rule 1 and Rule 4 gap shared by all four Discovery checklists. No requirement, level or wording changed | Idira Technical Alliances |

@@ -4,8 +4,8 @@
 **Integration:** Central Credential Provider (CCP)  
 **Type:** Development Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.2  
-**Last Updated:** 2026-10-08
+**Version:** 1.3  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -322,9 +322,18 @@ Include the `x-cybr-telemetry` HTTP header on all CCP REST requests, Base64 URL-
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-11-02 | **[Added]** A closing *Next Steps* section linking this kit's certification checklist, `marketplace-standards.md` and the partner journey, matching the Secrets Manager SaaS and Self-Hosted guides. |
 | 1.2 | 2026-10-08 | **[Fixed]** The Python example now verifies the CCP server with its own CA bundle and presents the client certificate separately; it previously passed the client certificate as the server CA bundle. OS User authentication requires the calling user's Windows credentials (Negotiate/Kerberos), with examples. **[Added]** The POST form of GetPassword, recommended because it keeps the query out of URLs and logs; all request parameters; error codes for multiple matches; Certificate Attribute authentication; the application's own Safe membership. **[Updated]** `Safe` is optional — `AppID` plus at least one other parameter is required | Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the two facts a generated integration gets wrong here: there is no token endpoint, no OAuth flow and no `Authorization` header in this kit at all — authentication is of the calling *application*, configured server-side, with the partner's code contributing only a client certificate — and CCP is not standalone, it requires CP already installed to hold the Vault connection. It also records the cross-kit auditing trap (check 3.2 requires CP/CCP audit logging **disabled** for production, the inverse of the EPM Ticketing/JIT kit's mandatory `Audit: true`), the query contract (exactly one account, no hardcoded `Object`, `VirtualUsername` for dual accounts, password in `Content`), and that a rotation-time auth failure is expected behaviour to retry rather than an error to surface. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

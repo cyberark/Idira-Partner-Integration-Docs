@@ -3,8 +3,8 @@
 **Workflow:** Workload Identity  
 **Type:** Decision Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.1  
-**Last Updated:** 2026-10-08
+**Version:** 1.2  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -52,10 +52,10 @@ the Title-Hyphen used by ../discovery/. The values are assigned, not derivable �
 value, because the acronym collision above makes it ambiguous in the one registry where a wrong
 value misattributes a partner's traffic.
 
-THE KIT IS PREVIEW. Not a certifiable path yet, and its development guide has one deliberate gap —
-the step-level federation exchange, which is confirmed per build rather than published. Do not
-promise a Marketplace listing on it, and do not let an agent reconstruct the exchange from SPIFFE or
-SPIRE material.
+THE KIT IS PREVIEW. Not a certifiable path yet. The federation exchange is documented in the
+development guide Section 6.1; one point — whether SVID types other than JWT-SVIDs are accepted — is
+still to confirm. Do not promise a Marketplace listing on it, and do not let an agent reconstruct the
+exchange from SPIFFE or SPIRE material.
 
 NO CERTIFICATION CHECKLIST PAIRS WITH THIS FILE, BY DESIGN. Nothing here is graded directly; the
 checks live in the kit. Keep this file to routing.
@@ -91,9 +91,9 @@ This workflow holds one kit.
 |:---|:---|:---|:---|
 | **[SWA Federation](swa-federation/)** | Workloads your platform runs, routes, or hosts attest to SWA and authenticate to Idira without a distributed secret | Preview | `WorkloadIdentity` |
 
-> **This kit is Preview** — not a certifiable path yet, and one section of its development guide is
-> deliberately incomplete. See [the kit's own notice](swa-federation/development-guide.md#6-the-federation-exchange)
-> and talk to your Idira Technical Alliances contact before committing engineering time.
+> **This kit is Preview** — not a certifiable path yet. The federation exchange is documented in
+> [the development guide](swa-federation/development-guide.md#6-the-federation-exchange); talk to your
+> Idira Technical Alliances contact before committing engineering time.
 
 ---
 
@@ -206,5 +206,6 @@ These apply to any integration in this workflow:
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.2 | 2026-11-02 | **[Fixed]** The AI context block and §1 Preview note state that the federation exchange is documented in the development guide Section 6.1, with non-JWT SVID types the one point still to confirm. |
 | 1.1 | 2026-10-08 | **[Updated]** Lists the documented node attestation methods, and the fallback order no longer starts with client certificate, which works only through Secrets Manager Edge | Idira Technical Alliances |
 | 1.0 | 2026-10-05 | **[Added]** First publication, alongside the SWA Federation kit and the new `workload-identity/` workflow. This guide answers a different question from the other three workflow decision guides and says so up front: with one kit in the workflow there is no within-workflow choice, so its job is the inbound boundary rather than kit selection. It carries the one question that settles that boundary — does the integration *establish* an identity or *use* one to get something — routing establishment here, secret retrieval to Secrets Management, and inventory reporting to Discovery, with the note that these are additive and a platform doing two of them is certified twice rather than once. §4 exists for the `SWA` acronym collision between Secure Workload Access and the Secure Web Application Connectors Framework, which route to different workflows and are unrelated on every axis; the bare acronym is not disambiguated by the request forms either. §5 carries the graded shared requirements for generated code, with emphasis on attestation being platform-driven rather than chosen, on fail-closed behaviour, and on clock skew presenting as a permission failure when the two are not separated. The kit's Preview status and its one deliberate documentation gap are stated here as well as in the kit, so a reader routed by this file learns them before opening the guide. — Idira Technical Alliances |

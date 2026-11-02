@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Discovery_Self-Service_Guide.pdf
-**Version:** 1.3
-**Last Updated:** 2026-10-08
+**Version:** 1.4
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -73,6 +73,14 @@ FILES IN THIS DIRECTORY:
 ROUTING PRECEDENCE: journey.md → decision-guide.md → workflow decision-guide.md →
 development-guide.md → certification-checklist.md → marketplace-standards.md
 -->
+
+---
+
+> **Before you start.** This guide covers stage 3 of [The Partner Integration Journey](../../journey.md).
+>
+> **Your environment:** a dedicated Identity Security Platform SaaS tenant, provisioned once your integration request is approved. This kit calls the Idira Privileged Access Manager SaaS REST API, so your tenant must include Privileged Access Manager SaaS. Say that you are building Privileged Accounts discovery when you confirm provisioning. Environment credentials are never published in these docs. If you need them, or cannot log in, email `cybr-bizdevtech@paloaltonetworks.com` quoting your tracking reference.
+>
+> **Read your [certification checklist](certification-checklist.md) now.** It is the document your submission is graded against.
 
 ---
 
@@ -218,10 +226,19 @@ The certification checklist requires stale accounts to be reported to the custom
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.4 | 2026-11-02 | **[Added]** A *Before you start* note naming the environment you receive, stating that the tenant must include Idira Privileged Access Manager SaaS for this kit, and linking the certification checklist and the partner journey; and a closing *Next Steps* section handing off to certification and listing. |
 | 1.3 | 2026-10-08 | **[Fixed]** Added the missing add operation — `PUT /api/discovered-accounts/` with its body — which is the call that pushes a discovered account; the section previously titled "Add" documented onboard. Corrected the check-existence path to sit under `/api/discovered-accounts/`. Corrected the role model: Discovery Source permits add only, and check, get and onboard need a Privilege Cloud administrator role. **[Added]** Paging on get (default 50), the 1,000-account cap on check-existence, the supported account types, the token request and Bearer header, telemetry, and a note to avoid the classic Discovery API. An integration provisioned with Discovery Source alone must add an administrator role to check or reconcile | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It leads with the fact that this is the one Discovery kit *not* on the Discovery Context GraphQL API — it uses Privilege Cloud REST on a different host with a different role model — because the three sibling kits are otherwise a tempting source of an auth pattern that does not apply. It also names the one role of the four in Section 3 that can actually add accounts, the dependency order of the three calls, and, explicitly, what this guide does **not** document: no token endpoint, no auth header format, no request or response schema, and no telemetry requirement despite the checklist grading one. Those gaps are recorded so an agent declines to invent the values rather than borrowing them from the GraphQL kits. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed; the gaps are documented, not closed. — Idira Technical Alliances |

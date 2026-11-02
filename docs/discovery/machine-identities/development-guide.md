@@ -4,8 +4,8 @@
 **Dev Kit:** Machine Identities  
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
-**Version:** 1.3  
-**Last Updated:** 2026-10-08
+**Version:** 1.4  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -80,6 +80,14 @@ FILES IN THIS DIRECTORY:
 ROUTING PRECEDENCE: journey.md → decision-guide.md → workflow decision-guide.md →
 development-guide.md → certification-checklist.md → marketplace-standards.md
 -->
+
+---
+
+> **Before you start.** This guide covers stage 3 of [The Partner Integration Journey](../../journey.md).
+>
+> **Your environment:** a dedicated Identity Security Platform SaaS tenant, provisioned once your integration request is approved. Environment credentials are never published in these docs. If you need them, or cannot log in, email `cybr-bizdevtech@paloaltonetworks.com` quoting your tracking reference.
+>
+> **Read your [certification checklist](certification-checklist.md) now.** It is the document your submission is graded against.
 
 ---
 
@@ -366,10 +374,19 @@ Log the `originId` of every record alongside the API response. For partial batch
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.4 | 2026-11-02 | **[Added]** A *Before you start* note naming the environment you receive and linking the certification checklist and the partner journey, and a closing *Next Steps* section handing off to certification and listing. Both links previously appeared only in the AI context block, which does not render for a human reader. |
 | 1.3 | 2026-10-08 | **[Fixed]** Reconciliation is done against the integration's own record of what it pushed, then `deleteExternalWorkloads` by `originId` — the Machines External Data Contributor role this kit requires cannot read inventory. Batches are limited by request size: the documented limit is 64 KB per mutation and there is no record-count limit, so the 100-per-batch rule is removed. `type` is a required field. **[Added]** That queries need Machines Admin | Idira Technical Alliances |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances |
 | 1.1 | 2026-09-30 | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. It states the GraphQL single-endpoint pattern, the operation-name vs. server-field distinction (`addReplaceExternalWorkloads` is the field; `AddReplaceWorkloads` is only a client-side label), the fact that the API names this entity `Workload` rather than "machine identity", the post-2026-08-06 role requirement, and the `originId` / `providerId` reconciliation contract. Also added the `**Version:**` and `**Last Updated:**` header fields and this change log — the file previously carried neither, so no revision before this one is recorded. No guidance was changed. — Idira Technical Alliances |

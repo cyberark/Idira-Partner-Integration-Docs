@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Credential_Rotation_Self-Service_Guide.pdf  
-**Version:** 1.5  
-**Last Updated:** 2026-10-27
+**Version:** 1.6  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -123,6 +123,14 @@ FILES IN THIS DIRECTORY:
 ROUTING PRECEDENCE: journey.md → decision-guide.md → workflow decision-guide.md →
 development-guide.md → certification-checklist.md → marketplace-standards.md
 -->
+
+---
+
+> **Before you start.** This guide covers stage 3 of [The Partner Integration Journey](../../journey.md).
+>
+> **Your environment:** an Idira Privileged Access Manager Self-Hosted environment, provisioned once your integration request is approved. At first login, confirm you can reach the PVWA and the CPM server's `bin` folder — Sections 3 and 10 depend on both — and tell us at once if you cannot. Environment credentials are never published in these docs. If you need them, or cannot log in, email `cybr-bizdevtech@paloaltonetworks.com` quoting your tracking reference.
+>
+> **Read your [certification checklist](certification-checklist.md) now.** It is the document your submission is graded against.
 
 ---
 
@@ -512,10 +520,19 @@ Expected Result: `The plugin ended successfully (RC=0)`. If it fails, check the 
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.6 | 2026-11-02 | **[Added]** A *Before you start* note naming the Idira Privileged Access Manager Self-Hosted environment you receive and what to confirm at first login, with links to the certification checklist and the partner journey; and a closing *Next Steps* section handing off to certification and listing. |
 | 1.5 | 2026-10-27 | **[Fixed]** The WSChains statement in the AI context block and Section 3 now covers new plugins: a new CPM plugin built on WSChains fails certification checks 2.1 and 2.2 and is not accepted for certification, and existing listings are unaffected. No requirement changed | Idira Technical Alliances |
 | 1.4 | 2026-10-21 | **[Added]** The retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, `CANetPluginInvoker.exe`, `<WSChains>` root) is not certified, stated in the AI context block and Section 3. Some older Marketplace plugins still use it, and a partner who copied one as a template had nothing here telling them otherwise. No requirement changed: checks 2.1 and 2.2 already fail a WSChains plugin | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** Placeholder syntax is `{{Name}}` (double braces) throughout; every example used `((Name))`, which the framework does not resolve. **[Added]** Prerequisites and deployment (Section 3) for both Privilege Cloud and Self-Hosted, including the framework files by their real names (`CyberArk.Extensions.Generic.Plugin.RestAPI.dll`, `CyberArk.Extensions.Generic.Infra.RestAPI.dll`); `ManagementType`; all seven chain actions including `deletepass` and `deletepassafterreconcile`; parameter attributes including `secure` and `validationPattern`; placeholder scopes and modifiers; that `<Headers>` is mandatory in every request; working reference links. **[Updated]** Authentication guidance states what the framework supports and what check 4.2 accepts. A plugin written with `((…))` placeholders must be updated | Idira Technical Alliances |

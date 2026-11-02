@@ -2,9 +2,9 @@
 
 **Workflow:** EPM
 **Type:** Decision Guide
-**Version:** 1.2
+**Version:** 1.3
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -99,8 +99,10 @@ Use current Idira product names in all documentation and certification submissio
 | Use Case | Development Guide | Certification Checklist |
 |:---------|:-----------------|:------------------------|
 | [Audit Events](audit-events/) | [Guide](audit-events/development-guide.md) | [Checklist](audit-events/certification-checklist.md) |
-| [Ticketing — JIT Admin Elevation](ticketing-jit/) | [Guide](ticketing-jit/development-guide.md) | — *(in development — ask your Idira Technical Alliances contact for the criteria)* |
+| [Ticketing — JIT Admin Elevation](ticketing-jit/) | [Guide](ticketing-jit/development-guide.md) | [Checklist](ticketing-jit/certification-checklist.md) |
 | [SOC Response — XDR/SOAR Endpoint Containment](soc-response/) | [Guide](soc-response/development-guide.md) | [Checklist](soc-response/certification-checklist.md) |
+
+The environment differs by use case: see stage 2 of [The Partner Integration Journey](../journey.md), which also covers certification and listing end to end.
 
 ---
 
@@ -108,4 +110,5 @@ Use current Idira product names in all documentation and certification submissio
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.3 | 2026-11-02 | **[Fixed]** §6 links the published Ticketing — JIT Admin Elevation checklist; it previously said the checklist was in development. **[Added]** A pointer to the partner journey for the per-use-case environment and the path to listing. |
 | 1.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. Also added this change log — the file previously carried none, so no revision before this one is recorded. — Idira Technical Alliances |

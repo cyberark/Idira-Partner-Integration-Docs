@@ -3,9 +3,9 @@
 **Workflow:** Credential Rotation  
 **Dev Kit:** CPM REST API Plugin  
 **Type:** Certification Checklist  
-**Version:** 2.5  
+**Version:** 2.6  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-27  
+**Last Updated:** 2026-11-02  
 **Converted from:** Idira_Credential_Rotation_Certification_Checklist.doc
 
 ---
@@ -162,7 +162,19 @@ A demonstration is mandatory. Either format satisfies the requirement — you do
 
 ---
 
-## 9. Attestation
+## 9. Yearly Recertification
+
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 9.1 | Best practices reviewed and reflected in the solution | Required | House rule — recertification |
+| 9.2 | Solution tested with the latest version of Idira Privileged Access Manager and the REST API Application CPM Plugin Framework | Required | House rule — recertification |
+| 9.3 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 9.4 | Documentation updated (version numbers, API paths, flow diagrams) | Required | House rule — recertification |
+| 9.5 | New functionality reviewed, tested, and supported where appropriate | Recommended | House rule — recertification |
+
+---
+
+## 10. Attestation
 
 I confirm that the integration meets the requirements above and is ready for Idira certification review.
 
@@ -191,6 +203,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 2.6 | 2026-11-02 | **[Added]** Section 9, Yearly Recertification, with the same five checks the other kits' checklists carry; Attestation is renumbered to Section 10. The partner journey states that every checklist lists what is re-reviewed at yearly recertification, and this one did not. |
 | 2.5 | 2026-10-27 | **[Fixed]** The WSChains statement in the AI context block now covers new plugins: a new CPM plugin built on WSChains fails 2.1 and 2.2 and is not accepted for certification, and existing listings are unaffected. No check was added or re-levelled | Idira Technical Alliances |
 | 2.4 | 2026-10-21 | **[Added]** A plugin on the retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, `CANetPluginInvoker.exe`) fails 2.1 and 2.2 and is not certified, stated in the AI context block. Some older Marketplace plugins still use it. No check was added or re-levelled | Idira Technical Alliances |
 | 2.3 | 2026-10-08 | **[Fixed]** Checks 2.1 and 2.2 name the framework assemblies by their real file names, `CyberArk.Extensions.Generic.Plugin.RestAPI.dll` and `CyberArk.Extensions.Generic.Infra.RestAPI.dll`. Check 5.1 no longer requires every HTTP verb — a plugin uses the methods its target API documents. Check 5.5 names the chains in their documented lowercase form. **[Added]** A `Source` on every check. A plugin built on the correct assemblies previously could not satisfy 2.1–2.2 as written | Idira Technical Alliances |

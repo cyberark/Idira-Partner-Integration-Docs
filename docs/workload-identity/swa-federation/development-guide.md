@@ -5,8 +5,8 @@
 **Type:** Self-Service Guide  
 **Status:** Preview — not a certifiable path yet  
 **Author:** Idira Technical Alliances  
-**Version:** 1.1  
-**Last Updated:** 2026-10-08
+**Version:** 1.2  
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -100,8 +100,8 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 ---
 
 > **This kit is Preview.** The guidance below is usable and the certification checklist is published,
-> but this is **not a certifiable path yet** and Section 6 is deliberately incomplete — see the notice
-> there. Talk to your Idira Technical Alliances contact before committing engineering time, so you
+> but this is **not a certifiable path yet**, and one point in Section 6 — whether SVID types other
+> than JWT-SVIDs are accepted — is still to be confirmed. Talk to your Idira Technical Alliances contact before committing engineering time, so you
 > know which parts are settled.
 
 ---
@@ -197,8 +197,8 @@ Three participants, and the partner's platform is usually responsible for the th
 
 The flow in outline: the workload asks the local SWA Agent for an identity, the agent gathers
 platform-supplied evidence of what that workload is, SWA Server evaluates the evidence against the
-configured attestation method, and an SVID is issued if it holds. **The step-level sequence is not
-stated here — see Section 6.**
+configured attestation method, and an SVID is issued if it holds. **The step-level exchange is in
+Section 6.**
 
 What matters for integration design is where the evidence comes from. It is supplied by the platform,
 not by the workload, which is precisely why the resulting identity cannot be copied: a cloned
@@ -219,7 +219,7 @@ objection no longer applies, and the conclusion should be re-tested rather than 
 ## 5. Choosing an Attestation Method
 
 This is the real decision in the kit, and it is driven by where the workload runs — not by
-preference. Three methods are confirmed. Each **removes** a provisioning step rather than adding one,
+preference. Five methods are confirmed. Each **removes** a provisioning step rather than adding one,
 which is the point: there is no bootstrap credential to distribute, so there is nothing to leak.
 
 | Method | Where it applies | What it proves | What you do *not* need |
@@ -343,7 +343,7 @@ architectural failures, which are the ones that actually bite in deployment. Han
 | **Attestation rejected** | The evidence does not match the configured method — wrong platform, wrong namespace or service account, or an attestation method configured for a platform the workload is not on | Fail closed and surface which method was attempted. Do not fall back to a static credential automatically |
 | **SVID expired mid-operation** | SVIDs are short-lived and the operation outlived the validity window | Renew and retry once. Do not extend the cached lifetime to avoid the renewal |
 | **Clock skew** | Attested, time-bound credentials are sensitive to node clock drift | Require time sync on nodes running SWA Agent, and treat a validity-window failure as a skew signal rather than a permission problem |
-| **No attestation path on the platform** | The workload runs somewhere none of the three methods covers | Route to the Section 5.2 fallback explicitly, log the decision, and never silently embed a key |
+| **No attestation path on the platform** | The workload runs somewhere none of the methods in Section 5 covers | Route to the Section 5.2 fallback explicitly, log the decision, and never silently embed a key |
 
 Log the attestation method attempted and its outcome for every identity issued. Without that, an
 attestation failure and an authorization failure look identical in the logs.
@@ -358,8 +358,10 @@ attestation failure and an authorization failure look identical in the logs.
       Connectors Framework
 - [ ] Platform identified for every workload in scope, and the attestation method determined from it
       (Section 5) rather than chosen by preference
-- [ ] Federation exchange confirmed with an Idira Technical Alliances contact (Section 6) — this is a
-      gate, not a formality, and nothing in this guide substitutes for it
+- [ ] Environment requested with your attestation platform named — EC2, Google Cloud, or Kubernetes —
+      so it can be provisioned to match ([journey](../../journey.md) stage 2)
+- [ ] Federation exchange built to Section 6.1, and any SVID type other than a JWT-SVID confirmed with
+      an Idira Technical Alliances contact before you depend on it
 - [ ] SVID renewal implemented, with no code path that caches an SVID past its validity
 - [ ] No static key in any workload or agent image, manifest, or configuration
 - [ ] Node time synchronisation confirmed on anything running SWA Agent
@@ -376,5 +378,6 @@ attestation failure and an authorization failure look identical in the logs.
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.2 | 2026-11-02 | **[Fixed]** The Preview notice and Section 4 point to the JWT-SVID exchange documented in Section 6.1, and name non-JWT SVID types as the one point still to confirm. Sections 5 and 8 count the attestation methods correctly. **[Added]** A pre-development checklist item to request the environment with the attestation platform named. |
 | 1.1 | 2026-10-08 | **[Added]** The documented federation exchange with Secrets Manager — JWT-SVIDs through the JWT authenticator, RSA signing, the authenticator variables, and the host, group and permission steps without which an attested workload has no secret access; exchange with AWS, Azure, Google Cloud, Gemini Enterprise, Claude and OpenAI; the SWA management APIs and Terraform provider; the `k8s_psat` and `x509pop` node attestation methods; node-group design, SPIFFE ID templates and registration policies. **[Updated]** Google Cloud is listed as service-account attestation for Gemini Enterprise agents and as a federation target. The fallback order no longer starts with client certificate, which works only through Secrets Manager Edge. One point remains to confirm: whether X.509-SVIDs are accepted by Secrets Manager | Idira Technical Alliances |
 | 1.0 | 2026-10-05 | **[Added]** First publication, as the single kit in the new `workload-identity/` workflow. It exists because workload identity federation had no kit of its own: SWA appeared only as the fourth authentication option inside the Secrets Manager SaaS guide (Section 4a), which serves a retrieval client that happens to hold an SVID and does not serve a partner whose platform *is* the identity surface — gateways, agent runtimes, and platforms that already issue SPIFFE identities had nothing to build against and nothing to be graded on. Published as **Preview**: Section 5's three attestation methods, the Section 4 component model, and the 4.1 topology change are confirmed, but Section 6's step-level federation exchange is documented only in the authenticated Secrets Manager SaaS space and is therefore stated as a gap with an explicit instruction not to reconstruct it from SPIFFE or SPIRE material. Carries the direction rule that separates this kit from Secrets Management (establishing identity versus retrieving a secret value, and an integration doing both is certified twice), the boundary against both Discovery kits (inventorying an identity is not issuing one), and the `SWA` acronym collision with the Secure Web Application Connectors Framework, which routes to a different kit entirely. Telemetry `it` value `WorkloadIdentity` assigned in the same change — `SWA` was deliberately not used, because the acronym collision makes it ambiguous in exactly the registry where a wrong value misattributes traffic. — Idira Technical Alliances |

@@ -2,8 +2,8 @@
 
 **Maintained by:** Idira Technical Alliances  
 **Contact:** `cybr-bizdevtech@paloaltonetworks.com`  
-**Last Updated:** 2026-10-27  
-**Version:** 1.6
+**Last Updated:** 2026-11-02  
+**Version:** 1.7
 
 ---
 
@@ -34,9 +34,9 @@ so rather than adapting the nearest one, and route the request to the Idira Tech
 THE STATUS COLUMN IS LOAD-BEARING, NOT DECORATION. THREE kits carry a status other than Available —
 `identity-response/response-actions`, `workload-identity/swa-federation`, and
 `identity-access-management/identity-governance` — and none is a certifiable path yet: a partner can build against them, but do not present their checklists as settled
-gates or promise a Marketplace listing on them. The Workload Identity kit additionally has one
-deliberate documentation gap, the step-level federation exchange, which is confirmed per build rather
-than published — do not let an agent reconstruct it. Every other kit is Available. Read the status cell
+gates or promise a Marketplace listing on them. The Workload Identity kit documents its federation
+exchange in its development guide Section 6.1; one point — non-JWT SVID types — is still to confirm,
+so do not let an agent reconstruct it from SPIFFE or SPIRE material. Every other kit is Available. Read the status cell
 itself and check it before telling a partner they can certify.
 
 THREE ROWS ARE NOT KITS. The "All workflows" row points at the top-level decision-guide.md, and the
@@ -212,6 +212,7 @@ PSM Web Connection Components are the one exception and carry no telemetry requi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.7 | 2026-11-02 | **[Fixed]** The AI context block states that the Workload Identity kit documents its federation exchange in its development guide Section 6.1, with non-JWT SVID types the one point still to confirm. No kit, status or requirement changed. |
 | 1.6 | 2026-10-27 | **[Added]** Draft integration-guide templates for Secrets Management: Secrets Manager (Self-Hosted and SaaS) and Credential Provider (CP and CCP), linked from the Secrets Management section. No kit, status or requirement was changed. — Idira Technical Alliances |
 | 1.5 | 2026-10-14 | **[Added]** The **Identity Access Management** workflow and its first kit, **Identity Governance & Provisioning**, taking the inventory to 17 kits across 9 workflows. Identity Access Management was a form option with no kit behind it, so an IGA partner had nothing to be graded on. Listed as **Preview** — the third non-Available kit — and it is the first kit to break the guide-plus-checklist pair: the checklist is published ahead of its development guide, so the Development Guide cell reads *Not yet published* and the AI context block states the exception rather than letting an agent reconstruct the missing guide. No existing listing, status or requirement was changed. — Idira Technical Alliances |
 | 1.4 | 2026-10-05 | **[Added]** The **Workload Identity** workflow and its single kit, **SWA Federation**, taking the inventory to 16 kits across 8 workflows. It fills a gap this catalogue made visible: workload identity federation appeared only as the fourth authentication option inside the Secrets Manager SaaS guide, which serves a retrieval client that happens to hold an SVID and gave nothing to a partner whose platform *is* the identity surface — so gateways, agent runtimes and platforms that already issue SPIFFE identities had no kit to build against and no checklist to be graded on. Listed as **Preview**, which makes it the second non-Available kit, so the AI context block's status warning now names two rather than one. Two rows were added, not one: the kit plus a workflow decision guide, which takes the router count in this table from two to three. That decision guide is deliberately unlike the Discovery, EPM and Secrets Management ones — with a single kit there is no within-workflow choice, so it routes the inbound boundary instead, which is where this integration is most often misfiled. The Status key was also generalised: it described an unsettled API field name marked `[TBD]` as the only form a Preview gap takes, and the new kit's gap is an unsettled *procedure* stated as visible prose instead, so both forms are now described. No existing listing, status or requirement was changed. — Idira Technical Alliances |

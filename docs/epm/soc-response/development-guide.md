@@ -4,9 +4,9 @@
 **Use Case:** SOC Response — XDR/SOAR Endpoint Containment
 **Idira Product:** Endpoint Privilege Manager (EPM)
 **Type:** Development Guide
-**Version:** 1.7
+**Version:** 1.8
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-19
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -219,6 +219,8 @@ in=<IntegrationName>&it=SOCResponse&iv=<version>&vn=<VendorName>
 | Integration Version | `iv` |   Yes    | `iv=1.0`                      |
 | Vendor Name         | `vn` |   Yes    | `vn=SentinelOne`              |
 | Vendor Version      | `vv` |    No    | `vv=23.4`                     |
+
+Build the header from [`telemetry-reference.md`](../../telemetry-reference.md), which carries the transform, reference code and test vectors, rather than from this example.
 
 ---
 
@@ -485,10 +487,19 @@ Log the `ComputerId`, `GroupId`, alert ID, and timestamp at each step. This crea
 
 ---
 
+## Next Steps
+
+1. **Get certified.** Complete [`certification-checklist.md`](certification-checklist.md) and submit it as its *Submitting This Checklist* section describes.
+2. **Get listed.** Write your listing content to [`marketplace-standards.md`](../../marketplace-standards.md) before you submit it.
+3. **See the whole path.** [The Partner Integration Journey](../../journey.md) covers every stage, including yearly recertification after you are live.
+
+---
+
 ## Change Log
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.8 | 2026-11-02 | **[Added]** A closing *Next Steps* section linking the certification checklist, `marketplace-standards.md` and the partner journey, and a pointer from Section 5 to `telemetry-reference.md`. This guide previously linked none of the four. |
 | 1.7 | 2026-10-19 | **[Fixed]** The Section 4 and reference links point to the current EPM page, *Set up API authentication for EPM REST APIs using ISPSS*; the previous address no longer resolves. No build step changed | Idira Technical Alliances |
 | 1.6 | 2026-10-08 | **[Added]** The rate limits that shape a containment design: endpoint group APIs 10 calls per 2 minutes (the reason to cache group IDs), add/remove members 5 per second and 500 per 5 minutes, Get endpoints 1,000 per 5 minutes and 5 per second; and batching endpoints into one `membersIds` call during an incident | Idira Technical Alliances |
 | 1.5 | 2026-10-05 | **[Removed]** Two author-to-author editorial comments that were addressed to Idira teams rather than to a partner. They were invisible on the rendered page and fully visible to a partner's AI agent, which reads the raw markdown — so the audience this corpus is built for was reading notes written for us. Both restated a caveat the visible guidance already carries, and nothing a partner acts on changed: `SetId` is still resolved at runtime behind one replaceable function, and an ambiguous endpoint match must still fail the playbook step rather than contain an arbitrary host. The two open product questions they tracked are now tracked where they have an owner and a review trigger. A publish-guard check now fails the build on this class of comment | Idira Technical Alliances |

@@ -4,9 +4,9 @@
 **Dev Kit:** SWA Federation  
 **Type:** Certification Checklist  
 **Status:** Preview — not a settled gate yet  
-**Version:** 1.1  
+**Version:** 1.2  
 **Author:** Idira Technical Alliances  
-**Last Updated:** 2026-10-08  
+**Last Updated:** 2026-11-02  
 
 ---
 
@@ -66,9 +66,10 @@ where the partner's platform establishes workload identity that Idira consumes.
 > **Preview status.** This kit is marked **Preview** in [`index.md`](../../index.md): it is not a
 > certifiable path yet. The checks below are the intended gate and are worth building against now,
 > but confirm the current requirements with your Idira Technical Alliances contact before submitting.
-> Section 4 in particular depends on the federation exchange described in
-> [`development-guide.md`](development-guide.md) Section 6, which is confirmed per build rather than
-> published here.
+> Section 4 grades the federation exchange documented in
+> [`development-guide.md`](development-guide.md) Section 6.1 — a JWT-SVID presented to the Secrets
+> Manager JWT authenticator. Only check 4.6, SVID types other than JWT-SVIDs, still needs confirming
+> for your build.
 
 Items marked **Required** are gate criteria. Items marked **Recommended** are best-practice
 validations that reviewers note but do not block on. Items marked **Confirm first** cannot be graded
@@ -104,9 +105,9 @@ until the federation exchange is confirmed for your build.
 
 ## 4. SVID Lifecycle
 
-> These checks depend on the federation exchange confirmed per build — see
-> [`development-guide.md`](development-guide.md) Section 6. Build against them; confirm the graded
-> form before submission.
+> These checks follow the federation exchange documented in
+> [`development-guide.md`](development-guide.md) Section 6.1. Check 4.6 is the one item still to
+> confirm with your Idira Technical Alliances contact before you rely on it.
 
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
@@ -187,7 +188,19 @@ until the federation exchange is confirmed for your build.
 
 ---
 
-## 11. Attestation
+## 11. Yearly Recertification
+
+| # | Check | Requirement | Source |
+|:--|:------|:------------|:-------|
+| 11.1 | Best practices reviewed and reflected in the solution | Required | House rule — recertification |
+| 11.2 | Solution tested with the latest version of Idira Secrets Manager SaaS and Secure Workload Access | Required | House rule — recertification |
+| 11.3 | Security scan results reviewed and addressed | Required | House rule — recertification |
+| 11.4 | Documentation updated (version numbers, API paths, flow diagrams) | Required | House rule — recertification |
+| 11.5 | New functionality reviewed, tested, and supported where appropriate | Recommended | House rule — recertification |
+
+---
+
+## 12. Attestation
 
 I confirm that the integration meets the requirements above and is ready for Idira certification review.
 
@@ -221,5 +234,6 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-11-02 | **[Added]** v1.2 — Section 11, Yearly Recertification, with the same five checks the other kits' checklists carry; Attestation is renumbered to Section 12. The partner journey states that every checklist lists what is re-reviewed at yearly recertification, and this one did not. **[Fixed]** The §1 and §4 notes state that §4 grades the federation exchange documented in the development guide Section 6.1, and that check 4.6 is the one item still to confirm. | Idira Technical Alliances |
 | 2026-10-08 | **[Updated]** v1.1 — Check 4.5 is now graded against the documented exchange (JWT-SVID to the Secrets Manager JWT authenticator, RSA signing) and is Required; check 4.6 stays Confirm first for SVID types other than JWT-SVIDs. Check 2.2 lists the documented node attestation methods; check 2.4 no longer puts client certificate first, since it works only through Secrets Manager Edge. **[Added]** A `Source` on every check | Idira Technical Alliances |
 | 2026-10-05 | **[Added]** v1.0 — First publication, pairing with the SWA Federation development guide as the single kit in the new `workload-identity/` workflow. Published as **Preview**, so it is explicitly not a settled gate and must not be presented as one. The gradeable substance is §2 attestation, §3 credential hygiene, §4.1–4.4 SVID lifecycle, §5 telemetry, §6 transport, §7 logging, §8 documentation and §9 functional validation; 2.1 is the central check, since an integration that distributes a static credential and calls it workload identity fails on the kit's whole premise. Two checks — 4.5 and 4.6, the SVID presentation sequence and the accepted SVID types — carry a `Confirm first` level that exists only in this kit, because the step-level federation exchange is documented in the authenticated Secrets Manager SaaS space and the development guide deliberately does not reproduce it; grading them against an inferred sequence would certify a guess. Security checks carry a `Source` naming the OWASP ASVS 5.0.0 control or the Idira document behind them, with `House rule` where the requirement is programme policy; cells reading `(URL pending)` carry no link because guessing a documentation URL is prohibited. | Idira Technical Alliances |
