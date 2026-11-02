@@ -1,9 +1,9 @@
 # Which Integration Do I Select?
 
 **Type:** Top-Level Decision Guide
-**Version:** 1.9
+**Version:** 1.10
 **Author:** Idira Technical Alliances
-**Last Updated:** 2026-10-19
+**Last Updated:** 2026-11-02
 
 ---
 
@@ -123,7 +123,7 @@ If none of those fits, your integration is most likely **SSO** or **WPM (Workfor
 
 **Workload identity has no form option of its own.** Secure Workload Access is delivered as part of Secrets Manager SaaS, so **Idira Secrets Management** is the closest accurate selection — but it describes *retrieving a secret*, which is not what this integration does. Select it and **state in the description that the integration establishes workload identity via SWA federation**, naming the platform your workloads run on. Two selections to avoid: **Idira Identity Security Platform**, the platform umbrella, is not a product selection and routes nowhere; and an Identity Access Management option will route to the identity governance kit (above), which is a different integration. The [Workload Identity decision guide](workload-identity/decision-guide.md) settles whether this is even your workflow — the boundary against Secrets Management catches most of these — and resolves the `SWA` acronym collision with the unrelated Secure Web Application Connectors Framework.
 
-**The SWA Federation kit is still Preview.** Its development guide is usable and its certification checklist is published, but the kit is marked **Preview** in [`index.md`](index.md) — not a certifiable path yet — and one section is deliberately incomplete: the step-level federation exchange is confirmed per build rather than published, so do not reconstruct it from the SPIFFE specification or SPIRE material. Talk to your Idira Technical Alliances contact before committing engineering time.
+**The SWA Federation kit is still Preview.** Its development guide is usable and its certification checklist is published, but the kit is marked **Preview** in [`index.md`](index.md) — not a certifiable path yet — and one point is still to confirm: whether SVID types other than JWT-SVIDs are accepted. The JWT-SVID federation exchange is documented in the kit's development guide Section 6.1; do not reconstruct it from the SPIFFE specification or SPIRE material. Talk to your Idira Technical Alliances contact before committing engineering time.
 
 **The Identity Governance & Provisioning kit is Preview, and has no development guide yet.** Its certification checklist is published so you can build against the intended gate, but the kit is marked **Preview** in [`index.md`](index.md) — not a certifiable path yet. Until the guide is published, build from the Idira documentation named in each checklist row's `Source` cell, and talk to your Idira Technical Alliances contact before committing engineering time.
 
@@ -165,6 +165,7 @@ Use current names in all documentation and certification submissions.
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.10 | 2026-11-02 | **[Fixed]** The §4 SWA Federation note states that the JWT-SVID federation exchange is documented in that kit's development guide Section 6.1, with non-JWT SVID types the one point still to confirm, matching the kit's own guide and checklist. |
 | 1.9 | 2026-10-19 | **[Fixed]** The §2 Identity Response row now gives the kit's status as **Preview**, the value `index.md` uses. No row, form option or kit mapping changed | Idira Technical Alliances |
 | 1.8 | 2026-10-14 | **[Added]** A §2 row and a §4 Preview note for the new Identity Access Management kit, Identity Governance & Provisioning. The §4 note that said Identity Access Management has no dev kit now names the one it has and narrows the no-kit list to SSO and WPM — SCIM provisioning is what the new kit covers. The Workload Identity note no longer says an Identity Access Management selection routes to a kit that does not exist; it now routes to the governance kit, which is still the wrong integration for workload identity. The §2 row links the checklist because the kit has no development guide yet. — Idira Technical Alliances |
 | 1.7 | 2026-10-05 | **[Added]** A §2 row and two §4 notes for the new Workload Identity workflow, whose kit establishes workload identity rather than consuming one. The §2 row is qualified rather than clean, because the form cannot express this integration: Secure Workload Access ships as part of Secrets Manager SaaS, so **Idira Secrets Management** is the closest accurate option while describing the opposite operation — retrieving a secret. §4 therefore gains a third known gap, taking it from two to three, telling a partner to select that option and say in the description that the integration establishes workload identity via SWA federation, and naming the two selections that waste a cycle: the platform umbrella, which routes nowhere, and an Identity Access Management option, which routes to a kit that does not exist. A second §4 note records the kit's Preview status and its one deliberate documentation gap. The AI context block now also carries the `SWA` acronym collision, since the form does not disambiguate Secure Workload Access from the Secure Web Application Connectors Framework and the two share no API, scope or certification path. No existing row, form option or kit mapping changed | Idira Technical Alliances |
