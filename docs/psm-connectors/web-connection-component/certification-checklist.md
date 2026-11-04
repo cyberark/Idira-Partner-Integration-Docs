@@ -2,9 +2,9 @@
 
 **Workflow:** PSM Connectors
 **Use Case:** Web Connection Component
-**Idira Product:** Idira Privileged Access Manager Self-Hosted
+**Idira Product:** Idira Privileged Access Manager Self-Hosted or Idira Privileged Access Manager SaaS (PSM on a Connector server)
 **Type:** Certification Checklist
-**Version:** 2.4
+**Version:** 2.5
 **Author:** Idira Technical Alliances
 **Last Updated:** 2026-10-20
 
@@ -18,7 +18,8 @@ Read it before answering any question about what this integration is graded on.
 TYPE: Certification Checklist — this is the graded artifact.
 WORKFLOW: PSM Connectors
 DEV KIT: Web Connection Component
-IDIRA PRODUCT: Idira Privileged Access Manager Self-Hosted only (PVWA + PSM). Not SaaS.
+IDIRA PRODUCT: Idira Privileged Access Manager Self-Hosted (PVWA + PSM), or Idira Privileged Access Manager SaaS
+  with the PSM component installed on the partner's or customer's own Connector server.
 PAIRS WITH: development-guide.md in this directory. That file states how to build the
 integration; this file states what is checked. Read both.
 
@@ -90,7 +91,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | 1.1 | Confirmed this is a PSM Web Connection Component use case — a web application login automated by PSM, with no Idira REST API involved | Required | House rule — certification programme |
 | 1.2 | Official Idira documentation reviewed and best practices applied | Required | House rule — certification programme |
 | 1.3 | Connection component is based on `PSM-WebAppSample` with a unique `Id` and `DisplayName` | Required | House rule — certification programme |
-| 1.4 | Target deployment confirmed as Idira Privileged Access Manager Self-Hosted (PVWA + PSM) | Required | House rule — certification programme |
+| 1.4 | Target deployment confirmed as Idira Privileged Access Manager Self-Hosted (PVWA + PSM), or Idira Privilege Cloud with the PSM component installed on a Connector server | Required | [docs: Install the Privilege Cloud Connector](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm) |
 
 ---
 
@@ -133,11 +134,11 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
-| 5.1 | PSM server hardened for web applications (`PSMHardening.ps1 -SupportWebApplications`) | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) |
-| 5.2 | AppLocker browser rules enabled (`PSMConfigureAppLocker.ps1`) | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) |
-| 5.3 | Browser (Chrome 100+ or Edge 103+) and web driver versions are identical, and their bitness matches the WebAppDispatcher in use | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) |
-| 5.4 | Correct WebAppDispatcher deployed — Marketplace-downloaded components default to the 32-bit dispatcher unless PVWA is switched to 64-bit; Edge dispatcher from the Idira Marketplace where required | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) |
-| 5.5 | Required HTTPS certificates for the target application present on the PSM server | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) |
+| 5.1 | PSM server hardened for web applications: Self-Hosted — run `PSMHardening.ps1` with the `-supportWebApplication` option; Idira Privileged Access Manager SaaS — `$SUPPORT_WEB_APPLICATIONS` set to `$true` inside `PSMHardening.ps1` in the PSM `Hardening` folder (the Connector's GPO hardening otherwise applies), then rerun the script | Required | [docs: Configure PSM to connect to web applications — Self-Hosted](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pas%20inst/install_configurepsmservermachineforwebapps.htm); [docs: Configure PSM to connect to web applications — Privilege Cloud](https://docs.cyberark.com/privilege-cloud-standard/latest/en/content/pas%20inst/install_configurepsmservermachineforwebapps.htm) |
+| 5.2 | AppLocker browser rules enabled (`PSMConfigureAppLocker.ps1`) | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm); [docs: Configure Windows AppLocker — Privilege Cloud](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-applocker.htm) |
+| 5.3 | Browser (Chrome 100+ or Edge 103+) and web driver versions are identical, and their bitness matches the WebAppDispatcher in use | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm); [docs: Secure Web Application Connectors Framework — Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm) |
+| 5.4 | Correct WebAppDispatcher deployed — Marketplace-downloaded components default to the 32-bit dispatcher unless PVWA is switched to 64-bit; Edge dispatcher from the Idira Marketplace where required | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm); [docs: Secure Web Application Connectors Framework — Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm) |
+| 5.5 | Required HTTPS certificates for the target application present on the PSM server | Required | [docs: Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm); [docs: Secure Web Application Connectors Framework — Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm) |
 
 ---
 
@@ -148,7 +149,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | 6.1 | Connector packaged as a `.zip` and uploaded to PVWA | Required | House rule — certification programme |
 | 6.2 | Connection component linked to the target platform — component `Id` added under UI & Workflows, Enable set to Yes | Required | House rule — certification programme |
 | 6.3 | Connect tested from PVWA against a vaulted account, confirming both auto-logon and session recording | Required | House rule — certification programme |
-| 6.4 | Supported PSM / PAM Self-Hosted version range documented | Required | House rule — certification programme |
+| 6.4 | Supported PSM version range documented (PAM Self-Hosted and/or Privilege Cloud Connector) | Required | House rule — certification programme |
 
 ---
 
@@ -171,7 +172,7 @@ A demonstration is mandatory. Either format satisfies the requirement — you do
 | # | Check | Requirement | Source |
 |:--|:------|:------------|:-------|
 | 8.1 | Login flow re-validated against the current version of the target web application | Required | House rule — recertification |
-| 8.2 | Connector tested with the latest supported PSM / PAM Self-Hosted version and browser/driver versions | Required | House rule — recertification |
+| 8.2 | Connector tested with the latest supported PSM version (PAM Self-Hosted or Privilege Cloud Connector) and browser/driver versions | Required | House rule — recertification |
 | 8.3 | Best practices reviewed and reflected in the connector | Required | House rule — recertification |
 | 8.4 | Documentation updated — supported versions, dispatcher, platform steps | Required | House rule — recertification |
 
@@ -206,6 +207,7 @@ I confirm that the integration meets the requirements above and is ready for Idi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 2.5 | 2026-11-04 | **[Fixed]** Scope. The kit stated "Self-Hosted only … Not SaaS", which the Idira documentation does not support: the Secure Web Application Connectors Framework and the Plugin Generator Utility are documented for Privilege Cloud, where PSM runs on the Connector server installed in the customer's environment. Header, check 1.4 (now cited to the Connector install page instead of "House rule"), 6.4 and 8.2 now cover both deployments. No other check changed. — Idira Technical Alliances |
 | 2.4 | 2026-10-20 | **[Updated]** Check 2.2 now also requires `RunValidations` to be `Yes`. With `No`, PSM skips every `(Validation)` line, so a component that contains one still never confirms the login, and a failed login leaves the session open for the operator to sign in by hand. The validation line must also follow the last `(Button)`. **[Added]** Check 3.6: `EnforceCertificateValidation` must be `Yes`, its default. With `No`, PSM accepts any target certificate and can inject the vaulted credential into an impersonated login page; trust a self-signed target certificate on the PSM server instead. Both are security requirements and are required regardless of when your component was built — review your component against them before submission | Idira Technical Alliances |
 | 2.3 | 2026-10-08 | **[Fixed]** Check 5.3 no longer requires a 32-bit browser — 32- and 64-bit browsers are supported when browser, driver and dispatcher bitness match. Check 5.4 states that Marketplace-downloaded components default to the 32-bit dispatcher. **[Added]** A `Source` on every check | Idira Technical Alliances |
 | 2.2 | 2026-10-02 | **[Fixed]** Replaced the unexpanded acronym `TAM` with `Idira Technical Alliances contact`. It was never expanded anywhere in this corpus and collides with Technical Account Manager — a role this programme does not have — so neither a partner nor their AI tooling could resolve who to contact. No requirement, level or process changed. — Idira Technical Alliances | House rule — certification programme |

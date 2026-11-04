@@ -5,7 +5,7 @@
 **Type:** Self-Service Guide  
 **Author:** Idira Technical Alliances  
 **Source:** Idira_Credential_Rotation_Self-Service_Guide.pdf  
-**Version:** 1.6  
+**Version:** 1.7  
 **Last Updated:** 2026-11-02
 
 ---
@@ -168,6 +168,18 @@ Developing a CPM plugin with the REST API framework typically follows a structur
 > **Not WSChains.** New CPM plugins built on the retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, run by `CANetPluginInvoker.exe`, with a `<WSChains>` root element) fail certification checks 2.1 and 2.2 and are not accepted for certification. Existing listings are unaffected. Some older Marketplace plugins still use it, so do not copy one as a template. Start from the REST API framework sample below.
 
 ---
+
+### Connector server (Idira Privileged Access Manager SaaS)
+
+On Idira Privileged Access Manager SaaS there is no hosted CPM or PSM. You install the Connector agent on a Windows server on your own network and build and test there. Self-Hosted partners skip this section.
+
+| Requirement | Detail |
+|:---|:---|
+| Connector machine | A Windows server you control, meeting the [Privilege Cloud Connector network and machine requirements](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-sys-req-srs-psm.htm). Do not rename its hostname during or after deployment. |
+| Connector Management | In the Idira user portal, open **Connector Management**, select your connector and click **Add component**. The components offered show which configuration your tenant uses — see the next row. |
+| Which components | In Connector Management, select your connector, click **Add new component** and select **CPM** (and PSM if you also need it); follow the steps for environments configured with CPM on [the install page](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm). Then place the platform's configuration file in the CPM `bin` folder, as [Create CPM plugins for REST API applications](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/plugins/cpm-plugins-rest-api.htm) describes. |
+| Install | Follow [Install the Connector using Connector Management](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm): run the prerequisites check script as a local administrator, apply the GPO hardening package for your configuration, then run the installer. |
+| Network | The Connector needs access to your target network (TCP/3389 or TCP/22) and the tenant's IP allowlist configured, as that page describes. |
 
 ### Prerequisites and Deployment
 
@@ -389,7 +401,7 @@ Before developing, ensure the target application's API can perform the necessary
 
 ## 8. Step 2: Create/Update the Plug-in Configuration File (XML)
 
-Sections 8–10 use the Self-Hosted CPM paths. On Privilege Cloud, the same `bin` folder is on the CPM of the customer's connector server.
+Sections 8–10 show the Self-Hosted CPM paths (`C:\Program Files (x86)\CyberArk\Password Manager`). On Idira Privileged Access Manager SaaS, Connector Management installs the CPM on your Connector server, by default under `C:\Program Files` in Connector Management subfolders unless you chose another installation path ([install page](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm)); its application log is at `<CPM installation path>\CyberArk\Password Manager\Logs` ([Connector logs](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connector-logs-cm.htm)). Use your CPM installation path wherever these sections show the Self-Hosted path.
 
 1. **Navigate to the CPM Plugin Directory:** Open File Explorer and go to `C:\Program Files (x86)\CyberArk\Password Manager\bin`.
 2. **Open the XML File:** Open your plugin's XML file (e.g., `YourPluginName.xml`) in a text editor (like Notepad++ or VS Code). If it doesn't exist, create a new file with this name.
@@ -532,6 +544,7 @@ Expected Result: `The plugin ended successfully (RC=0)`. If it fails, check the 
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.7 | 2026-11-04 | **[Fixed]** Sections 8–10 state where the CPM is installed on a SaaS Connector server, from the Connector Management install and logs pages, instead of implying the Self-Hosted path applies. **[Added]** A *Connector server* prerequisites subsection for Idira Privileged Access Manager SaaS, with the Connector Management steps and the official install and requirements pages. Linked to the new workflow decision guide. — Idira Technical Alliances |
 | 1.6 | 2026-11-02 | **[Added]** A *Before you start* note naming the Idira Privileged Access Manager Self-Hosted environment you receive and what to confirm at first login, with links to the certification checklist and the partner journey; and a closing *Next Steps* section handing off to certification and listing. |
 | 1.5 | 2026-10-27 | **[Fixed]** The WSChains statement in the AI context block and Section 3 now covers new plugins: a new CPM plugin built on WSChains fails certification checks 2.1 and 2.2 and is not accepted for certification, and existing listings are unaffected. No requirement changed | Idira Technical Alliances |
 | 1.4 | 2026-10-21 | **[Added]** The retired WSChains framework (`Cyberark.Extensions.Plugin.WSChains.dll`, `CANetPluginInvoker.exe`, `<WSChains>` root) is not certified, stated in the AI context block and Section 3. Some older Marketplace plugins still use it, and a partner who copied one as a template had nothing here telling them otherwise. No requirement changed: checks 2.1 and 2.2 already fail a WSChains plugin | Idira Technical Alliances |

@@ -1,10 +1,10 @@
-# Idira Privileged Access Manager Self-Hosted — Web Connection Component Development Guide
+# Idira PSM — Web Connection Component Development Guide
 
 **Workflow:** PSM Connectors
 **Use Case:** Web Connection Component
-**Idira Product:** Idira Privileged Access Manager Self-Hosted
+**Idira Product:** Idira Privileged Access Manager Self-Hosted or Idira Privileged Access Manager SaaS (PSM on a Connector server)
 **Type:** Development Guide
-**Version:** 1.4
+**Version:** 1.6
 **Author:** Idira Technical Alliances
 **Last Updated:** 2026-10-20
 
@@ -20,7 +20,8 @@
 This block is for AI coding assistants (Claude, Copilot, Cursor, etc.) importing this guide.
 Read this block first before answering any questions about this integration.
 
-PRODUCT: Idira Privileged Access Manager Self-Hosted — Privileged Session Manager (PSM) component
+PRODUCT: Idira Privileged Session Manager (PSM) component — Idira Privileged Access Manager Self-Hosted,
+  or Idira Privileged Access Manager SaaS with PSM installed on a Connector server on the customer's own network
 WORKFLOW: PSM Connectors
 USE CASE: Web Connection Component (web application auto-logon + session recording)
 INTEGRATION PATTERN: PSM web connection component (browser automation) — NOT a REST/API integration.
@@ -36,8 +37,10 @@ DISPATCHER: WebAppDispatcher, 32- or 64-bit. From PSM 14.6 OUT-OF-THE-BOX compon
   dispatcher automatically; components downloaded from the Marketplace — which is how a partner
   connector ships — stay in the 32-bit Connector folders unless PVWA is configured to switch.
   Revert to 32-bit by pointing ClientDispatcher at {PSMComponentsFolder32}.
-DEPLOY TARGET: Customer's PSM server, via upload of the connector .zip to PVWA, then linked to a platform.
-SANDBOX: C3 Integrations Platform — https://c3.cyberark.cloud
+DEPLOY TARGET: Customer's PSM server, via upload of the connector .zip to PVWA (Self-Hosted) or the Privilege Cloud
+  management console (Privilege Cloud), then linked to a platform.
+SANDBOX: Request access at cybr-bizdevtech@paloaltonetworks.com. On Privilege Cloud you install the Connector agent
+  (PSM component) on your own Windows server; there is no hosted PSM to build against.
 CONTACT: cybr-bizdevtech@paloaltonetworks.com
 
 KEY CONSTRAINTS:
@@ -114,12 +117,24 @@ After the connector is deployed and linked to a platform, an operator selects th
 
 | Requirement | Detail |
 |:---|:---|
-| Idira deployment | Idira Privileged Access Manager - Self-Hosted (PVWA + PSM). The same Secure Web Application Connectors Framework is documented for Idira Privilege Cloud, where PSM runs on the customer's connector servers; the procedures in this guide are written for Self-Hosted. See [Self-Hosted](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) and [Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm). |
-| PSM server prepared for web apps | Run `PSMHardening.ps1` with the `-SupportWebApplications` parameter on the PSM server as an administrator; enable the browser sections of `PSMConfigureAppLocker.xml` and run `PSMConfigureAppLocker.ps1`. |
+| Idira deployment | Idira Privileged Access Manager - Self-Hosted (PVWA + PSM). On Idira Privileged Access Manager SaaS the same Secure Web Application Connectors Framework and Plugin Generator Utility apply: download the Connector agent, install the PSM component on your own Windows server, and build and test there. This guide's steps are written in Self-Hosted terms (PVWA); on Privilege Cloud the equivalent management screens are in the Privilege Cloud management console. See [Self-Hosted](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm) and [Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm). |
+| PSM server prepared for web apps | **Self-Hosted:** run `PSMHardening.ps1` with the `-supportWebApplication` option. **Idira Privileged Access Manager SaaS:** set `$SUPPORT_WEB_APPLICATIONS` to `$true` inside `PSMHardening.ps1` in the PSM `Hardening` folder, then rerun it; the Connector's GPO hardening otherwise applies. Both: enable the browser sections of `PSMConfigureAppLocker.xml` and run `PSMConfigureAppLocker.ps1` ([AppLocker reference](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-applocker.htm)). |
 | Browser + matching web driver | Google Chrome 100 or later, or Microsoft Edge 103 or later (IE mode not supported), 32- or 64-bit, on the PSM server, plus the **matching** web driver (ChromeDriver for Chrome, `msedgedriver.exe` for Edge). Browser and driver versions must be identical, and their bitness must match the dispatcher. Put the driver in the PSM `\Components` folder (32-bit) or `\Components\x64` (64-bit). Deploy the **WebDriverUpgrader** tool to keep drivers current, or manage versions manually. |
 | Framework version | The latest Secure Web Application Connectors Framework from the Marketplace. From Chrome/Edge driver 133, use framework **14.6.0.244 or later**. |
 | WebAppDispatcher | Deploy the WebAppDispatcher with the current PSM version. From PSM 14.6, **out-of-the-box** connection components use the 64-bit dispatcher automatically; **components downloaded from the Marketplace — including yours — stay in the 32-bit Connector folders** unless PVWA is configured to switch. If a target web app does not support 64-bit, PSM reverts to 32-bit; you can also point ClientDispatcher at `{PSMComponentsFolder32}`. For Edge, download the current WebAppDispatcher from the Idira Marketplace and copy it to the PSM Components folder. **On PSM 15.0 new installations (2026-08-02): the install package no longer bundles connection components** — PVWA, vSphere, SSMS, Azure Portal and others must be downloaded from the Marketplace. Do not assume any baseline component is present on a fresh 15.0 PSM server; verify what is actually in the Components folder before testing your connector. Existing installations upgraded to 15.0 are unaffected. Whether WebAppDispatcher itself is in or out of that exclusion is not stated in the release note — check the Components folder rather than assuming, and ask your Idira Technical Alliances contact if you need it confirmed before you plan the deployment. |
-| Sandbox | C3 Integrations Platform — request access at `cybr-bizdevtech@paloaltonetworks.com`. |
+| Sandbox | Request access at `cybr-bizdevtech@paloaltonetworks.com`. For Privilege Cloud, install the Connector agent with the PSM component on your own Windows server ([install steps](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm); [network and machine requirements](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-sys-req-srs-psm.htm)). |
+
+### Connector server (Idira Privileged Access Manager SaaS)
+
+On Idira Privileged Access Manager SaaS there is no hosted PSM. You install the Connector agent on a Windows server on your own network and build and test there. Self-Hosted partners skip this section.
+
+| Requirement | Detail |
+|:---|:---|
+| Connector machine | A Windows server you control, meeting the [Privilege Cloud Connector network and machine requirements](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-sys-req-srs-psm.htm). Do not rename its hostname during or after deployment. |
+| Connector Management | In the Idira user portal, open **Connector Management**, select your connector and click **Add component**. The components offered show which configuration your tenant uses — see the next row. |
+| Which components | In Connector Management, select your connector, click **Add new component** and select **PSM**, as [the install page](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm) describes. CPM and PSM can be installed on the same Connector. |
+| Install | Follow [Install the Connector using Connector Management](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm): run the prerequisites check script as a local administrator, apply the GPO hardening package for your configuration, then run the installer. |
+| Network | The Connector needs access to your target network (TCP/3389 or TCP/22) and the tenant's IP allowlist configured, as that page describes. |
 
 ### Partner Environment
 
@@ -270,7 +285,9 @@ Bind the username field to `{username}` and the password field to `{password}` (
 ## 12. Resources
 
 - [Secure Web Application Connectors Framework](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm)
-- [C3 Integrations Platform](https://c3.cyberark.cloud)
+- [Secure Web Application Connectors Framework — Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pasimp/psm_webapplication.htm)
+- [PSM Web Connectors (Plugin Generator) — Privilege Cloud](https://docs.cyberark.com/manage/latest/en/content/privilege-cloud/pcp/pgu-psm-plugins-main.htm)
+- [Install the Privilege Cloud Connector](https://docs.cyberark.com/setup/latest/en/content/ispss-deployment/privilege%20cloud/privcloud-connectorinstall-cm.htm)
 - [Web applications for PSM](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pasimp/psm_webapplication.htm)
 - [Generate PSM web connectors with the Plugin Generator Utility](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pcp/pgu-psm-plugins-main.htm)
 - [Configure PSM to connect to web applications](https://docs.cyberark.com/pam-self-hosted/latest/en/content/pas%20inst/install_configurepsmservermachineforwebapps.htm)
@@ -283,6 +300,8 @@ Bind the username field to `{username}` and the password field to `{password}` (
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.6 | 2026-11-04 | **[Added]** A *Connector server* prerequisites subsection: what to install on Idira Privileged Access Manager SaaS, where, and the official install and requirements pages. **[Fixed]** The "Idira deployment" and hardening prerequisites now give the Privilege Cloud wording alongside Self-Hosted. Linked to the new workflow decision guide. — Idira Technical Alliances |
+| 1.5 | 2026-11-04 | **[Fixed]** Scope and sandbox. The guide stated Self-Hosted only and named the C3 Integrations Platform as the sandbox. The Idira documentation covers the same framework and Plugin Generator Utility for Privilege Cloud, with PSM installed on a Connector server; C3 is the shared Secrets Manager environment and cannot host PSM. Product line, deployment prerequisite, sandbox and references updated; Privilege Cloud documentation and Connector install links added. — Idira Technical Alliances |
 | 1.4 | 2026-10-20 | **[Added]** Section 8 now states two settings a component must ship with: `RunValidations` set to `Yes` (otherwise PSM skips every validation line and a failed login leaves the session open for a manual sign-in), and `EnforceCertificateValidation` left at `Yes` (otherwise PSM accepts any target certificate). The partner-environment prerequisite now requires a certificate the PSM server trusts, with the self-signed case handled by trusting the certificate on the PSM server. Added a troubleshooting row for "Page certificate is untrusted" and matching pre-development checklist items. These pair with checklist checks 2.2 and 3.6 | Idira Technical Alliances |
 | 1.3 | 2026-10-08 | **[Fixed]** Components downloaded from the Marketplace — including partner connectors — use the 32-bit dispatcher unless PVWA is configured to switch; the 64-bit default from PSM 14.6 applies to out-of-the-box components. The hardening parameter is `-SupportWebApplications`, and the driver tool is WebDriverUpgrader. Browsers may be 32- or 64-bit. **[Added]** Minimum browser versions; framework 14.6.0.244 or later for driver 133+; the x64 driver folder; HTTPS-First Mode in incognito; the iFrame, Failure and MFA WebFormFields commands and the timeout parameters; that the framework is also documented for Privilege Cloud | Idira Technical Alliances |
 | 1.2 | 2026-10-05 | **[Fixed]** The WebAppDispatcher prerequisite now states in visible prose that the PSM 15.0 release note does not settle whether WebAppDispatcher itself falls under the connection-component exclusion, and tells you to check what is actually in the Components folder and to ask your Idira Technical Alliances contact if you need it confirmed before planning a deployment. That qualification previously sat in an editorial comment — invisible on the rendered page, fully visible to a partner's AI agent, which reads the raw markdown. The underlying instruction is unchanged: do not assume any baseline component is present on a fresh 15.0 server. Also added this change log — the file previously carried none, so no revision before this one is recorded | Idira Technical Alliances |

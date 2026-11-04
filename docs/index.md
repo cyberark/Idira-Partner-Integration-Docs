@@ -2,8 +2,8 @@
 
 **Maintained by:** Idira Technical Alliances  
 **Contact:** `cybr-bizdevtech@paloaltonetworks.com`  
-**Last Updated:** 2026-11-02  
-**Version:** 1.7
+**Last Updated:** 2026-11-04  
+**Version:** 1.8
 
 ---
 
@@ -48,7 +48,7 @@ between kits the way the Discovery, EPM and Secrets Management guides do.
 
 DEPLOYMENT SCOPE CONSTRAINTS STATED HERE — AND IN SOME CASES ONLY HERE (Section "Workflow
 Descriptions"). These bound whether an integration is possible at all, so check them before designing:
-- PSM Connectors / Web Connection Component: **Idira PAM Self-Hosted only.** Browser automation via the
+- PSM Connectors / Web Connection Component: **Idira PAM Self-Hosted, or Idira Privileged Access Manager SaaS with PSM on a Connector server.** Browser automation via the
   PSM Plugin Generator Utility, not a REST integration.
 - Identity Response / Response Actions: **Idira SaaS only.** Idira acts as a stateless execution
   engine — the partner playbook resolves the target, runs the action, and reads back per-action status.
@@ -117,6 +117,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | [Discovery](discovery/)                     | AI Agents                                    | [Development Guide](discovery/ai-agents/development-guide.md)                            | [Checklist](discovery/ai-agents/certification-checklist.md)                            | Available |
 | [Discovery](discovery/)                     | Machine Identities                           | [Development Guide](discovery/machine-identities/development-guide.md)                   | [Checklist](discovery/machine-identities/certification-checklist.md)                   | Available |
 | [Discovery](discovery/)                     | Secrets                                      | [Development Guide](discovery/secrets/development-guide.md)                              | [Checklist](discovery/secrets/certification-checklist.md)                              | Available |
+| [Credential Rotation](credential-rotation/) | —                                            | [Decision Guide](credential-rotation/decision-guide.md)                                  | —                                                                                      |
 | [Credential Rotation](credential-rotation/) | CPM REST API Plugin                          | [Development Guide](credential-rotation/cpm-rest-api/development-guide.md)               | [Checklist](credential-rotation/cpm-rest-api/certification-checklist.md)               | Available |
 | [Audit Service](audit-service/)             | SIEM Integration                             | [Development Guide](audit-service/siem-integration/development-guide.md)                 | [Checklist](audit-service/siem-integration/certification-checklist.md)                 | Available |
 | [EPM](epm/)                                 | Audit Events                                 | [Development Guide](epm/audit-events/development-guide.md)                               | [Checklist](epm/audit-events/certification-checklist.md)                               | Available |
@@ -128,6 +129,7 @@ development-guide.md → certification-checklist.md → marketplace-standards.md
 | [Secrets Management](secrets-management/)   | Credential Provider (CP)                     | [Development Guide](secrets-management/credential-provider/development-guide.md)         | [Checklist](secrets-management/credential-provider/certification-checklist.md)         | Available |
 | [Secrets Management](secrets-management/)   | Central Credential Provider (CCP)            | [Development Guide](secrets-management/central-credential-provider/development-guide.md) | [Checklist](secrets-management/central-credential-provider/certification-checklist.md) | Available |
 | [Secrets Management](secrets-management/)   | Secrets Manager Self-Hosted                  | [Development Guide](secrets-management/secrets-manager-self-hosted/development-guide.md) | [Checklist](secrets-management/secrets-manager-self-hosted/certification-checklist.md) | Available |
+| [PSM Connectors](psm-connectors/)           | —                                            | [Decision Guide](psm-connectors/decision-guide.md)                                       | —                                                                                      |
 | [PSM Connectors](psm-connectors/)           | Web Connection Component                     | [Development Guide](psm-connectors/web-connection-component/development-guide.md)        | [Checklist](psm-connectors/web-connection-component/certification-checklist.md)        | Available |
 | [Workload Identity](workload-identity/)     | —                                            | [Decision Guide](workload-identity/decision-guide.md)                                    | —                                                                                      | —         |
 | [Workload Identity](workload-identity/)     | SWA Federation                               | [Development Guide](workload-identity/swa-federation/development-guide.md)               | [Checklist](workload-identity/swa-federation/certification-checklist.md)               | Preview   |
@@ -162,7 +164,7 @@ Enable a partner application, service, or tool to securely retrieve secrets from
 Once certified, write your integration guide from the matching template: [Secrets Manager](secrets-management/integration-guide-templates/secrets-manager.md) (Self-Hosted and SaaS) or [Credential Provider](secrets-management/integration-guide-templates/credential-provider.md) (CP and CCP). Both templates are drafts open for feedback.
 
 ### PSM Connectors
-Package a connection component that lets Idira Privileged Session Manager (PSM) broker a privileged session to a partner web application: PSM launches a controlled browser on the customer's PSM server, injects vaulted credentials into the application's login web form, and records the session. This is a browser-automation integration built with the PSM Plugin Generator Utility, not a REST/API integration, so the telemetry-header requirement below does not apply to it. Idira PAM Self-Hosted only.
+Package a connection component that lets Idira Privileged Session Manager (PSM) broker a privileged session to a partner web application: PSM launches a controlled browser on the customer's PSM server, injects vaulted credentials into the application's login web form, and records the session. This is a browser-automation integration built with the PSM Plugin Generator Utility, not a REST/API integration, so the telemetry-header requirement below does not apply to it. Idira PAM Self-Hosted, or Idira Privileged Access Manager SaaS with PSM on a Connector server.
 
 ### Workload Identity
 Let a partner platform that runs, routes, or hosts workloads establish SPIFFE identity for them, so those workloads authenticate to Idira with a short-lived attested SVID instead of a distributed secret. Covers **Secure Workload Access (SWA)**, which is delivered as part of Secrets Manager SaaS rather than as a standalone product — `workload-identity/` is a use-case label, not a product name. One kit, so the [Decision Guide](workload-identity/decision-guide.md) confirms the integration belongs in this workflow rather than in Secrets Management or Discovery, which is where it is most often misfiled: establishing an identity and using one to fetch a secret are different integrations. Note that "SWA" also abbreviates the unrelated Secure Web Application Connectors Framework — see the decision guide before matching a kit. **Preview.**
@@ -212,6 +214,7 @@ PSM Web Connection Components are the one exception and carry no telemetry requi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.8 | 2026-11-04 | **[Added]** Decision-guide rows for Credential Rotation and PSM Connectors. **[Fixed]** PSM Connectors is no longer stated as Self-Hosted only; it supports Idira Privileged Access Manager Self-Hosted and Idira Privileged Access Manager SaaS with a Connector server. — Idira Technical Alliances |
 | 1.7 | 2026-11-02 | **[Fixed]** The AI context block states that the Workload Identity kit documents its federation exchange in its development guide Section 6.1, with non-JWT SVID types the one point still to confirm. No kit, status or requirement changed. |
 | 1.6 | 2026-10-27 | **[Added]** Draft integration-guide templates for Secrets Management: Secrets Manager (Self-Hosted and SaaS) and Credential Provider (CP and CCP), linked from the Secrets Management section. No kit, status or requirement was changed. — Idira Technical Alliances |
 | 1.5 | 2026-10-14 | **[Added]** The **Identity Access Management** workflow and its first kit, **Identity Governance & Provisioning**, taking the inventory to 17 kits across 9 workflows. Identity Access Management was a form option with no kit behind it, so an IGA partner had nothing to be graded on. Listed as **Preview** — the third non-Available kit — and it is the first kit to break the guide-plus-checklist pair: the checklist is published ahead of its development guide, so the Development Guide cell reads *Not yet published* and the AI context block states the exception rather than letting an agent reconstruct the missing guide. No existing listing, status or requirement was changed. — Idira Technical Alliances |

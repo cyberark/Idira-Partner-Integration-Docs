@@ -68,8 +68,10 @@ is explicitly permitted.
 ## Other workflows
 
 - [Audit Service — SIEM Integration](docs/audit-service/siem-integration/development-guide.md): Stream Idira identity and privileged-access audit events into a partner platform ([checklist](docs/audit-service/siem-integration/certification-checklist.md))
+- [Credential Rotation decision guide](docs/credential-rotation/decision-guide.md): One kit; confirms the workflow and the SaaS or Self-Hosted deployment
 - [Credential Rotation — CPM REST API Plugin](docs/credential-rotation/cpm-rest-api/development-guide.md): A CPM plugin that rotates credentials for a target application ([checklist](docs/credential-rotation/cpm-rest-api/certification-checklist.md))
 - [Identity Response Actions](docs/identity-response/response-actions/development-guide.md): Trigger identity, session, credential, and access-policy response actions from an XDR/SIEM/SOAR platform ([checklist](docs/identity-response/response-actions/certification-checklist.md))
+- [PSM Connectors decision guide](docs/psm-connectors/decision-guide.md): One kit; confirms the workflow and the SaaS or Self-Hosted deployment
 - [PSM Web Connection Component](docs/psm-connectors/web-connection-component/development-guide.md): Package a connection component so PSM can broker and record a session to a partner web application. Browser automation, not REST — the telemetry requirement does not apply ([checklist](docs/psm-connectors/web-connection-component/certification-checklist.md))
 
 ## Optional

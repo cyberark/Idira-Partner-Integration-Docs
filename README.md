@@ -24,7 +24,7 @@ Each kit gives a technology partner everything needed to build an integration: t
 | [EPM](docs/epm/) | Endpoint audit events, JIT admin elevation via ticketing, or XDR/SOAR endpoint containment |
 | [Identity Response](docs/identity-response/) | Trigger identity, session, credential, and access-policy response actions from an XDR/SIEM/SOAR platform — **Preview** |
 | [Secrets Management](docs/secrets-management/) | Retrieve secrets from Idira instead of storing them locally |
-| [PSM Connectors](docs/psm-connectors/) | A connection component so Idira Privileged Session Manager can broker and record a privileged session into your web application. Idira PAM Self-Hosted only |
+| [PSM Connectors](docs/psm-connectors/) | A connection component so Idira Privileged Session Manager can broker and record a privileged session into your web application. Idira PAM Self-Hosted, or Idira Privileged Access Manager SaaS with PSM on a Connector server |
 | [Workload Identity](docs/workload-identity/) | SPIFFE identity for workloads your platform runs, routes, or hosts, so they authenticate to Idira with an attested SVID instead of a distributed secret — **Preview** |
 | [Identity Access Management](docs/identity-access-management/identity-governance/certification-checklist.md) | Provision, reconcile, and certify identities and entitlements in Idira from your IGA platform — **Preview**, certification checklist only; the development guide is not yet published |
 

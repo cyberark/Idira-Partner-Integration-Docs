@@ -28,7 +28,7 @@ so — that puts it in front of your Idira Technical Alliances contact directly.
 ## For the Idira Technical Alliances team
 
 **This repository is the source of truth for the dev-kit corpus.** Author and edit the kits here,
-directly on `master`. There is no upstream copy to edit first and no sync step — a change merged
+directly on `main`. There is no upstream copy to edit first and no sync step — a change merged
 here is the published change.
 
 ### Before you commit

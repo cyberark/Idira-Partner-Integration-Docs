@@ -1,7 +1,7 @@
 # Idira Joint Solution Brief (JSB) Standards
 
 **Type:** Reference Guide
-**Version:** 1.5
+**Version:** 1.6
 **Author:** Idira Technical Alliances
 **Last Updated:** 2026-09-30
 **Source:** Palo Alto Networks Tech Partnerships JSB template; Idira Naming Guidelines — Partners
@@ -83,7 +83,7 @@ NAMING SPECIFICS THAT GET BRIEFS RETURNED (§5, §9):
 STATE THE DEPLOYMENT MODEL AT FIRST MENTION (§7.10). Where an integration supports only Self-Hosted or
 only SaaS, say so inline rather than in a footnote: an unqualified Idira product name reads as "all
 deployments" and is treated as a CAPABILITY MISSTATEMENT, not an omission. This connects directly to the
-kits — psm-connectors/web-connection-component is Idira PAM Self-Hosted only, and
+kits — psm-connectors/web-connection-component is Idira PAM Self-Hosted or Privilege Cloud (Connector server), and
 identity-response/response-actions is Idira SaaS only.
 
 TWO MORE STRUCTURAL RULES THAT LOOK LIKE STYLE AND ARE NOT (Track A):
@@ -361,6 +361,7 @@ These are the recurring reasons briefs come back.
 
 | Version | Date | Author | Changes |
 |:---|:---|:---|:---|
+| 1.6 | 2026-11-04 | Idira Technical Alliances | **[Fixed]** The deployment-scope note no longer states the PSM Connectors kit as Self-Hosted only; it covers Idira Privileged Access Manager Self-Hosted and SaaS (Connector server). |
 | 1.5 | 2026-09-30 | Idira Technical Alliances | **[Added]** AI context block, completing the agent-readable layer across the dev-kit corpus. This file is the one place in the corpus where an agent generates prose carrying the Idira name rather than generating an integration, so the block treats §5 and §7 as constraints on the agent's own output. It leads with the four rules a language model breaks by default: em dashes, which §7.4 bars outright and which are a punctuation habit rather than a decision; the §7.5 cliché list, which is close to a model's default register for marketing copy; the ban on abbreviating Idira product names even in parentheses after a first full mention, which inverts standard technical-writing practice; and §7.8's accuracy rule, since fluent generated copy invents capability claims unless the line is held deliberately. It requires the track to be established before drafting because it cannot be inferred, and records that Track B is exempt from structure and length only. It flags §7.3 competitive positioning as the hard stop with the barred gap-framing pattern quoted, noting that gap-framing is the natural way to write a joint value proposition and so will be produced while trying to be helpful. It names the two sections an agent must leave alone even when asked to write the whole brief, and states that the About Palo Alto Networks boilerplate must be copied from §5 rather than regenerated from memory. It also carries the naming specifics that get briefs returned, the §7.10 deployment-model rule tied to the two kits it affects, the product-neutrality rules for The Challenge and The Solution opening, that character limits are counted rather than estimated, the asset absolutes on screenshots and customer quotes, the evidence and standards-revision rules, and the §8 timeline with its separate publish gate. Also bumped the version and `**Last Updated:**`. No standard, limit, or prohibition was changed |
 | 1.4 | 2026-09-28 | Idira Technical Alliances | **[Fixed]** The destination note drops an in-product navigation path that is not the partner's surface and was not verified against the shipped UI. Matches the same change in [`journey.md`](journey.md) v1.3 and [`marketplace-standards.md`](marketplace-standards.md) v1.5 |
 | 1.3 | 2026-09-17 | Idira Technical Alliances | **[Fixed]** §8 now describes the submission and review path by role rather than by individual, and states the contact address for questions. The destination note names the Palo Alto Networks technology partner directory directly |

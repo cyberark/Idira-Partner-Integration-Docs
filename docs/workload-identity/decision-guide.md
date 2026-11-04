@@ -36,7 +36,7 @@ once per kit — not once overall. Do not merge two kits into one submission.
 SWA IS AN ACRONYM COLLISION AND THIS IS THE FILE THAT CATCHES IT:
   Secure Workload Access                      -> swa-federation/ (this workflow)
   Secure Web Application Connectors Framework -> ../psm-connectors/web-connection-component/
-The second is PSM browser automation for self-hosted deployments and is unrelated on every axis —
+The second is PSM browser automation (Self-Hosted, or SaaS with a Connector server) and is unrelated on every axis —
 different API, different deployment scope, different certification path. If a partner says "SWA"
 without expanding it, resolve which one before matching a kit.
 

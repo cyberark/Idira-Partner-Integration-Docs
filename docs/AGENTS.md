@@ -1,7 +1,7 @@
 # AGENTS.md — Machine Entry Point
 
 **Type:** Repository Manifest
-**Version:** 1.5
+**Version:** 1.6
 **Author:** Idira Technical Alliances
 **Last Updated:** 2026-10-19
 
@@ -110,9 +110,9 @@ Workflows and kits:
 | `epm/` | yes | `audit-events/`, `ticketing-jit/`, `soc-response/` |
 | `secrets-management/` | yes | `secrets-manager-saas/`, `credential-provider/`, `central-credential-provider/`, `secrets-manager-self-hosted/` |
 | `audit-service/` | no | `siem-integration/` |
-| `credential-rotation/` | no | `cpm-rest-api/` |
+| `credential-rotation/` | yes | `cpm-rest-api/` |
 | `identity-response/` | no | `response-actions/` |
-| `psm-connectors/` | no | `web-connection-component/` |
+| `psm-connectors/` | yes | `web-connection-component/` |
 | `workload-identity/` | yes — inbound boundary, not kit choice | `swa-federation/` |
 | `identity-access-management/` | no | `identity-governance/` — checklist only, guide not yet published |
 
@@ -183,6 +183,8 @@ field are all worth reporting; that is how the corpus gets fixed.
 
 ### Change Log
 
+- **[Fixed]** v1.6 — `credential-rotation/` and `psm-connectors/` now carry a workflow decision guide, so the §4
+  table lists both as having one. No read order, stop rule or requirement changed. — Idira Technical Alliances
 - **[Fixed]** v1.5 — The licence note now names *Palo Alto Networks, Inc.* as the party to credit,
   matching `LICENSE`. No read order, stop rule or requirement changed. — Idira Technical Alliances
 - **[Added]** v1.4 — The `identity-access-management/` workflow and its `identity-governance/` kit

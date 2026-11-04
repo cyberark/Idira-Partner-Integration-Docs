@@ -1,7 +1,7 @@
 # The Partner Integration Journey
 
 **Type:** Journey Overview
-**Version:** 1.9
+**Version:** 2.0
 **Author:** Idira Technical Alliances
 **Last Updated:** 2026-11-02
 
@@ -89,7 +89,7 @@ If your workflow has its own decision guide, read that next:
 | Secrets Management | [`secrets-management/decision-guide.md`](secrets-management/decision-guide.md) | Deployment and retrieval pattern — four paths |
 | Workload Identity | [`workload-identity/decision-guide.md`](workload-identity/decision-guide.md) | **Not kit choice — this workflow has one kit.** It tests whether your integration belongs here at all rather than in Secrets Management or Discovery, and resolves the `SWA` acronym collision |
 
-Audit Service, Credential Rotation, PSM Connectors, Identity Response, and Identity Access Management each have a single use case and no decision guide — go straight to the kit from [`index.md`](index.md). Identity Access Management publishes its certification checklist ahead of its development guide, and it requires a production or pilot customer to be named before certification — know that before you commit engineering time. Workload Identity also has a single kit but *does* carry a decision guide, because establishing a workload identity is routinely misfiled as retrieving a secret — read it rather than skipping on the single-kit pattern.
+Audit Service, Identity Response, and Identity Access Management each have a single use case and no decision guide — go straight to the kit from [`index.md`](index.md). Identity Access Management publishes its certification checklist ahead of its development guide, and it requires a production or pilot customer to be named before certification — know that before you commit engineering time. Workload Identity also has a single kit but *does* carry a decision guide, because establishing a workload identity is routinely misfiled as retrieving a secret — read it rather than skipping on the single-kit pattern.
 
 ### 3.2 Submit the integration request
 
@@ -115,12 +115,12 @@ The environment you receive depends on what you are building:
 | Discovery | A dedicated Identity Security Platform SaaS tenant |
 | Secrets Management (SaaS, CP, CCP) | A shared Identity Security Platform environment |
 | Secrets Management (Self-Hosted) | A Skytap environment, provisioned by your Business Development representative with a Skytap Instructions document |
-| Credential Rotation | A PAM Self-Hosted environment |
+| Credential Rotation | A PAM Self-Hosted environment, or — for Idira Privileged Access Manager SaaS — the Connector agent installed on your own Windows server |
 | Audit Service | A dedicated SaaS tenant |
 | EPM — Audit Events | A shared integrations-platform environment |
 | EPM — Ticketing / JIT | A dedicated tenant |
 | EPM — SOC Response | The C3 Integrations Platform — `https://c3.cyberark.cloud` |
-| PSM Connectors | PAM Self-Hosted on the C3 Integrations Platform — `https://c3.cyberark.cloud` |
+| PSM Connectors | PAM Self-Hosted, or Privilege Cloud (SaaS) with the Connector agent (PSM component) installed on your own Windows server |
 | Identity Response | Identity Security Platform SaaS on the C3 Integrations Platform — `https://c3.cyberark.cloud` |
 | Identity Access Management (Identity Governance & Provisioning) | Confirmed per build with your Business Development representative: an Identity Security Platform tenant, plus Idira Privileged Access Manager if your integration manages Safes (pattern D). Say which patterns you are building at provisioning |
 | Workload Identity (SWA Federation) | Confirmed per build with your Business Development representative. Secure Workload Access is delivered as part of Secrets Manager SaaS, but the environment also has to cover the platform your workloads attest from — EC2, Google Cloud, or Kubernetes — so tell us which one at provisioning rather than assuming the Secrets Management row applies |
@@ -266,6 +266,7 @@ Questions at any stage: **cybr-bizdevtech@paloaltonetworks.com**
 
 | Date | Change | Author |
 |:---|:---|:---|
+| 2026-11-04 | **[Fixed]** v2.0 — Stage 2 no longer places PSM Connectors on the C3 Integrations Platform or calls it PAM Self-Hosted only. C3 is the shared Secrets Manager environment and cannot host PSM. PSM Connectors and Credential Rotation each list the SaaS path (the Connector agent installed on your own Windows server), and both now carry a decision guide. | Idira Technical Alliances |
 | 2026-11-02 | **[Added]** v1.9 — Stage 2 gains environment rows for EPM SOC Response and Identity Access Management, which had none. §3.1 lists Identity Access Management among the single-kit workflows and states its checklist-first publication and its named-customer prerequisite at the point a partner chooses the path. No stage, gate or graded requirement changed | Idira Technical Alliances |
 | 2026-10-19 | **[Added]** v1.8 — Stage 2 states that environment credentials are never published in these docs; if you need them, email cybr-bizdevtech@paloaltonetworks.com | Idira Technical Alliances |
 | 2026-10-05 | **[Added]** v1.7 — Three rows for the new Workload Identity workflow, whose kit establishes a workload's identity rather than consuming one. §3.1 gains a decision-guide row, and the note beneath it is amended: that workflow has a single kit and still has a decision guide, which breaks the pattern every other row sets, so the note now says why — with one kit there is nothing to choose between, and the guide instead tests whether the integration belongs in the workflow at all rather than in Secrets Management or Discovery. §4's environment row records provisioning as confirmed per build with the partner's Business Development representative, because Secure Workload Access ships as part of Secrets Manager SaaS and the tenant a partner needs is not the same for every attestation platform. §10's read-order row for workflow decision guides now lists Workload Identity alongside the three multi-path workflows, with the same qualification. No stage, gate or graded requirement changed | Idira Technical Alliances |
