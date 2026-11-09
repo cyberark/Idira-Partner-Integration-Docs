@@ -55,8 +55,6 @@ is explicitly permitted.
 - [Secrets Manager Self-Hosted](docs/secrets-management/secrets-manager-self-hosted/development-guide.md): Retrieve secrets from a self-hosted deployment ([checklist](docs/secrets-management/secrets-manager-self-hosted/certification-checklist.md))
 - [Secrets Manager integration-guide template](docs/secrets-management/integration-guide-templates/secrets-manager.md): Draft template for the integration guide a certified Secrets Manager integration publishes
 - [Credential Provider integration-guide template](docs/secrets-management/integration-guide-templates/credential-provider.md): Draft template for the integration guide a certified CP or CCP integration publishes
-- [Central Policy Manager integration-guide template](docs/secrets-management/integration-guide-templates/central-policy-manager.md): Draft template for the integration guide a certified CPM plugin publishes
-- [Privileged Session Manager integration-guide template](docs/secrets-management/integration-guide-templates/privileged-session-manager.md): Draft template for the integration guide a certified PSM connector publishes
 
 ## Workload Identity
 
