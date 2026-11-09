@@ -2,8 +2,8 @@
 
 **Maintained by:** Idira Technical Alliances  
 **Contact:** `cybr-bizdevtech@paloaltonetworks.com`  
-**Last Updated:** 2026-11-04  
-**Version:** 1.8
+**Last Updated:** 2026-11-09  
+**Version:** 1.9
 
 ---
 
@@ -161,7 +161,7 @@ Three use cases: stream EPM audit events into a partner security platform (SIEM,
 ### Secrets Management
 Enable a partner application, service, or tool to securely retrieve secrets from Idira instead of storing them locally. Covers four integration paths — Secrets Manager SaaS, CP (agent-based), CCP (agentless REST), and Secrets Manager Self-Hosted. Start with the [Decision Guide](secrets-management/decision-guide.md) to choose the right path.
 
-Once certified, write your integration guide from the matching template: [Secrets Manager](secrets-management/integration-guide-templates/secrets-manager.md) (Self-Hosted and SaaS) or [Credential Provider](secrets-management/integration-guide-templates/credential-provider.md) (CP and CCP). Both templates are drafts open for feedback.
+Once certified, write your integration guide from the matching template: [Secrets Manager](secrets-management/integration-guide-templates/secrets-manager.md) (Self-Hosted and SaaS) or [Credential Provider](secrets-management/integration-guide-templates/credential-provider.md) (CP and CCP), [Central Policy Manager](secrets-management/integration-guide-templates/central-policy-manager.md) (CPM plugin), or [Privileged Session Manager](secrets-management/integration-guide-templates/privileged-session-manager.md) (PSM connector). All templates are drafts open for feedback.
 
 ### PSM Connectors
 Package a connection component that lets Idira Privileged Session Manager (PSM) broker a privileged session to a partner web application: PSM launches a controlled browser on the customer's PSM server, injects vaulted credentials into the application's login web form, and records the session. This is a browser-automation integration built with the PSM Plugin Generator Utility, not a REST/API integration, so the telemetry-header requirement below does not apply to it. Idira PAM Self-Hosted, or Idira Privileged Access Manager SaaS with PSM on a Connector server.
@@ -214,6 +214,7 @@ PSM Web Connection Components are the one exception and carry no telemetry requi
 
 | Version | Date | Change |
 |:---|:---|:---|
+| 1.9 | 2026-11-09 | **[Added]** Draft integration-guide templates for the Central Policy Manager plugin and the Privileged Session Manager connector, linked from the Secrets Management section. No kit, status or requirement was changed. — Idira Technical Alliances |
 | 1.8 | 2026-11-04 | **[Added]** Decision-guide rows for Credential Rotation and PSM Connectors. **[Fixed]** PSM Connectors is no longer stated as Self-Hosted only; it supports Idira Privileged Access Manager Self-Hosted and Idira Privileged Access Manager SaaS with a Connector server. — Idira Technical Alliances |
 | 1.7 | 2026-11-02 | **[Fixed]** The AI context block states that the Workload Identity kit documents its federation exchange in its development guide Section 6.1, with non-JWT SVID types the one point still to confirm. No kit, status or requirement changed. |
 | 1.6 | 2026-10-27 | **[Added]** Draft integration-guide templates for Secrets Management: Secrets Manager (Self-Hosted and SaaS) and Credential Provider (CP and CCP), linked from the Secrets Management section. No kit, status or requirement was changed. — Idira Technical Alliances |
